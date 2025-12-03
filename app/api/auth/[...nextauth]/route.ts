@@ -43,22 +43,95 @@ export const authOptions: NextAuthOptions = {
         return null;
       },
     }),
+    CredentialsProvider({
+      id: "pin",
+      name: "PIN",
+      credentials: {
+        email: { label: "Email", type: "text" },
+        pin: { label: "PIN", type: "text" },
+      },
+      async authorize(credentials: any) {
+        try {
+          const pinVerification = await prisma.pinVerification.findFirst({
+            where: {
+              email: credentials.email,
+              pin: credentials.pin,
+              expiresAt: {
+                gt: new Date(),
+              },
+            },
+          });
+
+          if (pinVerification) {
+            // Verificar se não excedeu o limite de tentativas
+            if (pinVerification.attempts >= 3) {
+              return null;
+            }
+
+            // Buscar o usuário
+            const user = await prisma.user.findFirst({
+              where: {
+                email: credentials.email,
+              },
+            });
+
+            if (user) {
+              // Limpar o PIN após uso bem-sucedido
+              await prisma.pinVerification.delete({
+                where: {
+                  id: pinVerification.id,
+                },
+              });
+
+              return {
+                id: user.id,
+                email: user.email,
+                role: user.role,
+              };
+            }
+          } else {
+            // Incrementar tentativas se PIN incorreto
+            const existingPin = await prisma.pinVerification.findFirst({
+              where: {
+                email: credentials.email,
+              },
+            });
+
+            if (existingPin) {
+              await prisma.pinVerification.update({
+                where: {
+                  id: existingPin.id,
+                },
+                data: {
+                  attempts: existingPin.attempts + 1,
+                },
+              });
+            }
+          }
+        } catch (err: any) {
+          console.error("Erro na autenticação por PIN:", err);
+          throw new Error(err);
+        }
+        return null;
+      },
+    }),
     // Uncomment and configure these providers as needed
-    // GithubProvider({
-    //   clientId: process.env.GITHUB_ID!,
-    //   clientSecret: process.env.GITHUB_SECRET!,
-    // }),
-    // GoogleProvider({
-    //   clientId: process.env.GOOGLE_CLIENT_ID!,
-    //   clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    // }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/google`,
+        },
+      },
+    }),
   ],
   callbacks: {
     async signIn({ user, account }: { user: AuthUser; account: Account }) {
       if (account?.provider === "credentials") {
         return true;
       }
-      
+
       // Handle OAuth providers
       if (account?.provider === "github" || account?.provider === "google") {
         try {
@@ -71,15 +144,24 @@ export const authOptions: NextAuthOptions = {
 
           if (!existingUser) {
             // Create new user for OAuth providers
-            await prisma.user.create({
+            const newUser = await prisma.user.create({
               data: {
                 id: nanoid(),
                 email: user.email!,
+                name: user.name || user.email!.split("@")[0],
                 role: "user",
                 // OAuth users don't have passwords
                 password: null,
               },
             });
+
+            // Update user object with database data
+            user.id = newUser.id;
+            user.role = newUser.role;
+          } else {
+            // Update user object with existing database data
+            user.id = existingUser.id;
+            user.role = existingUser.role;
           }
           return true;
         } catch (error) {
@@ -87,7 +169,7 @@ export const authOptions: NextAuthOptions = {
           return false;
         }
       }
-      
+
       return true;
     },
     async jwt({ token, user }) {
@@ -96,17 +178,17 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.iat = Math.floor(Date.now() / 1000); // Issued at time
       }
-      
+
       // Check if token is expired (15 minutes)
       const now = Math.floor(Date.now() / 1000);
       const tokenAge = now - (token.iat as number);
       const maxAge = 15 * 60; // 15 minutes
-      
+
       if (tokenAge > maxAge) {
-        // Token expired, return empty object to force re-authentication
-        return {};
+        // Token expired, return null to force re-authentication
+        return null;
       }
-      
+
       return token;
     },
     async session({ session, token }) {
@@ -116,10 +198,17 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
+    },
   },
   pages: {
-    signIn: '/login',
-    error: '/login', // Redirect to login page on auth errors
+    signIn: "/login",
+    error: "/login", // Redirect to login page on auth errors
   },
   session: {
     strategy: "jwt",

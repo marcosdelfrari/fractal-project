@@ -9,6 +9,20 @@ export default withAuth(
         return NextResponse.redirect(new URL("/", req.url));
       }
     }
+
+    // Check for user routes
+    if (req.nextUrl.pathname.startsWith("/user")) {
+      const userRole = req.nextauth.token?.role;
+      if (!userRole || (userRole !== "user" && userRole !== "admin")) {
+        return NextResponse.redirect(
+          new URL(
+            "/api/auth/signin?callbackUrl=" +
+              encodeURIComponent(req.nextUrl.pathname),
+            req.url
+          )
+        );
+      }
+    }
   },
   {
     callbacks: {
@@ -17,6 +31,12 @@ export default withAuth(
         if (req.nextUrl.pathname.startsWith("/admin")) {
           return !!token && token.role === "admin";
         }
+
+        // User routes require user or admin token
+        if (req.nextUrl.pathname.startsWith("/user")) {
+          return !!token && (token.role === "user" || token.role === "admin");
+        }
+
         return true;
       },
     },
@@ -24,5 +44,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/admin/:path*"]
+  matcher: ["/admin/:path*", "/user/:path*"],
 };

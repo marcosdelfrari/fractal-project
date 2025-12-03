@@ -14,7 +14,14 @@ import HeaderTop from "./HeaderTop";
 import Image from "next/image";
 import SearchInput from "./SearchInput";
 import Link from "next/link";
-import { FaBell } from "react-icons/fa6";
+import {
+  FaBell,
+  FaUser,
+  FaShoppingBag,
+  FaMapMarkerAlt,
+  FaStar,
+  FaSignOutAlt,
+} from "react-icons/fa";
 
 import CartElement from "./CartElement";
 import HeartElement from "./HeartElement";
@@ -44,22 +51,31 @@ const Header = () => {
       title: string;
       price: number;
       image: string;
-      slug:string
+      slug: string;
       stockAvailabillity: number;
     }[] = [];
-    
-    wishlist.map((item: any) => productArray.push({id: item?.product?.id, title: item?.product?.title, price: item?.product?.price, image: item?.product?.mainImage, slug: item?.product?.slug, stockAvailabillity: item?.product?.inStock}));
-    
+
+    wishlist.map((item: any) =>
+      productArray.push({
+        id: item?.product?.id,
+        title: item?.product?.title,
+        price: item?.product?.price,
+        image: item?.product?.mainImage,
+        slug: item?.product?.slug,
+        stockAvailabillity: item?.product?.inStock,
+      })
+    );
+
     setWishlist(productArray);
   };
 
   // getting user by email so I can get his user id
   const getUserByEmail = async () => {
     if (session?.user?.email) {
-      
-      apiClient.get(`/api/users/email/${session?.user?.email}`, {
-        cache: "no-store",
-      })
+      apiClient
+        .get(`/api/users/email/${session?.user?.email}`, {
+          cache: "no-store",
+        })
         .then((response) => response.json())
         .then((data) => {
           getWishlistByUserId(data?.id);
@@ -77,12 +93,109 @@ const Header = () => {
       {pathname.startsWith("/admin") === false && (
         <div className="h-32 bg-white flex items-center justify-between px-16 max-[1320px]:px-16 max-md:px-6 max-lg:flex-col max-lg:gap-y-7 max-lg:justify-center max-lg:h-60 max-w-screen-2xl mx-auto">
           <Link href="/">
-            <img src="/logo v1 svg.svg" width={300} height={300} alt="singitronic logo" className="relative right-5 max-[1023px]:w-56" />
+            <img
+              src="/logo v1 svg.svg"
+              width={300}
+              height={300}
+              alt="singitronic logo"
+              className="relative right-5 max-[1023px]:w-56"
+            />
           </Link>
           <SearchInput />
-          <div className="flex gap-x-10">
+          <div className="flex gap-x-10 items-center">
             <HeartElement wishQuantity={wishQuantity} />
             <CartElement />
+
+            {/* User Account Dropdown */}
+            {session?.user && (
+              <div className="dropdown dropdown-end">
+                <div
+                  tabIndex={0}
+                  role="button"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <FaUser className="text-blue-600 text-sm" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 hidden sm:block">
+                    {session.user.name || session.user.email}
+                  </span>
+                </div>
+                <ul
+                  tabIndex={0}
+                  className="dropdown-content z-[1] menu p-2 shadow bg-white rounded-lg w-64 border border-gray-200"
+                >
+                  <li className="px-3 py-2 text-sm text-gray-500 border-b border-gray-100">
+                    Minha Conta
+                  </li>
+                  <li>
+                    <Link
+                      href="/user"
+                      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded"
+                    >
+                      <FaUser className="text-gray-400" />
+                      Dashboard
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/user/perfil"
+                      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded"
+                    >
+                      <FaUser className="text-gray-400" />
+                      Meu Perfil
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/user/pedidos"
+                      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded"
+                    >
+                      <FaShoppingBag className="text-gray-400" />
+                      Meus Pedidos
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/user/enderecos"
+                      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded"
+                    >
+                      <FaMapMarkerAlt className="text-gray-400" />
+                      Endereços
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/user/avaliacoes"
+                      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded"
+                    >
+                      <FaStar className="text-gray-400" />
+                      Avaliações
+                    </Link>
+                  </li>
+                  <li className="border-t border-gray-100 mt-1">
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 px-3 py-2 hover:bg-red-50 rounded text-red-600 w-full text-left"
+                    >
+                      <FaSignOutAlt className="text-red-400" />
+                      Sair
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            )}
+
+            {/* Login Button for non-authenticated users */}
+            {!session?.user && (
+              <Link
+                href="/login"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <FaUser />
+                <span className="hidden sm:block">Entrar</span>
+              </Link>
+            )}
           </div>
         </div>
       )}

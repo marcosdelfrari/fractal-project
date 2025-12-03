@@ -32,17 +32,20 @@ const AddToWishlistBtn = ({ product, slug }: AddToWishlistBtnProps) => {
     if (session?.user?.email) {
       try {
         // sending fetch request to get user id because we will need it for saving wish item
-        const userResponse = await apiClient.get(`/api/users/email/${session?.user?.email}`, {
-          cache: "no-store",
-        });
+        const userResponse = await apiClient.get(
+          `/api/users/email/${session?.user?.email}`,
+          {
+            cache: "no-store",
+          }
+        );
         const userData = await userResponse.json();
-        
+
         // Add product to wishlist
         const wishlistResponse = await apiClient.post("/api/wishlist", {
           productId: product?.id,
-          userId: userData?.id
+          userId: userData?.id,
         });
-        
+
         if (wishlistResponse.ok) {
           addToWishlist({
             id: product?.id,
@@ -70,22 +73,27 @@ const AddToWishlistBtn = ({ product, slug }: AddToWishlistBtnProps) => {
     if (session?.user?.email) {
       try {
         // sending fetch request to get user id because we will need to delete wish item
-        const userResponse = await apiClient.get(`/api/users/email/${session?.user?.email}`, {
-          cache: "no-store",
-        });
+        const userResponse = await apiClient.get(
+          `/api/users/email/${session?.user?.email}`,
+          {
+            cache: "no-store",
+          }
+        );
         const userData = await userResponse.json();
-        
+
         // Remove product from wishlist
         const deleteResponse = await apiClient.delete(
           `/api/wishlist/${userData?.id}/${product?.id}`
         );
-        
+
         if (deleteResponse.ok) {
           removeFromWishlist(product?.id);
           toast.success("Product removed from the wishlist");
         } else {
           const errorData = await deleteResponse.json();
-          toast.error(errorData.message || "Failed to remove product from wishlist");
+          toast.error(
+            errorData.message || "Failed to remove product from wishlist"
+          );
         }
       } catch (error) {
         console.error("Error removing from wishlist:", error);
@@ -98,17 +106,20 @@ const AddToWishlistBtn = ({ product, slug }: AddToWishlistBtnProps) => {
     // sending fetch request to get user id because we will need it for checking whether the product is in wishlist
     if (session?.user?.email) {
       try {
-        const userResponse = await apiClient.get(`/api/users/email/${session?.user?.email}`, {
-          cache: "no-store",
-        });
+        const userResponse = await apiClient.get(
+          `/api/users/email/${session?.user?.email}`,
+          {
+            cache: "no-store",
+          }
+        );
         const userData = await userResponse.json();
-        
+
         // checking is product in wishlist
         const wishlistResponse = await apiClient.get(
           `/api/wishlist/${userData?.id}/${product?.id}`
         );
         const wishlistData = await wishlistResponse.json();
-        
+
         if (wishlistData[0]?.id) {
           setIsProductInWishlist(true);
         } else {
