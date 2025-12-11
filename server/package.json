@@ -21,7 +21,9 @@
     "migrate:backup": "node scripts/migration-validator.js backup",
     "migrate:safe": "node scripts/migration-validator.js safe-migrate",
     "db:backup": "node scripts/backup-database.js",
-    "db:restore": "node scripts/restore-database.js"
+    "db:restore": "node scripts/restore-database.js",
+    "db:seed": "node utills/insertDemoData.js",
+    "db:setup": "npm run prisma:migrate:deploy && npm run db:seed"
   },
   "keywords": [],
   "author": "",

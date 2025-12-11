@@ -146,9 +146,8 @@ const demoProducts = [
     manufacturer: "Gillete",
     categoryId: "313eee86-bc11-4dc1-8cb0-6b2c2a2a1ccb",
     inStock: 0,
-  }
+  },
 ];
-
 
 const demoCategories = [
   {
@@ -201,33 +200,44 @@ const demoCategories = [
   },
   {
     id: "da6413b4-22fd-4fbb-9741-d77580dfdcd5",
-    name: "mouses"
+    name: "mouses",
   },
   {
     id: "ss6412b4-22fd-4fbb-9741-d77580dfdcd2",
-    name: "computers"
+    name: "computers",
   },
   {
     id: "fs6412b4-22fd-4fbb-9741-d77512dfdfa3",
-    name: "printers"
-  }
+    name: "printers",
+  },
 ];
 
 async function insertDemoData() {
-  
-  for (const category of demoCategories) {
-    await prisma.category.create({
-      data: category,
-    });
+  try {
+    // Inserir categorias (usando upsert para evitar erros se já existirem)
+    for (const category of demoCategories) {
+      await prisma.category.upsert({
+        where: { name: category.name },
+        update: category,
+        create: category,
+      });
+    }
+    console.log("✅ Demo categories inserted/updated successfully!");
+
+    // Inserir produtos (usando upsert para evitar erros se já existirem)
+    for (const product of demoProducts) {
+      await prisma.product.upsert({
+        where: { slug: product.slug },
+        update: product,
+        create: product,
+      });
+    }
+    console.log("✅ Demo products inserted/updated successfully!");
+    console.log("✅ All demo data has been inserted!");
+  } catch (error) {
+    console.error("❌ Error inserting demo data:", error);
+    throw error;
   }
-  console.log("Demo categories inserted successfully!");
-  
-  for (const product of demoProducts) {
-    await prisma.product.create({
-      data: product,
-    });
-  }
-  console.log("Demo products inserted successfully!");
 }
 
 insertDemoData()
