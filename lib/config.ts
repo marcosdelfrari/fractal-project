@@ -43,4 +43,11 @@ const config = {
   isValid: typeof window === "undefined" ? validateConfig() : true, // Only validate on server
 };
 
+// Log configuration in production (server-side only)
+if (typeof window === "undefined" && process.env.NODE_ENV === "production") {
+  console.log("[Config] API Base URL:", config.apiBaseUrl);
+  console.log("[Config] NextAuth URL:", config.nextAuthUrl);
+  console.log("[Config] Environment variable NEXT_PUBLIC_API_BASE_URL:", process.env.NEXT_PUBLIC_API_BASE_URL || "NOT SET");
+}
+
 export default config;

@@ -20,7 +20,13 @@ const ProductsSection = async () => {
     const data = await apiClient.get("/api/products");
 
     if (!data.ok) {
-      console.error(`API Error: ${data.status} ${data.statusText}`);
+      const errorText = await data.text().catch(() => 'Unable to read error response');
+      console.error(`API Error: ${data.status} ${data.statusText}`, {
+        url: data.url,
+        status: data.status,
+        statusText: data.statusText,
+        errorBody: errorText,
+      });
       // Return empty state instead of crashing
       return (
         <div className="bg-white">
@@ -29,6 +35,11 @@ const ProductsSection = async () => {
               <p className="text-gray-500">
                 Não foi possível carregar os produtos no momento.
               </p>
+              {process.env.NODE_ENV === 'development' && (
+                <p className="text-xs text-gray-400 mt-2">
+                  Erro: {data.status} {data.statusText}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -43,7 +54,11 @@ const ProductsSection = async () => {
       products = [];
     }
   } catch (error) {
-    console.error("Error fetching products:", error);
+    console.error("Error fetching products:", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined,
+    });
     // Return empty state instead of crashing
     return (
       <div className="bg-white">
@@ -52,6 +67,11 @@ const ProductsSection = async () => {
             <p className="text-gray-500">
               Não foi possível carregar os produtos no momento.
             </p>
+            {process.env.NODE_ENV === 'development' && (
+              <p className="text-xs text-gray-400 mt-2">
+                {error instanceof Error ? error.message : String(error)}
+              </p>
+            )}
           </div>
         </div>
       </div>
