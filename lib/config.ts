@@ -1,5 +1,10 @@
-// Validate environment variables
+// Validate environment variables (only on server side)
 const validateConfig = () => {
+  // Only validate on server side (not in browser)
+  if (typeof window !== "undefined") {
+    return true; // Skip validation in browser
+  }
+
   const isProduction = process.env.NODE_ENV === "production";
   const errors: string[] = [];
 
@@ -26,8 +31,8 @@ const validateConfig = () => {
   return errors.length === 0;
 };
 
-// Validate on module load (only in production)
-if (process.env.NODE_ENV === "production") {
+// Validate on module load (only in production and on server side)
+if (typeof window === "undefined" && process.env.NODE_ENV === "production") {
   validateConfig();
 }
 
@@ -35,7 +40,7 @@ const config = {
   apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001",
   nextAuthUrl: process.env.NEXTAUTH_URL || "http://localhost:3000",
   isProduction: process.env.NODE_ENV === "production",
-  isValid: validateConfig(),
+  isValid: typeof window === "undefined" ? validateConfig() : true, // Only validate on server
 };
 
 export default config;
