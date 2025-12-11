@@ -200,3 +200,4 @@ No Vercel, você pode verificar variáveis em:
 - [Fly.io Secrets](https://fly.io/docs/reference/secrets/)
 
 
+
