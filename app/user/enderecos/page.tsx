@@ -194,7 +194,10 @@ export default function UserAddressesPage() {
     }
   };
 
-  const handleEdit = (address: Address) => {
+  const handleEdit = (addressId: string) => {
+    const address = addresses.find((addr) => addr.id === addressId);
+    if (!address) return;
+
     setFormData({
       label: address.label,
       street: address.street,
@@ -734,4 +737,3 @@ export default function UserAddressesPage() {
     </div>
   );
 }
-

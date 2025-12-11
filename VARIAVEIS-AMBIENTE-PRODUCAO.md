@@ -198,3 +198,4 @@ No Vercel, você pode verificar variáveis em:
 - [Railway Environment Variables](https://docs.railway.app/develop/variables)
 - [Render Environment Variables](https://render.com/docs/environment-variables)
 - [Fly.io Secrets](https://fly.io/docs/reference/secrets/)
+

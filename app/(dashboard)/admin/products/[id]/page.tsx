@@ -15,12 +15,10 @@ interface DashboardProductDetailsProps {
   params: Promise<{ id: string }>;
 }
 
-const DashboardProductDetails = ({
-  params,
-}: DashboardProductDetailsProps) => {
+const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
-  
+
   const [product, setProduct] = useState<Product>();
   const [categories, setCategories] = useState<Category[]>();
   const [otherImages, setOtherImages] = useState<OtherImages[]>([]);
@@ -31,7 +29,8 @@ const DashboardProductDetails = ({
     const requestOptions = {
       method: "DELETE",
     };
-    apiClient.delete(`/api/products/${id}`, requestOptions)
+    apiClient
+      .delete(`/api/products/${id}`, requestOptions)
       .then((response) => {
         if (response.status !== 204) {
           if (response.status === 400) {
@@ -69,7 +68,8 @@ const DashboardProductDetails = ({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(product),
     };
-    apiClient.put(`/api/products/${id}`, requestOptions)
+    apiClient
+      .put(`/api/products/${id}`, requestOptions)
       .then((response) => {
         if (response.status === 200) {
           return response.json();
@@ -107,7 +107,8 @@ const DashboardProductDetails = ({
 
   // fetching main product data including other product images
   const fetchProductData = async () => {
-    apiClient.get(`/api/products/${id}`)
+    apiClient
+      .get(`/api/products/${id}`)
       .then((res) => {
         return res.json();
       })
@@ -124,7 +125,8 @@ const DashboardProductDetails = ({
 
   // fetching all product categories. It will be used for displaying categories in select category input
   const fetchCategories = async () => {
-    apiClient.get(`/api/categories`)
+    apiClient
+      .get(`/api/categories`)
       .then((res) => {
         return res.json();
       })
@@ -205,7 +207,9 @@ const DashboardProductDetails = ({
             <input
               type="text"
               className="input input-bordered w-full max-w-xs"
-              value={product?.slug ? convertSlugToURLFriendly(product?.slug) : ""}
+              value={
+                product?.slug ? convertSlugToURLFriendly(product?.slug) : ""
+              }
               onChange={(e) =>
                 setProduct({
                   ...product!,
@@ -269,7 +273,7 @@ const DashboardProductDetails = ({
             type="file"
             className="file-input file-input-bordered file-input-lg w-full max-w-sm"
             onChange={(e) => {
-              const selectedFile = e.target.files[0];
+              const selectedFile = e.target.files?.[0];
 
               if (selectedFile) {
                 uploadFile(selectedFile);

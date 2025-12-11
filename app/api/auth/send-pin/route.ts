@@ -3,7 +3,17 @@ import prisma from "@/utils/db";
 import { nanoid } from "nanoid";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Inicialização lazy do Resend para evitar erro durante build
+const getResend = () => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn(
+      "⚠️ RESEND_API_KEY não configurada - emails não serão enviados"
+    );
+    return null;
+  }
+  return new Resend(apiKey);
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,6 +57,15 @@ export async function POST(request: NextRequest) {
 
     // Enviar PIN por email usando Resend
     try {
+      const resend = getResend();
+      if (!resend) {
+        console.log("📧 Resend não configurado - PIN apenas no console");
+        console.log(`🔐 PIN para ${email}: ${pin}`);
+        return NextResponse.json(
+          { message: "PIN enviado com sucesso" },
+          { status: 200 }
+        );
+      }
       const emailResult = await resend.emails.send({
         from: "Fractal Shop <test@resend.dev>",
         to: [email],

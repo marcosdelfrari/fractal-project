@@ -155,89 +155,6 @@ NEXTAUTH_SECRET=<sua-chave-secreta>
 DATABASE_URL=<mesma-do-railway-se-precisar-no-frontend>
 ```
 
----
-
-## 🛠️ Configuração Alternativa - Render
-
-### Passo 1: Criar Banco de Dados PostgreSQL
-
-⚠️ **Nota**: Render não oferece MySQL no plano gratuito. Você precisará:
-- Migrar para PostgreSQL, OU
-- Usar PlanetScale para MySQL e Render apenas para o backend
-
-**Opção A: Usar PostgreSQL (Recomendado para Render)**
-
-1. Atualize `prisma/schema.prisma`:
-```prisma
-datasource db {
-  provider = "postgresql"  // Mude de mysql para postgresql
-  url      = env("DATABASE_URL")
-}
-```
-
-2. No Render, crie um **PostgreSQL Database**
-3. Copie a `DATABASE_URL` interna
-
-### Passo 2: Deploy do Backend no Render
-
-1. Acesse https://render.com
-2. Conecte seu GitHub
-3. Clique em **"New"** → **"Web Service"**
-4. Selecione seu repositório
-5. Configure:
-   - **Name**: `fractal-backend`
-   - **Root Directory**: `server`
-   - **Build Command**: `npm install && npx prisma generate`
-   - **Start Command**: `node app.js`
-   - **Environment**: `Node`
-
-6. Adicione variáveis de ambiente:
-```env
-NODE_ENV=production
-DATABASE_URL=<url-do-banco>
-PORT=3001
-FRONTEND_URL=https://seu-app.vercel.app
-```
-
-7. Clique em **"Create Web Service"**
-
-### Passo 3: Executar Migrações
-
-No Render, vá em **"Shell"** e execute:
-```bash
-cd server
-npx prisma migrate deploy
-```
-
----
-
-## 🛠️ Configuração Alternativa - PlanetScale + Fly.io
-
-### Passo 1: Criar Banco no PlanetScale
-
-1. Acesse https://planetscale.com
-2. Crie uma conta e um novo banco
-3. Copie a `DATABASE_URL` (formato: `mysql://...`)
-
-### Passo 2: Deploy do Backend no Fly.io
-
-1. Instale o Fly CLI: `npm i -g flyctl`
-2. Faça login: `flyctl auth login`
-3. No diretório `server/`, execute:
-```bash
-flyctl launch
-```
-
-4. Configure o `fly.toml` gerado
-5. Adicione variáveis:
-```bash
-flyctl secrets set DATABASE_URL="<url-do-planetscale>"
-flyctl secrets set FRONTEND_URL="https://seu-app.vercel.app"
-```
-
-6. Deploy: `flyctl deploy`
-
----
 
 ## 📝 Checklist de Deploy
 
@@ -314,3 +231,4 @@ Seu backend já tem rate limiting configurado - mantenha ativo em produção.
 **Para produção escalável**: Use **PlanetScale** (MySQL) + **Fly.io** ou **Railway** (backend).
 
 **Para orçamento zero**: Use **Render** (backend) + **PlanetScale** (MySQL gratuito).
+

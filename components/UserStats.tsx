@@ -73,7 +73,7 @@ const UserStats = ({ stats, className = "" }: UserStatsProps) => {
     return colorMap[color];
   };
 
-  const getChangeIcon = (type: StatCard["change"]["type"]) => {
+  const getChangeIcon = (type: "increase" | "decrease" | "neutral") => {
     switch (type) {
       case "increase":
         return <FaArrowUp className="text-green-300" />;
@@ -86,7 +86,7 @@ const UserStats = ({ stats, className = "" }: UserStatsProps) => {
     }
   };
 
-  const getChangeColor = (type: StatCard["change"]["type"]) => {
+  const getChangeColor = (type: "increase" | "decrease" | "neutral") => {
     switch (type) {
       case "increase":
         return "text-green-300";

@@ -36,7 +36,7 @@ interface OrderProduct {
 
 interface OrderAddress {
   street: string;
-  apartment: string;
+  apartment?: string;
   postalCode: string;
   city: string;
   country: string;
@@ -48,7 +48,7 @@ interface Order {
   lastname: string;
   phone: string;
   email: string;
-  company: string;
+  company?: string;
   address: OrderAddress;
   status: string;
   orderNotice?: string;

@@ -8,7 +8,7 @@ interface Product {
   mainImage: string;
   manufacturer: string;
   categoryId: string;
-  category: {name: string}?;
+  category: { name: string }?;
   inStock: number;
 }
 
@@ -69,7 +69,6 @@ interface SingleProductBtnProps {
   quantityCount: number;
 }
 
-
 interface Category {
   id: string;
   name: string;
@@ -82,27 +81,4 @@ interface WishListItem {
   product: Product;
 }
 
-
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      name: string;
-      email: string;
-      image: string;
-      role: string;
-    };
-  }
-
-  interface User {
-    id: string;
-    role: string;
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-    role: string;
-  }
-}
+// Tipos do NextAuth movidos para types/next-auth.d.ts
