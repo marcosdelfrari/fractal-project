@@ -11,45 +11,84 @@ import React from "react";
 import ProductItem from "./ProductItem";
 import apiClient from "@/lib/api";
 
-const Products = async ({ params, searchParams }: { params: { slug?: string[] }, searchParams: { [key: string]: string | string[] | undefined } }) => {
-  // getting all data from URL slug and preparing everything for sending GET request
-  const inStockNum = searchParams?.inStock === "true" ? 1 : 0;
-  const outOfStockNum = searchParams?.outOfStock === "true" ? 1 : 0;
-  const page = searchParams?.page ? Number(searchParams?.page) : 1;
+const Products = async ({
+  params,
+  searchParams,
+}: {
+  params: { slug?: string[] };
+  searchParams: { [key: string]: string | string[] | undefined };
+}) => {
+  let products: Product[] = [];
 
-  let stockMode: string = "lte";
-  
-  // preparing inStock and out of stock filter for GET request
-  // If in stock checkbox is checked, stockMode is "equals"
-  if (inStockNum === 1) {
-    stockMode = "equals";
-  }
- // If out of stock checkbox is checked, stockMode is "lt"
-  if (outOfStockNum === 1) {
-    stockMode = "lt";
-  }
-   // If in stock and out of stock checkboxes are checked, stockMode is "lte"
-  if (inStockNum === 1 && outOfStockNum === 1) {
-    stockMode = "lte";
-  }
-   // If in stock and out of stock checkboxes aren't checked, stockMode is "gt"
-  if (inStockNum === 0 && outOfStockNum === 0) {
-    stockMode = "gt";
-  }
+  try {
+    // getting all data from URL slug and preparing everything for sending GET request
+    const inStockNum = searchParams?.inStock === "true" ? 1 : 0;
+    const outOfStockNum = searchParams?.outOfStock === "true" ? 1 : 0;
+    const page = searchParams?.page ? Number(searchParams?.page) : 1;
 
-  // sending API request with filtering, sorting and pagination for getting all products
-  const data = await apiClient.get(`/api/products?filters[price][$lte]=${
-      searchParams?.price || 3000
-    }&filters[rating][$gte]=${
-      Number(searchParams?.rating) || 0
-    }&filters[inStock][$${stockMode}]=1&${
-      params?.slug?.length! > 0
-        ? `filters[category][$equals]=${params?.slug}&`
-        : ""
-    }sort=${searchParams?.sort}&page=${page}`
-  );
+    let stockMode: string = "lte";
 
-  const products = await data.json();
+    // preparing inStock and out of stock filter for GET request
+    // If in stock checkbox is checked, stockMode is "equals"
+    if (inStockNum === 1) {
+      stockMode = "equals";
+    }
+    // If out of stock checkbox is checked, stockMode is "lt"
+    if (outOfStockNum === 1) {
+      stockMode = "lt";
+    }
+    // If in stock and out of stock checkboxes are checked, stockMode is "lte"
+    if (inStockNum === 1 && outOfStockNum === 1) {
+      stockMode = "lte";
+    }
+    // If in stock and out of stock checkboxes aren't checked, stockMode is "gt"
+    if (inStockNum === 0 && outOfStockNum === 0) {
+      stockMode = "gt";
+    }
+
+    // sending API request with filtering, sorting and pagination for getting all products
+    const data = await apiClient.get(
+      `/api/products?filters[price][$lte]=${
+        searchParams?.price || 3000
+      }&filters[rating][$gte]=${
+        Number(searchParams?.rating) || 0
+      }&filters[inStock][$${stockMode}]=1&${
+        params?.slug?.length! > 0
+          ? `filters[category][$equals]=${params?.slug}&`
+          : ""
+      }sort=${searchParams?.sort}&page=${page}`
+    );
+
+    if (!data.ok) {
+      console.error(`API Error: ${data.status} ${data.statusText}`);
+      // Return empty state instead of crashing
+      return (
+        <div className="grid grid-cols-3 justify-items-center gap-x-2 gap-y-5 max-[1300px]:grid-cols-3 max-lg:grid-cols-2 max-[500px]:grid-cols-1">
+          <h3 className="text-3xl mt-5 text-center w-full col-span-full max-[1000px]:text-2xl max-[500px]:text-lg text-gray-500">
+            Não foi possível carregar os produtos no momento.
+          </h3>
+        </div>
+      );
+    }
+
+    products = await data.json();
+
+    // Validate that products is an array
+    if (!Array.isArray(products)) {
+      console.error("API returned invalid data format");
+      products = [];
+    }
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    // Return empty state instead of crashing
+    return (
+      <div className="grid grid-cols-3 justify-items-center gap-x-2 gap-y-5 max-[1300px]:grid-cols-3 max-lg:grid-cols-2 max-[500px]:grid-cols-1">
+        <h3 className="text-3xl mt-5 text-center w-full col-span-full max-[1000px]:text-2xl max-[500px]:text-lg text-gray-500">
+          Não foi possível carregar os produtos no momento.
+        </h3>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-3 justify-items-center gap-x-2 gap-y-5 max-[1300px]:grid-cols-3 max-lg:grid-cols-2 max-[500px]:grid-cols-1">
