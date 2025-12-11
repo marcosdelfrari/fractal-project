@@ -29,7 +29,3 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
-
-# Bun lockfile (we use npm)
-bun.lock
-bun.lockb
