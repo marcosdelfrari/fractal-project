@@ -158,11 +158,33 @@ app.get("/rate-limit-info", (req, res) => {
   });
 });
 
-// 404 handler
+// 404 handler - deve ser o último middleware antes do error handler
 app.use("*", (req, res) => {
   res.status(404).json({
     error: "Route not found",
-    requestId: req.reqId,
+    path: req.originalUrl,
+    method: req.method,
+    requestId: req.reqId || "unknown",
+    availableEndpoints: [
+      "GET /health",
+      "GET /rate-limit-info",
+      "GET /api/products",
+      "GET /api/products/:id",
+      "GET /api/categories",
+      "GET /api/search",
+      "GET /api/slugs/:slug",
+      "GET /api/orders",
+      "POST /api/orders",
+      "GET /api/wishlist",
+      "POST /api/wishlist",
+      "GET /api/addresses",
+      "POST /api/addresses",
+      "GET /api/reviews",
+      "POST /api/reviews",
+      "GET /api/users",
+      "POST /api/users/register",
+      "POST /api/users/login",
+    ],
   });
 });
 

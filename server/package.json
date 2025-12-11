@@ -20,10 +20,13 @@
     "migrate:validate": "node scripts/migration-validator.js validate",
     "migrate:backup": "node scripts/migration-validator.js backup",
     "migrate:safe": "node scripts/migration-validator.js safe-migrate",
+    "migrate:fix": "node scripts/fix-migrations.js",
     "db:backup": "node scripts/backup-database.js",
     "db:restore": "node scripts/restore-database.js",
     "db:seed": "node utills/insertDemoData.js",
-    "db:setup": "npm run prisma:migrate:deploy && npm run db:seed"
+    "db:setup": "npm run prisma:migrate:deploy && npm run db:seed",
+    "install:prod": "npm install --omit=dev",
+    "install:dev": "npm install"
   },
   "keywords": [],
   "author": "",
