@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 const demoProducts = [
   {
-    id: "1",
+    id: "550e8400-e29b-41d4-a716-446655440000",
     title: "Smart phone",
     price: 22,
     rating: 5,
@@ -16,7 +16,7 @@ const demoProducts = [
     inStock: 0,
   },
   {
-    id: "2",
+    id: "550e8400-e29b-41d4-a716-446655440001",
     title: "SLR camera",
     price: 24,
     rating: 0,
@@ -28,7 +28,7 @@ const demoProducts = [
     inStock: 0,
   },
   {
-    id: "3",
+    id: "550e8400-e29b-41d4-a716-446655440002",
     title: "Mixer grinder",
     price: 25,
     rating: 4,
@@ -40,7 +40,7 @@ const demoProducts = [
     inStock: 1,
   },
   {
-    id: "4",
+    id: "550e8400-e29b-41d4-a716-446655440003",
     title: "Phone gimbal",
     price: 21,
     rating: 5,
@@ -52,7 +52,7 @@ const demoProducts = [
     inStock: 1,
   },
   {
-    id: "5",
+    id: "550e8400-e29b-41d4-a716-446655440004",
     title: "Tablet keyboard",
     price: 52,
     rating: 4,
@@ -64,7 +64,7 @@ const demoProducts = [
     inStock: 1,
   },
   {
-    id: "6",
+    id: "550e8400-e29b-41d4-a716-446655440005",
     title: "Wireless earbuds",
     price: 74,
     rating: 3,
@@ -76,7 +76,7 @@ const demoProducts = [
     inStock: 1,
   },
   {
-    id: "7",
+    id: "550e8400-e29b-41d4-a716-446655440006",
     title: "Party speakers",
     price: 35,
     rating: 5,
@@ -88,7 +88,7 @@ const demoProducts = [
     inStock: 1,
   },
   {
-    id: "8",
+    id: "550e8400-e29b-41d4-a716-446655440007",
     title: "Slow juicer",
     price: 69,
     rating: 5,
@@ -100,7 +100,7 @@ const demoProducts = [
     inStock: 1,
   },
   {
-    id: "9",
+    id: "550e8400-e29b-41d4-a716-446655440008",
     title: "Wireless headphones",
     price: 89,
     rating: 3,
@@ -112,7 +112,7 @@ const demoProducts = [
     inStock: 1,
   },
   {
-    id: "10",
+    id: "550e8400-e29b-41d4-a716-446655440009",
     title: "Smart watch",
     price: 64,
     rating: 3,
@@ -124,7 +124,7 @@ const demoProducts = [
     inStock: 1,
   },
   {
-    id: "11",
+    id: "550e8400-e29b-41d4-a716-44665544000a",
     title: "Notebook horizon",
     price: 52,
     rating: 5,
@@ -136,7 +136,7 @@ const demoProducts = [
     inStock: 1,
   },
   {
-    id: "12",
+    id: "550e8400-e29b-41d4-a716-44665544000b",
     title: "Mens trimmer",
     price: 54,
     rating: 5,
