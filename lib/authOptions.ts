@@ -119,11 +119,6 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/google`,
-        },
-      },
     }),
   ],
   callbacks: {
@@ -234,4 +229,11 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === "development",
 };
 
-
+// Debug: Log NEXTAUTH_URL in production to help diagnose redirect_uri_mismatch
+if (typeof window === "undefined" && process.env.NODE_ENV === "production") {
+  console.log("[NextAuth Debug] NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
+  console.log(
+    "[NextAuth Debug] Expected redirect URI:",
+    `${process.env.NEXTAUTH_URL}/api/auth/callback/google`
+  );
+}

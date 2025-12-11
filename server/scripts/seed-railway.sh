@@ -19,3 +19,4 @@ else
   echo "❌ Erro ao executar seed"
   exit 1
 fi
+

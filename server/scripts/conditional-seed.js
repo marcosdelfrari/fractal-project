@@ -17,3 +17,4 @@ if (shouldRunSeed) {
 } else {
   console.log("⏭️  RUN_SEED não está definido como 'true'. Pulando seed.");
 }
+
