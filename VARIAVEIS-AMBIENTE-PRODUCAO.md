@@ -199,3 +199,4 @@ No Vercel, você pode verificar variáveis em:
 - [Render Environment Variables](https://render.com/docs/environment-variables)
 - [Fly.io Secrets](https://fly.io/docs/reference/secrets/)
 
+

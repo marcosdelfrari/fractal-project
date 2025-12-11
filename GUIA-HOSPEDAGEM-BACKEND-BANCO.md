@@ -232,3 +232,4 @@ Seu backend já tem rate limiting configurado - mantenha ativo em produção.
 
 **Para orçamento zero**: Use **Render** (backend) + **PlanetScale** (MySQL gratuito).
 
+
