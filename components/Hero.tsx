@@ -1,45 +1,48 @@
-// *********************
-// Role of the component: Classical hero component on home page
-// Name of the component: Hero.tsx
-// Version: 1.0
-// Component call: <Hero />
-// Input parameters: no input parameters
-// Output: Classical hero component with two columns on desktop and one column on smaller devices
-// *********************
-
-import Image from "next/image";
-import React from "react";
+"use client";
+import React, { useEffect, useRef } from "react";
 
 const Hero = () => {
+  const parallaxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (parallaxRef.current) {
+        const scrolled = window.pageYOffset;
+        const rate = scrolled * 0.5;
+        parallaxRef.current.style.transform = `translateY(${rate}px)`;
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <div className="h-[700px] w-full bg-blue-500 max-lg:h-[900px] max-md:h-[750px]">
-      <div className="grid grid-cols-3 items-center justify-items-center px-10 gap-x-10 max-w-screen-2xl mx-auto h-full max-lg:grid-cols-1 max-lg:py-10 max-lg:gap-y-10">
-        <div className="flex flex-col gap-y-5 max-lg:order-last col-span-2">
-          <h1 className="text-6xl text-white font-bold mb-3 max-xl:text-5xl max-md:text-4xl max-sm:text-3xl">
-            THE PRODUCT OF THE FUTURE
-          </h1>
-          <p className="text-white max-sm:text-sm">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolor modi
-            iure laudantium necessitatibus ab, voluptates vitae ullam. Officia
-            ipsam iusto beatae nesciunt, consequatur deserunt minima maiores
-            earum obcaecati. Optio, nam!
-          </p>
-          <div className="flex gap-x-1 max-lg:flex-col max-lg:gap-y-1">
-            <button className="bg-white text-blue-600 font-bold px-12 py-3 max-lg:text-xl max-sm:text-lg hover:bg-gray-100">
-              BUY NOW
-            </button>
-            <button className="bg-white text-blue-600 font-bold px-12 py-3 max-lg:text-xl max-sm:text-lg hover:bg-gray-100">
-              LEARN MORE
-            </button>
-          </div>
-        </div>
-        <Image
-          src="/watch for banner.png"
-          width={400}
-          height={400}
-          alt="smart watch"
-          className="max-md:w-[300px] max-md:h-[300px] max-sm:h-[250px] max-sm:w-[250px] w-auto h-auto"
-        />
+    <div className="relative h-screen w-full overflow-hidden">
+      {/* Background image with parallax effect */}
+      <div
+        ref={parallaxRef}
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: "url('/hero.webp')",
+          willChange: "transform",
+        }}
+      />
+
+      {/* Overlay for better text readability */}
+      <div className="absolute inset-0 bg-black/30" />
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center pt-20">
+        {/* Main Title */}
+        <h1 className="text-6xl md:text-8xl text-white font-thin mb-4 tracking-wide relative z-20">
+          GIFTING
+        </h1>
+
+        {/* Button */}
+        <button className="border border-white text-white px-10 py-3 rounded-full hover:bg-white hover:text-black transition-all uppercase text-sm tracking-widest z-20">
+          Discover
+        </button>
       </div>
     </div>
   );

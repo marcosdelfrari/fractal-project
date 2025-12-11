@@ -1,30 +1,102 @@
 // *********************
-// Role of the component: Category wrapper that will contain title and category items
+// Role of the component: Category wrapper that will contain title and category items (Fashion Shows style)
 // Name of the component: CategoryMenu.tsx
-// Version: 1.0
+// Version: 2.1
 // Component call: <CategoryMenu />
 // Input parameters: no input parameters
-// Output: section title and category items
+// Output: Fashion Shows carousel section with dots navigation
 // *********************
 
+"use client";
+
 import React from "react";
-import CategoryItem from "./CategoryItem";
 import Image from "next/image";
+import Link from "next/link";
+import Slider from "react-slick";
 import { categoryMenuList } from "@/lib/utils";
-import Heading from "./Heading";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 const CategoryMenu = () => {
+  const settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 4,
+    slidesToScroll: 1,
+    arrows: false,
+    autoplay: true,
+    autoplaySpeed: 4000,
+    responsive: [
+      {
+        breakpoint: 1280,
+        settings: {
+          slidesToShow: 3,
+        },
+      },
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 2,
+        },
+      },
+      {
+        breakpoint: 640,
+        settings: {
+          slidesToShow: 1,
+        },
+      },
+    ],
+  };
+
   return (
-    <div className="py-10 bg-blue-500">
-      <Heading title="BROWSE CATEGORIES" />
-      <div className="max-w-screen-2xl mx-auto py-10 gap-x-5 px-16 max-md:px-10 gap-y-5 grid grid-cols-5 max-lg:grid-cols-3 max-md:grid-cols-2 max-[450px]:grid-cols-1">
-        {categoryMenuList.map((item) => (
-          <CategoryItem title={item.title} key={item.id} href={item.href}>
-            <Image src={item.src} width={48} height={48} alt={item.title} />
-          </CategoryItem>
-        ))}
+    <section className="py-16 bg-white overflow-hidden category-menu-section">
+      <div className="max-w-screen-2xl mx-auto px-4 mb-10 relative">
+        {/* Header */}
+        <div className="flex flex-col items-center justify-center text-[#0a3928] mb-8">
+          <h2 className="text-3xl md:text-7xl font-thin tracking-wide uppercase mb-4 text-center">
+            Categorias
+          </h2>
+        </div>
+
+        {/* Slider Content */}
+        <div className="px-2 md:px-12 pb-8">
+          <Slider {...settings}>
+            {categoryMenuList.map((item) => (
+              <div key={item.id} className="px-3 focus:outline-none py-2">
+                <div className="relative h-[550px] w-full rounded-[32px] overflow-hidden group cursor-pointer">
+                  {/* Background Image */}
+                  <Image
+                    src="/categ.webp"
+                    alt={item.title}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    priority={item.id <= 3}
+                  />
+
+                  {/* Overlay gradient - darker at bottom for text readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
+
+                  {/* Content */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-end pb-12 text-white z-10 p-6 text-center">
+                    <h3 className="text-3xl md:text-4xl font-thin uppercase mb-3 leading-tight drop-shadow-md break-words max-w-full">
+                      {item.title}
+                    </h3>
+
+                    <Link
+                      href={item.href}
+                      className="px-10 py-3 border border-white rounded-full uppercase text-xs tracking-[0.15em] hover:bg-white hover:text-black transition-all duration-300 font-medium"
+                    >
+                      Discover
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </Slider>
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 
