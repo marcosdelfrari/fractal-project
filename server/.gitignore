@@ -12,9 +12,12 @@ logs/
 
 # Database backups
 backups/
-*.sql
 *.dump
 *.backup
+
+# Ignore SQL files EXCEPT Prisma migrations (they must be in Git)
+*.sql
+!prisma/migrations/**/*.sql
 
 # IDE
 .vscode/
