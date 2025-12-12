@@ -40,7 +40,7 @@ const UserStats = ({ stats, className = "" }: UserStatsProps) => {
   const getColorClasses = (color: StatCard["color"]) => {
     const colorMap = {
       blue: {
-        bg: "bg-blue-500",
+        bg: "bg-zinc-900",
         text: "text-white",
         change: "text-blue-200",
         icon: "text-blue-200",

@@ -20,7 +20,6 @@ interface QuantityInputProps {
 
 const QuantityInput = ({quantityCount, setQuantityCount} : QuantityInputProps) => {
 
-
   const handleQuantityChange = (actionName: string): void => {
     if (actionName === "plus") {
       setQuantityCount(quantityCount + 1);
@@ -30,34 +29,30 @@ const QuantityInput = ({quantityCount, setQuantityCount} : QuantityInputProps) =
   };
 
   return (
-    <div className="flex items-center gap-x-4 max-[500px]:justify-center">
-      <p className="text-xl">Quantity: </p>
+    <div className="flex items-center h-full">
+      <button
+        type="button"
+        className="w-10 h-full text-gray-600 hover:text-black flex justify-center items-center"
+        onClick={() => handleQuantityChange("minus")}
+      >
+        <FaMinus size={10} />
+      </button>
 
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          className="size-10 leading-10 text-gray-600 transition hover:opacity-75 flex justify-center items-center border"
-          onClick={() => handleQuantityChange("minus")}
-        >
-          <FaMinus />
-        </button>
+      <input
+        type="number"
+        id="Quantity"
+        disabled={true}
+        value={quantityCount}
+        className="h-full w-10 text-center bg-transparent border-none focus:ring-0 p-0 text-sm font-medium appearance-none"
+      />
 
-        <input
-          type="number"
-          id="Quantity"
-          disabled={true}
-          value={quantityCount}
-          className="h-10 w-24 rounded border-gray-200 sm:text-sm"
-        />
-
-        <button
-          type="button"
-          className="size-10 leading-10 text-gray-600 transition hover:opacity-75 flex justify-center items-center border"
-          onClick={() => handleQuantityChange("plus")}
-        >
-          <FaPlus />
-        </button>
-      </div>
+      <button
+        type="button"
+        className="w-10 h-full text-gray-600 hover:text-black flex justify-center items-center"
+        onClick={() => handleQuantityChange("plus")}
+      >
+        <FaPlus size={10} />
+      </button>
     </div>
   );
 };

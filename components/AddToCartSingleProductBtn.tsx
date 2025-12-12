@@ -8,13 +8,9 @@
 // *********************
 "use client";
 
-
-
 import React from "react";
 import { useProductStore } from "@/app/_zustand/store";
 import toast from "react-hot-toast";
-
-
 
 const AddToCartSingleProductBtn = ({ product, quantityCount } : SingleProductBtnProps) => {
   const { addToCart, calculateTotals } = useProductStore();
@@ -28,14 +24,14 @@ const AddToCartSingleProductBtn = ({ product, quantityCount } : SingleProductBtn
       amount: quantityCount
     });
     calculateTotals();
-    toast.success("Product added to the cart");
+    toast.success("Produto adicionado ao carrinho!");
   };
   return (
     <button
       onClick={handleAddToCart}
-      className="btn w-[200px] text-lg border border-gray-300 border-1 font-normal bg-white text-blue-500 hover:bg-blue-500 hover:text-white hover:border-blue-500 hover:scale-110 transition-all uppercase ease-in max-[500px]:w-full"
+      className="w-full h-full bg-slate-600 text-white hover:bg-slate-700 font-medium text-base px-6 py-3 transition-colors uppercase tracking-wide"
     >
-      Add to cart
+      Adicionar à sacola
     </button>
   );
 };

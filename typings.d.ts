@@ -10,6 +10,9 @@ interface Product {
   categoryId: string;
   category: { name: string }?;
   inStock: number;
+  colors?: { name: string; class: string }[];
+  sizes?: string[];
+  measureTable?: boolean;
 }
 
 interface SingleProductPageProps {

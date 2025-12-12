@@ -1,11 +1,12 @@
 "use client";
-import { CustomButton, SectionTitle } from "@/components";
-import { isValidEmailAddressFormat } from "@/lib/utils";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { FcGoogle } from "react-icons/fc";
+import { isValidEmailAddressFormat } from "@/lib/utils";
+import Link from "next/link";
+import { CustomButton } from "@/components";
 
 const LoginPage = () => {
   const router = useRouter();
@@ -31,7 +32,7 @@ const LoginPage = () => {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    const email = e.target[0].value;
+    const email = e.target.email.value;
 
     if (!isValidEmailAddressFormat(email)) {
       setError("Email inválido");
@@ -71,36 +72,85 @@ const LoginPage = () => {
   };
 
   if (sessionStatus === "loading") {
-    return <h1>Carregando...</h1>;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <h1>Carregando...</h1>
+      </div>
+    );
   }
+
   return (
-    <div className="bg-white">
-      <SectionTitle title="Login" path="Home | Login" />
-      <div className="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8 bg-white">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h2 className="mt-6 text-center text-2xl font-normal leading-9 tracking-tight text-gray-900">
-            Entre na sua conta
-          </h2>
+    <div className="flex min-h-screen w-full overflow-hidden bg-white">
+      {/* Lado Esquerdo - Visual (Wise Quote) */}
+      <div className="hidden lg:flex w-1/2 relative flex-col justify-between p-12 overflow-hidden bg-black text-white">
+        {/* Background Abstrato */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-pink-600 via-purple-700 to-blue-900 opacity-80 mix-blend-multiply"></div>
+          <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-fuchsia-500/40 via-purple-900/40 to-transparent blur-3xl transform rotate-12"></div>
+          <div className="absolute bottom-[-20%] right-[-20%] w-[100%] h-[100%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-500/40 via-indigo-900/40 to-transparent blur-3xl transform -rotate-12"></div>
+          {/* Ondas Decorativas */}
+          <div className="absolute top-1/3 left-0 w-full h-64 bg-gradient-to-r from-pink-500/20 to-purple-500/20 blur-2xl transform -skew-y-12"></div>
         </div>
 
-        <div className="mt-5 sm:mx-auto sm:w-full sm:max-w-[480px]">
-          <div className="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
+        {/* Conteúdo Sobreposto */}
+        <div className="relative z-10">
+          <div className="flex items-center gap-4 mb-8">
+            <span className="text-sm font-medium tracking-widest uppercase text-gray-300">A Wise Quote</span>
+            <div className="h-[1px] w-12 bg-gray-300"></div>
+          </div>
+        </div>
+
+        <div className="relative z-10 mt-auto mb-12">
+          <h1 className="text-6xl font-serif font-medium leading-tight mb-6">
+            Get <br />
+            Everything <br />
+            You Want
+          </h1>
+          <p className="text-gray-300 text-lg max-w-md font-light leading-relaxed">
+            You can get everything you want if you work hard, 
+            trust the process, and stick to the plan.
+          </p>
+        </div>
+      </div>
+
+      {/* Lado Direito - Formulário (Antigo / PIN) */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center px-6 md:px-12 xl:px-24 bg-white relative">
+        <div className="w-full max-w-[480px]">
+          {/* Logo / Brand */}
+          <div className="mb-10 text-center lg:text-left">
+             <div className="flex items-center justify-center lg:justify-start gap-2 mb-8">
+               <svg className="w-8 h-8 text-black" viewBox="0 0 24 24" fill="currentColor">
+                 <path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/>
+               </svg>
+               <span className="text-xl font-bold text-black">Fractal</span>
+            </div>
+
+            <h2 className="text-3xl font-serif text-gray-900 mb-3 text-center lg:text-left">
+              Bem-vindo
+            </h2>
+            <p className="text-gray-500 text-center lg:text-left">
+              Digite seu email para receber um PIN de acesso
+            </p>
+          </div>
+
+          {/* Form Container (Estilo Antigo Simplificado) */}
+          <div className="bg-white">
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium leading-6 text-gray-900"
+                  className="block text-sm font-bold text-gray-900 mb-2"
                 >
                   Email
                 </label>
-                <div className="mt-2">
+                <div>
                   <input
                     id="email"
                     name="email"
                     type="email"
                     autoComplete="email"
                     required
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     placeholder="seu@email.com"
                   />
                 </div>
@@ -109,7 +159,7 @@ const LoginPage = () => {
               <div>
                 <CustomButton
                   buttonType="submit"
-                  text={loading ? "Enviando PIN..." : "Enviar PIN"}
+                  text={loading ? "Enviando PIN..." : "ENVIAR PIN"}
                   paddingX={3}
                   paddingY={1.5}
                   customWidth="full"
@@ -119,8 +169,8 @@ const LoginPage = () => {
               </div>
             </form>
 
-            <div>
-              <div className="relative mt-10">
+            <div className="mt-8">
+              <div className="relative">
                 <div
                   className="absolute inset-0 flex items-center"
                   aria-hidden="true"
@@ -134,14 +184,14 @@ const LoginPage = () => {
                 </div>
               </div>
 
-              <div className="mt-6 grid grid-cols-1 gap-4">
+              <div className="mt-6">
                 <button
-                  className="flex w-full items-center border border-gray-300 justify-center gap-3 rounded-md bg-white px-3 py-1.5 text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white hover:bg-gray-50"
+                  className="flex w-full items-center justify-center gap-3 rounded-md bg-white border border-gray-300 px-3 py-2.5 text-black hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200"
                   onClick={() => {
                     signIn("google");
                   }}
                 >
-                  <FcGoogle />
+                  <FcGoogle className="text-xl" />
                   <span className="text-sm font-semibold leading-6">
                     Google
                   </span>
@@ -149,7 +199,7 @@ const LoginPage = () => {
               </div>
 
               {error && (
-                <p className="text-red-600 text-center text-[16px] my-4">
+                <p className="text-red-600 text-center text-[16px] my-4 bg-red-50 p-2 rounded">
                   {error}
                 </p>
               )}

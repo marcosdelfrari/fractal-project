@@ -11,10 +11,10 @@ import {
 export default function Home() {
   return (
     <>
-      <Hero />
-      <FeaturedProductSection />
+      <Hero /> 
       <CategoryMenu />
       <ProductsSection />
+      <FeaturedProductSection />
     </>
   );
 }

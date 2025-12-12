@@ -43,9 +43,10 @@ const WishItem = ({
 
   const getUserByEmail = async () => {
     if (session?.user?.email) {
-      apiClient.get(`/api/users/email/${session?.user?.email}`, {
-        cache: "no-store",
-      })
+      apiClient
+        .get(`/api/users/email/${session?.user?.email}`, {
+          cache: "no-store",
+        })
         .then((response) => response.json())
         .then((data) => {
           setUserId(data?.id);
@@ -55,12 +56,12 @@ const WishItem = ({
 
   const deleteItemFromWishlist = async (productId: string) => {
     if (userId) {
-      apiClient.delete(`/api/wishlist/${userId}/${productId}`, {method: "DELETE"}).then(
-        (response) => {
+      apiClient
+        .delete(`/api/wishlist/${userId}/${productId}`, { method: "DELETE" })
+        .then((response) => {
           removeFromWishlist(productId);
           toast.success("Item removed from your wishlist");
-        }
-      );
+        });
     }
   };
 
@@ -104,7 +105,7 @@ const WishItem = ({
         )}
       </td>
       <td>
-        <button className="btn btn-xs bg-blue-500 text-white hover:text-blue-500 border border-blue-500 hover:bg-white hover:text-blue-500 text-sm">
+        <button className="btn btn-xs bg-zinc-900 text-white hover:text-blue-500 border border-blue-500 hover:bg-white hover:text-blue-500 text-sm">
           <FaHeartCrack />
           <span
             className="max-sm:hidden"

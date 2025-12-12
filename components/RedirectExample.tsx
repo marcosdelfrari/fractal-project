@@ -106,7 +106,7 @@ const RedirectExample = () => {
 
           <button
             onClick={() => redirectToHome()}
-            className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            className="w-full px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
             🏠 Ir para Home
           </button>
@@ -147,7 +147,7 @@ const RedirectExample = () => {
 
           <button
             onClick={handleUserAction}
-            className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            className="w-full px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
             👤 Acessar Área do Usuário
           </button>

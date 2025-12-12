@@ -52,17 +52,13 @@ const AdminSingleOrder = () => {
 
   useEffect(() => {
     const fetchOrderData = async () => {
-      const response = await apiClient.get(
-        `/api/orders/${params?.id}`
-      );
+      const response = await apiClient.get(`/api/orders/${params?.id}`);
       const data: Order = await response.json();
       setOrder(data);
     };
 
     const fetchOrderProducts = async () => {
-      const response = await apiClient.get(
-        `/api/order-product/${params?.id}`
-      );
+      const response = await apiClient.get(`/api/order-product/${params?.id}`);
       const data: OrderProduct[] = await response.json();
       setOrderProducts(data);
     };
@@ -99,13 +95,14 @@ const AdminSingleOrder = () => {
         return;
       }
 
-      apiClient.put(`/api/orders/${order?.id}`, {
-        method: "PUT", // or 'PUT'
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(order),
-      })
+      apiClient
+        .put(`/api/orders/${order?.id}`, {
+          method: "PUT", // or 'PUT'
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(order),
+        })
         .then((response) => {
           if (response.status === 200) {
             toast.success("Order updated successfuly");
@@ -126,18 +123,16 @@ const AdminSingleOrder = () => {
       method: "DELETE",
     };
 
-    apiClient.delete(
-      `/api/order-product/${order?.id}`,
-      requestOptions
-    ).then((response) => {
-      apiClient.delete(
-        `/api/orders/${order?.id}`,
-        requestOptions
-      ).then((response) => {
-        toast.success("Order deleted successfully");
-        router.push("/admin/orders");
+    apiClient
+      .delete(`/api/order-product/${order?.id}`, requestOptions)
+      .then((response) => {
+        apiClient
+          .delete(`/api/orders/${order?.id}`, requestOptions)
+          .then((response) => {
+            toast.success("Order deleted successfully");
+            router.push("/admin/orders");
+          });
       });
-    });
   };
 
   return (
@@ -348,7 +343,11 @@ const AdminSingleOrder = () => {
           {orderProducts?.map((product) => (
             <div className="flex items-center gap-x-4" key={product?.id}>
               <Image
-                src={product?.product?.mainImage ? `/${product?.product?.mainImage}` : "/product_placeholder.jpg"}
+                src={
+                  product?.product?.mainImage
+                    ? `/${product?.product?.mainImage}`
+                    : "/product_placeholder.jpg"
+                }
                 alt={product?.product?.title}
                 width={50}
                 height={50}
@@ -375,7 +374,7 @@ const AdminSingleOrder = () => {
           <div className="flex gap-x-2 max-sm:flex-col mt-5">
             <button
               type="button"
-              className="uppercase bg-blue-500 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2"
+              className="uppercase bg-zinc-900 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2"
               onClick={updateOrder}
             >
               Update order

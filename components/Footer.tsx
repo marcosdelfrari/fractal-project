@@ -7,11 +7,20 @@
 // Output: Footer component
 // *********************
 
+"use client";
 import { navigation } from "@/lib/utils";
 import Image from "next/image";
 import React from "react";
+import { usePathname } from "next/navigation";
 
 const Footer = () => {
+  const pathname = usePathname();
+
+  // Ocultar footer nas páginas de login e verify-pin
+  if (pathname === "/login" || pathname === "/verify-pin") {
+    return null;
+  }
+
   return (
     <footer className="bg-white" aria-labelledby="footer-heading">
       <div>

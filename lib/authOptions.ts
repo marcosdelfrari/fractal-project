@@ -237,3 +237,4 @@ if (typeof window === "undefined" && process.env.NODE_ENV === "production") {
     `${process.env.NEXTAUTH_URL}/api/auth/callback/google`
   );
 }
+

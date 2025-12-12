@@ -180,7 +180,7 @@ const UserSidebar = ({
 
         {/* Mobile Sidebar */}
         <div
-          className={`fixed top-0 left-0 z-50 w-80 h-full bg-blue-500 transform transition-transform duration-300 ${
+          className={`fixed top-0 left-0 z-50 w-80 h-full bg-zinc-900 transform transition-transform duration-300 ${
             isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -192,7 +192,7 @@ const UserSidebar = ({
 
   // Desktop Sidebar
   return (
-    <div className={`xl:w-80 bg-blue-500 h-full max-xl:w-full ${className}`}>
+    <div className={`xl:w-80 bg-zinc-900 h-full max-xl:w-full ${className}`}>
       {sidebarContent}
     </div>
   );

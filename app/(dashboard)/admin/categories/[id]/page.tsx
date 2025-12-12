@@ -11,12 +11,10 @@ interface DashboardSingleCategoryProps {
   params: Promise<{ id: string }>;
 }
 
-const DashboardSingleCategory = ({
-  params,
-}: DashboardSingleCategoryProps) => {
+const DashboardSingleCategory = ({ params }: DashboardSingleCategoryProps) => {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
-  
+
   const [categoryInput, setCategoryInput] = useState<{ name: string }>({
     name: "",
   });
@@ -27,7 +25,8 @@ const DashboardSingleCategory = ({
       method: "DELETE",
     };
     // sending API request for deleting a category
-    apiClient.delete(`/api/categories/${id}`, requestOptions)
+    apiClient
+      .delete(`/api/categories/${id}`, requestOptions)
       .then((response) => {
         if (response.status === 204) {
           toast.success("Category deleted successfully");
@@ -51,7 +50,8 @@ const DashboardSingleCategory = ({
         }),
       };
       // sending API request for updating a category
-      apiClient.put(`/api/categories/${id}`, requestOptions)
+      apiClient
+        .put(`/api/categories/${id}`, requestOptions)
         .then((response) => {
           if (response.status === 200) {
             return response.json();
@@ -71,7 +71,8 @@ const DashboardSingleCategory = ({
 
   useEffect(() => {
     // sending API request for getting single categroy
-    apiClient.get(`/api/categories/${id}`)
+    apiClient
+      .get(`/api/categories/${id}`)
       .then((res) => {
         return res.json();
       })
@@ -106,7 +107,7 @@ const DashboardSingleCategory = ({
         <div className="flex gap-x-2 max-sm:flex-col">
           <button
             type="button"
-            className="uppercase bg-blue-500 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2"
+            className="uppercase bg-zinc-900 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2"
             onClick={updateCategory}
           >
             Update category

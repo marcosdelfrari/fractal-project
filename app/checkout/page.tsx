@@ -21,7 +21,7 @@ const CheckoutPage = () => {
     postalCode: "",
     orderNotice: "",
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { products, total, clearCart } = useProductStore();
   const router = useRouter();
@@ -29,59 +29,78 @@ const CheckoutPage = () => {
   // Add validation functions that match server requirements
   const validateForm = () => {
     const errors: string[] = [];
-    
+
     // Name validation
     if (!checkoutForm.name.trim() || checkoutForm.name.trim().length < 2) {
       errors.push("Name must be at least 2 characters");
     }
-    
+
     // Lastname validation
-    if (!checkoutForm.lastname.trim() || checkoutForm.lastname.trim().length < 2) {
+    if (
+      !checkoutForm.lastname.trim() ||
+      checkoutForm.lastname.trim().length < 2
+    ) {
       errors.push("Lastname must be at least 2 characters");
     }
-    
+
     // Email validation
-    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-    if (!checkoutForm.email.trim() || !emailRegex.test(checkoutForm.email.trim())) {
+    const emailRegex =
+      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    if (
+      !checkoutForm.email.trim() ||
+      !emailRegex.test(checkoutForm.email.trim())
+    ) {
       errors.push("Please enter a valid email address");
     }
-    
+
     // Phone validation (must be at least 10 digits)
-    const phoneDigits = checkoutForm.phone.replace(/[^0-9]/g, '');
+    const phoneDigits = checkoutForm.phone.replace(/[^0-9]/g, "");
     if (!checkoutForm.phone.trim() || phoneDigits.length < 10) {
       errors.push("Phone number must be at least 10 digits");
     }
-    
+
     // Company validation
-    if (!checkoutForm.company.trim() || checkoutForm.company.trim().length < 5) {
+    if (
+      !checkoutForm.company.trim() ||
+      checkoutForm.company.trim().length < 5
+    ) {
       errors.push("Company must be at least 5 characters");
     }
-    
+
     // Address validation
     if (!checkoutForm.adress.trim() || checkoutForm.adress.trim().length < 5) {
       errors.push("Address must be at least 5 characters");
     }
-    
+
     // Apartment validation (updated to 1 character minimum)
-    if (!checkoutForm.apartment.trim() || checkoutForm.apartment.trim().length < 1) {
+    if (
+      !checkoutForm.apartment.trim() ||
+      checkoutForm.apartment.trim().length < 1
+    ) {
       errors.push("Apartment is required");
     }
-    
+
     // City validation
     if (!checkoutForm.city.trim() || checkoutForm.city.trim().length < 5) {
       errors.push("City must be at least 5 characters");
     }
-    
+
     // Country validation
-    if (!checkoutForm.country.trim() || checkoutForm.country.trim().length < 5) {
+    if (
+      !checkoutForm.country.trim() ||
+      checkoutForm.country.trim().length < 5
+    ) {
       errors.push("Country must be at least 5 characters");
     }
-    
+
     // Postal code validation
-    if (!checkoutForm.postalCode.trim() || checkoutForm.postalCode.trim().length < 3) {
+    if (
+      !checkoutForm.postalCode.trim() ||
+      checkoutForm.postalCode.trim().length < 3
+    ) {
       errors.push("Postal code must be at least 3 characters");
     }
-    
+
     return errors;
   };
 
@@ -89,7 +108,7 @@ const CheckoutPage = () => {
     // Client-side validation first
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
-      validationErrors.forEach(error => {
+      validationErrors.forEach((error) => {
         toast.error(error);
       });
       return;
@@ -97,12 +116,20 @@ const CheckoutPage = () => {
 
     // Basic client-side checks for required fields (UX only)
     const requiredFields = [
-      'name', 'lastname', 'phone', 'email', 'company', 
-      'adress', 'apartment', 'city', 'country', 'postalCode'
+      "name",
+      "lastname",
+      "phone",
+      "email",
+      "company",
+      "adress",
+      "apartment",
+      "city",
+      "country",
+      "postalCode",
     ];
-    
-    const missingFields = requiredFields.filter(field => 
-      !checkoutForm[field as keyof typeof checkoutForm]?.trim()
+
+    const missingFields = requiredFields.filter(
+      (field) => !checkoutForm[field as keyof typeof checkoutForm]?.trim()
     );
 
     if (missingFields.length > 0) {
@@ -124,7 +151,7 @@ const CheckoutPage = () => {
 
     try {
       console.log("🚀 Starting order creation...");
-      
+
       // Prepare the order data
       const orderData = {
         name: checkoutForm.name.trim(),
@@ -151,18 +178,22 @@ const CheckoutPage = () => {
       console.log("  Status:", response.status);
       console.log("  Status Text:", response.statusText);
       console.log("  Response OK:", response.ok);
-      
+
       // Check if response is ok before parsing
       if (!response.ok) {
-        console.error("❌ Response not OK:", response.status, response.statusText);
+        console.error(
+          "❌ Response not OK:",
+          response.status,
+          response.statusText
+        );
         const errorText = await response.text();
         console.error("Error response body:", errorText);
-        
+
         // Try to parse as JSON to get detailed error info
         try {
           const errorData = JSON.parse(errorText);
           console.error("Parsed error data:", errorData);
-          
+
           // Show specific validation errors
           if (errorData.details && Array.isArray(errorData.details)) {
             errorData.details.forEach((detail: any) => {
@@ -175,13 +206,13 @@ const CheckoutPage = () => {
           console.error("Could not parse error as JSON:", parseError);
           toast.error("Validation failed");
         }
-        
+
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
       console.log("✅ Parsed response data:", data);
-      
+
       const orderId: string = data.id;
       console.log("🆔 Extracted order ID:", orderId);
 
@@ -191,16 +222,18 @@ const CheckoutPage = () => {
         throw new Error("Order ID not received from server");
       }
 
-      console.log("✅ Order ID validation passed, proceeding with product addition...");
+      console.log(
+        "✅ Order ID validation passed, proceeding with product addition..."
+      );
 
       // Add products to order
       for (let i = 0; i < products.length; i++) {
         console.log(`🛍️ Adding product ${i + 1}/${products.length}:`, {
           orderId,
           productId: products[i].id,
-          quantity: products[i].amount
+          quantity: products[i].amount,
         });
-        
+
         await addOrderProduct(orderId, products[i].id, products[i].amount);
         console.log(`✅ Product ${i + 1} added successfully`);
       }
@@ -222,14 +255,16 @@ const CheckoutPage = () => {
         orderNotice: "",
       });
       clearCart();
-      
-      toast.success("Order created successfully! You will be contacted for payment.");
+
+      toast.success(
+        "Order created successfully! You will be contacted for payment."
+      );
       setTimeout(() => {
         router.push("/");
       }, 1000);
     } catch (error: any) {
       console.error("💥 Error in makePurchase:", error);
-      
+
       // Handle server validation errors
       if (error.response?.status === 400) {
         console.log(" Handling 400 error...");
@@ -249,7 +284,9 @@ const CheckoutPage = () => {
           toast.error("Validation failed");
         }
       } else if (error.response?.status === 409) {
-        toast.error("Duplicate order detected. Please wait before creating another order.");
+        toast.error(
+          "Duplicate order detected. Please wait before creating another order."
+        );
       } else {
         console.log("🔍 Handling generic error...");
         toast.error("Failed to create order. Please try again.");
@@ -268,9 +305,9 @@ const CheckoutPage = () => {
       console.log("️ Adding product to order:", {
         customerOrderId: orderId,
         productId,
-        quantity: productQuantity
+        quantity: productQuantity,
       });
-      
+
       const response = await apiClient.post("/api/order-product", {
         customerOrderId: orderId,
         productId: productId,
@@ -278,7 +315,7 @@ const CheckoutPage = () => {
       });
 
       console.log("📡 Product order response:", response);
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error("❌ Product order failed:", response.status, errorText);
@@ -287,7 +324,6 @@ const CheckoutPage = () => {
 
       const data = await response.json();
       console.log("✅ Product order successful:", data);
-      
     } catch (error) {
       console.error("💥 Error creating product order:", error);
       throw error;
@@ -304,9 +340,15 @@ const CheckoutPage = () => {
   return (
     <div className="bg-white">
       <SectionTitle title="Checkout" path="Home | Cart | Checkout" />
-      
-      <div className="hidden h-full w-1/2 bg-white lg:block" aria-hidden="true" />
-      <div className="hidden h-full w-1/2 bg-gray-50 lg:block" aria-hidden="true" />
+
+      <div
+        className="hidden h-full w-1/2 bg-white lg:block"
+        aria-hidden="true"
+      />
+      <div
+        className="hidden h-full w-1/2 bg-gray-50 lg:block"
+        aria-hidden="true"
+      />
 
       <main className="relative mx-auto grid max-w-screen-2xl grid-cols-1 gap-x-16 lg:grid-cols-2 lg:px-8 xl:gap-x-48">
         <h1 className="sr-only">Order information</h1>
@@ -317,7 +359,10 @@ const CheckoutPage = () => {
           className="bg-gray-50 px-4 pb-10 pt-16 sm:px-6 lg:col-start-2 lg:row-start-1 lg:bg-transparent lg:px-0 lg:pb-16"
         >
           <div className="mx-auto max-w-lg lg:max-w-none">
-            <h2 id="summary-heading" className="text-lg font-medium text-gray-900">
+            <h2
+              id="summary-heading"
+              className="text-lg font-medium text-gray-900"
+            >
               Order summary
             </h2>
 
@@ -326,9 +371,16 @@ const CheckoutPage = () => {
               className="divide-y divide-gray-200 text-sm font-medium text-gray-900"
             >
               {products.map((product) => (
-                <li key={product?.id} className="flex items-start space-x-4 py-6">
+                <li
+                  key={product?.id}
+                  className="flex items-start space-x-4 py-6"
+                >
                   <Image
-                    src={product?.image ? `/${product?.image}` : "/product_placeholder.jpg"}
+                    src={
+                      product?.image
+                        ? `/${product?.image}`
+                        : "/product_placeholder.jpg"
+                    }
                     alt={product?.title}
                     width={80}
                     height={80}
@@ -493,8 +545,16 @@ const CheckoutPage = () => {
               <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    <svg
+                      className="h-5 w-5 text-blue-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div className="ml-3">
@@ -502,7 +562,10 @@ const CheckoutPage = () => {
                       Payment Information
                     </h3>
                     <div className="mt-2 text-sm text-blue-700">
-                      <p>Payment will be processed after order confirmation. You will be contacted for payment details.</p>
+                      <p>
+                        Payment will be processed after order confirmation. You
+                        will be contacted for payment details.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -711,7 +774,7 @@ const CheckoutPage = () => {
                 type="button"
                 onClick={makePurchase}
                 disabled={isSubmitting}
-                className="w-full rounded-md border border-transparent bg-blue-500 px-20 py-2 text-lg font-medium text-white shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-gray-50 sm:order-last disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="w-full rounded-md border border-transparent bg-zinc-900 px-20 py-2 text-lg font-medium text-white shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-gray-50 sm:order-last disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Processing Order..." : "Place Order"}
               </button>

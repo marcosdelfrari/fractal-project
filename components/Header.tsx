@@ -202,6 +202,11 @@ const Header = () => {
   const isHomepage = pathname === "/";
   const isHeaderWhite = !isHomepage || hoveredItem !== null;
 
+  // Ocultar header nas páginas de login e verify-pin
+  if (pathname === "/login" || pathname === "/verify-pin") {
+    return null;
+  }
+
   return (
     <header
       className={`${
@@ -211,8 +216,6 @@ const Header = () => {
       } ${isHeaderWhite ? "bg-white text-black" : "bg-transparent text-white"}`}
       onMouseLeave={() => setHoveredItem(null)}
     >
-      {!isHomepage && <HeaderTop />}
-
       {/* Main Header Content */}
       {pathname.startsWith("/admin") === false && (
         <>
