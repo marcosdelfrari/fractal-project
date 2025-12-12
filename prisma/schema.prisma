@@ -70,7 +70,7 @@ model image {
   image     String
 }
 
-model pinverification {
+model PinVerification {
   id        String   @id
   email     String   @unique(map: "PinVerification_email_key")
   pin       String
@@ -78,6 +78,7 @@ model pinverification {
   attempts  Int      @default(0)
   createdAt DateTime @default(now())
 
+  @@map("PinVerification")
   @@index([email], map: "PinVerification_email_idx")
 }
 

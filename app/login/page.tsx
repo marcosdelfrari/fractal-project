@@ -95,7 +95,9 @@ const LoginPage = () => {
         {/* Conteúdo Sobreposto */}
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-8">
-            <span className="text-sm font-medium tracking-widest uppercase text-gray-300">A Wise Quote</span>
+            <span className="text-sm font-medium tracking-widest uppercase text-gray-300">
+              A Wise Quote
+            </span>
             <div className="h-[1px] w-12 bg-gray-300"></div>
           </div>
         </div>
@@ -107,8 +109,8 @@ const LoginPage = () => {
             You Want
           </h1>
           <p className="text-gray-300 text-lg max-w-md font-light leading-relaxed">
-            You can get everything you want if you work hard, 
-            trust the process, and stick to the plan.
+            You can get everything you want if you work hard, trust the process,
+            and stick to the plan.
           </p>
         </div>
       </div>
@@ -118,11 +120,15 @@ const LoginPage = () => {
         <div className="w-full max-w-[480px]">
           {/* Logo / Brand */}
           <div className="mb-10 text-center lg:text-left">
-             <div className="flex items-center justify-center lg:justify-start gap-2 mb-8">
-               <svg className="w-8 h-8 text-black" viewBox="0 0 24 24" fill="currentColor">
-                 <path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/>
-               </svg>
-               <span className="text-xl font-bold text-black">Fractal</span>
+            <div className="flex items-center justify-center lg:justify-start gap-2 mb-8">
+              <svg
+                className="w-8 h-8 text-black"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z" />
+              </svg>
+              <span className="text-xl font-bold text-black">Fractal</span>
             </div>
 
             <h2 className="text-3xl font-serif text-gray-900 mb-3 text-center lg:text-left">

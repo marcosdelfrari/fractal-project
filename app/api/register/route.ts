@@ -45,6 +45,7 @@ export const POST = async (request: Request) => {
         email,
         password: hashedPassword,
         role: "user",
+        updatedAt: new Date(),
       },
     });
 

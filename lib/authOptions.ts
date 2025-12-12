@@ -68,27 +68,38 @@ export const authOptions: NextAuthOptions = {
               return null;
             }
 
-            // Buscar o usuário
-            const user = await prisma.user.findFirst({
+            // Buscar o usuário ou criar se não existir
+            let user = await prisma.user.findFirst({
               where: {
                 email: credentials.email,
               },
             });
 
-            if (user) {
-              // Limpar o PIN após uso bem-sucedido
-              await prisma.pinVerification.delete({
-                where: {
-                  id: pinVerification.id,
+            // Se o usuário não existir, criar automaticamente
+            if (!user) {
+              user = await prisma.user.create({
+                data: {
+                  id: nanoid(),
+                  email: credentials.email,
+                  role: "user",
+                  password: null, // Usuários criados via PIN não têm senha
+                  updatedAt: new Date(),
                 },
               });
-
-              return {
-                id: user.id,
-                email: user.email,
-                role: user.role || "user",
-              };
             }
+
+            // Limpar o PIN após uso bem-sucedido
+            await prisma.pinVerification.delete({
+              where: {
+                id: pinVerification.id,
+              },
+            });
+
+            return {
+              id: user.id,
+              email: user.email,
+              role: user.role || "user",
+            };
           } else {
             // Incrementar tentativas se PIN incorreto
             const existingPin = await prisma.pinVerification.findFirst({
@@ -153,6 +164,7 @@ export const authOptions: NextAuthOptions = {
                 role: "user",
                 // OAuth users don't have passwords
                 password: null,
+                updatedAt: new Date(),
               },
             });
 
@@ -237,4 +249,5 @@ if (typeof window === "undefined" && process.env.NODE_ENV === "production") {
     `${process.env.NEXTAUTH_URL}/api/auth/callback/google`
   );
 }
+
 
