@@ -196,7 +196,7 @@ const Header = () => {
                 isHeaderWhite ? "text-black" : "text-white"
               }`}
             >
-              CASA
+              MARCOS
             </span>
           </Link>
         </div>
@@ -290,7 +290,7 @@ const Header = () => {
         <div className="flex justify-between items-center p-6 border-b">
           <Link href="/">
             <span className="font-thin text-2xl tracking-widest text-black">
-              CASA
+              MARCOS
             </span>
           </Link>
           <button
