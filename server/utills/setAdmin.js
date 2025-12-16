@@ -41,3 +41,4 @@ setAdmin(targetEmail)
   .finally(async () => {
     await prisma.$disconnect();
   });
+

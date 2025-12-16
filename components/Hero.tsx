@@ -33,15 +33,15 @@ const Hero = () => {
       <div className="absolute inset-0 bg-black/30" />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center pt-20">
+      <div className="relative z-10 flex flex-col  mt-[-74px] items-center justify-center h-full text-center pt-20">
         {/* Main Title */}
         <h1 className="text-6xl md:text-8xl text-white font-thin mb-4 tracking-wide relative z-20">
-          GIFTING
+        <span className="hidden xl:inline">Art That</span> Inspires
         </h1>
 
         {/* Button */}
         <button className="border border-white text-white px-10 py-3 rounded-full hover:bg-white hover:text-black transition-all uppercase text-sm tracking-widest z-20">
-          Discover
+          View Collection
         </button>
       </div>
     </div>

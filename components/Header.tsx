@@ -181,8 +181,11 @@ const Header = () => {
         {/* Mobile Menu Button */}
         <div className="xl:hidden">
           <button
-            className={`text-xl ${isHeaderWhite ? "text-black" : "text-white"}`}
+            className={`text-xl p-2 -mr-2 hover:opacity-70 transition-opacity ${
+              isHeaderWhite ? "text-black" : "text-white"
+            }`}
             onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="Open menu"
           >
             <FaBars />
           </button>
@@ -282,80 +285,113 @@ const Header = () => {
       />
 
       {/* Mobile Menu Overlay */}
+      {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-white z-50 transition-transform duration-300 ease-in-out transform ${
+        className={`fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-300 ${
+          isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        } xl:hidden`}
+        onClick={() => setIsMobileMenuOpen(false)}
+      />
+
+      {/* Side Menu */}
+      <div
+        className={`fixed inset-y-0 left-0 w-full max-w-xs sm:max-w-sm bg-white z-50 shadow-2xl transition-transform duration-500 cubic-bezier(0.19, 1, 0.22, 1) transform ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         } xl:hidden flex flex-col overflow-y-auto`}
       >
-        <div className="flex justify-between items-center p-6 border-b">
-          <Link href="/">
-            <span className="font-thin text-2xl tracking-widest text-black">
+        <div className="flex justify-between items-center p-6 sm:p-8">
+          <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+            <span className="font-thin text-2xl tracking-[0.2em] text-black uppercase">
               MARCOS
             </span>
           </Link>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
-            className="text-2xl text-black"
+            className="text-gray-400 hover:text-black transition-colors p-2 -mr-2"
+            aria-label="Close menu"
           >
-            <FaTimes />
+            <FaTimes className="text-xl" />
           </button>
         </div>
 
-        <nav className="flex flex-col p-6 gap-6 text-lg font-bold uppercase tracking-widest text-black">
+        <nav className="flex flex-col px-6 sm:px-8 gap-8 text-base font-medium tracking-wide text-gray-800">
           {headerNavLinks.map((navLink) => {
             // Se tem mega menu, renderiza com expansão
             if (navLink.hasMegaMenu) {
               const navMenuData = menuData[navLink.id as keyof typeof menuData];
+              const isExpanded = expandedMobileItem === navLink.id;
+
               return (
-                <div key={navLink.id}>
+                <div
+                  key={navLink.id}
+                  className="border-b border-gray-50 last:border-0 pb-4 last:pb-0"
+                >
                   <button
                     onClick={() =>
-                      setExpandedMobileItem(
-                        expandedMobileItem === navLink.id ? null : navLink.id
-                      )
+                      setExpandedMobileItem(isExpanded ? null : navLink.id)
                     }
-                    className="flex items-center justify-between w-full hover:opacity-70"
+                    className={`flex items-center justify-between w-full hover:text-black transition-colors uppercase text-sm font-bold tracking-widest ${
+                      isExpanded ? "text-black" : "text-gray-600"
+                    }`}
                   >
                     <span>{navLink.name}</span>
-                    {expandedMobileItem === navLink.id ? (
-                      <FaChevronUp className="text-sm" />
-                    ) : (
-                      <FaChevronDown className="text-sm" />
-                    )}
+                    <span
+                      className={`transform transition-transform duration-300 ${
+                        isExpanded ? "rotate-180" : ""
+                      }`}
+                    >
+                      <FaChevronDown className="text-xs" />
+                    </span>
                   </button>
-                  {expandedMobileItem === navLink.id && navMenuData && (
-                    <div className="pl-4 pt-4 flex flex-col gap-3 text-sm font-normal normal-case">
-                      {/* Left Links */}
-                      {navMenuData.leftLinks.map((link) => (
-                        <Link
-                          key={link.name}
-                          href={link.href}
-                          className="hover:opacity-70"
-                        >
-                          {link.name}
-                        </Link>
-                      ))}
-                      {/* Categories */}
-                      {navMenuData.categories.map((category) => (
-                        <div key={category.title} className="mt-2">
-                          <span className="font-bold uppercase text-xs text-gray-500 mb-2 block">
-                            {category.title}
-                          </span>
-                          <div className="flex flex-col gap-2 pl-2 border-l-2 border-gray-100">
-                            {category.items.map((item) => (
+
+                  <div
+                    className={`grid transition-all duration-300 ease-in-out overflow-hidden ${
+                      isExpanded
+                        ? "grid-rows-[1fr] opacity-100 mt-4"
+                        : "grid-rows-[0fr] opacity-0"
+                    }`}
+                  >
+                    <div className="min-h-0 flex flex-col gap-4 pl-2">
+                      {navMenuData && (
+                        <>
+                          {/* Left Links */}
+                          <div className="flex flex-col gap-3">
+                            {navMenuData.leftLinks.map((link) => (
                               <Link
-                                key={item.name}
-                                href={item.href}
-                                className="hover:opacity-70"
+                                key={link.name}
+                                href={link.href}
+                                className="text-gray-500 hover:text-black text-sm transition-colors"
+                                onClick={() => setIsMobileMenuOpen(false)}
                               >
-                                {item.name}
+                                {link.name}
                               </Link>
                             ))}
                           </div>
-                        </div>
-                      ))}
+
+                          {/* Categories */}
+                          {navMenuData.categories.map((category) => (
+                            <div key={category.title} className="mt-2">
+                              <span className="font-semibold text-xs text-black uppercase tracking-wider mb-3 block">
+                                {category.title}
+                              </span>
+                              <div className="flex flex-col gap-2 pl-2 border-l border-gray-100">
+                                {category.items.map((item) => (
+                                  <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    className="text-gray-500 hover:text-black text-sm transition-colors"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                  >
+                                    {item.name}
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             }
@@ -365,33 +401,43 @@ const Header = () => {
               <Link
                 key={navLink.id}
                 href={navLink.href}
-                className="hover:opacity-70"
+                className="hover:text-black transition-colors uppercase text-sm font-bold tracking-widest text-gray-600 border-b border-gray-50 pb-4 last:border-0 last:pb-0"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 {navLink.name}
               </Link>
             );
           })}
 
-          <div className="border-t pt-6 mt-2 flex flex-col gap-4">
+          <div className="mt-4 pt-6 border-t border-gray-100 flex flex-col gap-4 text-sm text-gray-600">
             <Link
               href="/wishlist"
-              className="flex items-center gap-2 hover:opacity-70 font-normal text-base normal-case"
+              className="flex items-center gap-3 hover:text-black transition-colors py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
             >
-              <FaHeart /> Wishlist {wishQuantity > 0 && `(${wishQuantity})`}
+              <FaHeart className="text-gray-400" />
+              <span>Wishlist</span>
+              {wishQuantity > 0 && (
+                <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full text-gray-600">
+                  {wishQuantity}
+                </span>
+              )}
             </Link>
             {!session?.user ? (
               <Link
                 href="/login"
-                className="flex items-center gap-2 hover:opacity-70 font-normal text-base normal-case"
+                className="flex items-center gap-3 hover:text-black transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
-                <FaUser /> Login / Register
+                <FaUser className="text-gray-400" /> Login / Register
               </Link>
             ) : (
               <Link
                 href="/user"
-                className="flex items-center gap-2 hover:opacity-70 font-normal text-base normal-case"
+                className="flex items-center gap-3 hover:text-black transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
-                <FaUser /> My Account
+                <FaUser className="text-gray-400" /> My Account
               </Link>
             )}
           </div>
