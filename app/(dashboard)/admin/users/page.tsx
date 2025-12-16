@@ -20,10 +20,10 @@ const DashboardUsers = () => {
   }, []);
 
   return (
-    <div className="bg-white flex justify-start max-w-screen-2xl mx-auto h-full max-xl:flex-col max-xl:h-fit max-xl:gap-y-4">
+    <div className="bg-gray-50 flex min-h-screen max-w-screen-2xl mx-auto max-xl:flex-col">
       <DashboardSidebar />
-      <div className="w-full">
-        <h1 className="text-3xl font-semibold text-center mb-5">All users</h1>
+      <div className="flex-1 p-8 max-md:p-4">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">All users</h1>
         <div className="flex justify-end mb-5">
           <Link href="/admin/users/new">
             <CustomButton
@@ -36,7 +36,7 @@ const DashboardUsers = () => {
             />
           </Link>
         </div>
-        <div className="xl:ml-5 w-full max-xl:mt-5 overflow-auto w-full h-[80vh]">
+        <div className="w-full overflow-auto h-[80vh] bg-white rounded-lg border border-gray-200 shadow-sm">
           <table className="table table-md table-pin-cols">
             {/* head */}
             <thead>

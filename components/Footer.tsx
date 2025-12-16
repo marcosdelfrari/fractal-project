@@ -16,8 +16,12 @@ import { usePathname } from "next/navigation";
 const Footer = () => {
   const pathname = usePathname();
 
-  // Ocultar footer nas páginas de login e verify-pin
-  if (pathname === "/login" || pathname === "/verify-pin") {
+  // Ocultar footer nas páginas de login, verify-pin e admin
+  if (
+    pathname === "/login" ||
+    pathname === "/verify-pin" ||
+    pathname.startsWith("/admin")
+  ) {
     return null;
   }
 

@@ -4,9 +4,11 @@ import React from "react";
 
 const DashboardOrdersPage = () => {
   return (
-    <div className="bg-white flex justify-start max-w-screen-2xl mx-auto h-full max-xl:flex-col max-xl:h-fit">
+    <div className="bg-gray-50 flex min-h-screen max-w-screen-2xl mx-auto max-xl:flex-col">
       <DashboardSidebar />
-      <AdminOrders />
+      <div className="flex-1 p-8 max-md:p-4">
+        <AdminOrders />
+      </div>
     </div>
   );
 };

@@ -27,9 +27,9 @@ const AdminOrders = () => {
   }, []);
 
   return (
-    <div className="xl:ml-5 w-full max-xl:mt-5 ">
-      <h1 className="text-3xl font-semibold text-center mb-5">All orders</h1>
-      <div className="overflow-x-auto">
+    <div className="w-full">
+      <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">All orders</h1>
+      <div className="overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm">
         <table className="table table-md table-pin-cols">
           {/* head */}
           <thead>

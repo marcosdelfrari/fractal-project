@@ -1,0 +1,335 @@
+// Mock data para o menu de navegação e categorias
+
+// ==========================================
+// TIPOS - Menu
+// ==========================================
+export interface MenuLink {
+  name: string;
+  href: string;
+}
+
+export interface MenuCategory {
+  title: string;
+  items: MenuLink[];
+}
+
+export interface MenuFeatured {
+  image: string;
+  title: string;
+  subtitle: string;
+  linkText: string;
+  linkHref: string;
+}
+
+export interface MenuData {
+  leftLinks: MenuLink[];
+  categories: MenuCategory[];
+  featured: MenuFeatured;
+}
+
+export interface MenuDataCollection {
+  men: MenuData;
+  women: MenuData;
+  default: null;
+}
+
+// ==========================================
+// TIPOS - Links do Menu Principal (Header Nav)
+// ==========================================
+export interface HeaderNavLink {
+  id: string;
+  name: string;
+  href: string;
+  hasMegaMenu: boolean; // indica se tem mega menu ao passar o mouse
+}
+
+// ==========================================
+// MOCK - Links do Menu Principal (Header Nav)
+// ==========================================
+const MOCK_HEADER_NAV_LINKS: HeaderNavLink[] = [
+  {
+    id: "woodcut",
+    name: "Woodcut",
+    href: "/woodcut",
+    hasMegaMenu: false,
+  },
+  {
+    id: "linocut",
+    name: "Linocut",
+    href: "/linocut",
+    hasMegaMenu: false,
+  },
+  {
+    id: "paintings",
+    name: "Paintings",
+    href: "/paintings",
+    hasMegaMenu: false,
+  },
+  {
+    id: "about",
+    name: "About",
+    href: "/about",
+    hasMegaMenu: false,
+  },
+];
+
+// Dados mockados do menu
+const MOCK_MENU_DATA: MenuDataCollection = {
+  men: {
+    leftLinks: [
+      { name: "New In", href: "/men/new-in" },
+      { name: "Exclusives", href: "/men/exclusives" },
+      { name: "Gifting", href: "/men/gifting" },
+      { name: "Beach Club", href: "/men/beach-club" },
+      { name: "Ski Capsule", href: "/men/ski-capsule" },
+      { name: "Autumn Winter 2025", href: "/men/aw25" },
+      { name: "View all", href: "/men" },
+    ],
+    categories: [
+      {
+        title: "READY-TO-WEAR",
+        items: [
+          { name: "Shirts", href: "/men/shirts" },
+          { name: "T-Shirts", href: "/men/t-shirts" },
+          { name: "Knitwear", href: "/men/knitwear" },
+          { name: "Après Sport", href: "/men/apres-sport" },
+          { name: "Denim", href: "/men/denim" },
+          { name: "Outerwear", href: "/men/outerwear" },
+          { name: "Tailoring", href: "/men/tailoring" },
+          { name: "Trousers & Shorts", href: "/men/trousers" },
+          { name: "Swimwear", href: "/men/swimwear" },
+        ],
+      },
+      {
+        title: "ACCESSORIES",
+        items: [
+          { name: "All Shoes", href: "/men/shoes" },
+          { name: "Sneakers", href: "/men/sneakers" },
+          { name: "Moccasins", href: "/men/moccasins" },
+          { name: "Eyewear", href: "/men/eyewear" },
+          { name: "Jewellery", href: "/men/jewellery" },
+          { name: "Bags", href: "/men/bags" },
+          { name: "Hats", href: "/men/hats" },
+          { name: "Socks", href: "/men/socks" },
+          { name: "Belts", href: "/men/belts" },
+          { name: "Silk Scarves", href: "/men/scarves" },
+          { name: "Lifestyle", href: "/men/lifestyle" },
+          { name: "Charms", href: "/men/charms" },
+        ],
+      },
+    ],
+    featured: {
+      image: "/hero.webp",
+      title: "Pour Homme",
+      subtitle: "Pour Homme",
+      linkText: "Discover",
+      linkHref: "/men/discover",
+    },
+  },
+  women: {
+    leftLinks: [
+      { name: "New In", href: "/women/new-in" },
+      { name: "Exclusives", href: "/women/exclusives" },
+      { name: "Gifting", href: "/women/gifting" },
+      { name: "Beach Club", href: "/women/beach-club" },
+      { name: "Ski Capsule", href: "/women/ski-capsule" },
+      { name: "Autumn Winter 2025", href: "/women/aw25" },
+      { name: "View all", href: "/women" },
+    ],
+    categories: [
+      {
+        title: "READY-TO-WEAR",
+        items: [
+          { name: "Dresses", href: "/women/dresses" },
+          { name: "Tops", href: "/women/tops" },
+          { name: "Knitwear", href: "/women/knitwear" },
+          { name: "Skirts", href: "/women/skirts" },
+          { name: "Denim", href: "/women/denim" },
+          { name: "Outerwear", href: "/women/outerwear" },
+          { name: "Tailoring", href: "/women/tailoring" },
+          { name: "Trousers", href: "/women/trousers" },
+          { name: "Swimwear", href: "/women/swimwear" },
+        ],
+      },
+      {
+        title: "ACCESSORIES",
+        items: [
+          { name: "All Shoes", href: "/women/shoes" },
+          { name: "Heels", href: "/women/heels" },
+          { name: "Sneakers", href: "/women/sneakers" },
+          { name: "Eyewear", href: "/women/eyewear" },
+          { name: "Jewellery", href: "/women/jewellery" },
+          { name: "Bags", href: "/women/bags" },
+          { name: "Scarves", href: "/women/scarves" },
+        ],
+      },
+    ],
+    featured: {
+      image: "/hero.webp",
+      title: "Pour Femme",
+      subtitle: "Pour Femme",
+      linkText: "Discover",
+      linkHref: "/women/discover",
+    },
+  },
+  default: null,
+};
+
+/**
+ * Função mock que simula uma chamada de API para buscar dados do menu
+ * @param menuKey - A chave do menu ('men' ou 'women')
+ * @returns Promise com os dados do menu ou null
+ */
+export const fetchMenuData = async (
+  menuKey: string
+): Promise<MenuData | null> => {
+  // Simula um delay de API
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
+  // Retorna os dados mockados baseado na chave
+  if (menuKey === "men" || menuKey === "women") {
+    return MOCK_MENU_DATA[menuKey as keyof MenuDataCollection] as MenuData;
+  }
+
+  return null;
+};
+
+/**
+ * Função mock que retorna todos os dados do menu
+ * @returns Promise com todos os dados do menu
+ */
+export const fetchAllMenuData = async (): Promise<MenuDataCollection> => {
+  // Simula um delay de API
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
+  return MOCK_MENU_DATA;
+};
+
+/**
+ * Função mock que retorna os links do menu principal (header nav)
+ * @returns Promise com a lista de links do header
+ */
+export const fetchHeaderNavLinks = async (): Promise<HeaderNavLink[]> => {
+  // Simula um delay de API
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  return MOCK_HEADER_NAV_LINKS;
+};
+
+export { MOCK_HEADER_NAV_LINKS };
+
+// ==========================================
+// TIPOS - Categorias
+// ==========================================
+export interface CategoryItem {
+  id: number;
+  title: string;
+  src: string;
+  href: string;
+  image?: string;
+}
+
+// ==========================================
+// MOCK - Categorias
+// ==========================================
+const MOCK_CATEGORIES: CategoryItem[] = [
+  {
+    id: 1,
+    title: "Smart Phones",
+    src: "/smart phone icon.png",
+    href: "/shop/smart-phones",
+    image: "/categ.webp",
+  },
+  {
+    id: 2,
+    title: "Tablets",
+    src: "/tablet icon.png",
+    href: "/shop/tablets",
+    image: "/categ.webp",
+  },
+  {
+    id: 3,
+    title: "Mouses",
+    src: "/mouse icon.png",
+    href: "/shop/mouses",
+    image: "/categ.webp",
+  },
+  {
+    id: 4,
+    title: "Cameras",
+    src: "/camera icon.png",
+    href: "/shop/cameras",
+    image: "/categ.webp",
+  },
+  {
+    id: 5,
+    title: "Smart Watches",
+    src: "/smart watch.png",
+    href: "/shop/watches",
+    image: "/categ.webp",
+  },
+  {
+    id: 6,
+    title: "Laptops",
+    src: "/laptop icon.png",
+    href: "/shop/laptops",
+    image: "/categ.webp",
+  },
+  {
+    id: 7,
+    title: "PCs",
+    src: "/pc icon.png",
+    href: "/shop/computers",
+    image: "/categ.webp",
+  },
+  {
+    id: 8,
+    title: "Printers",
+    src: "/printers icon.png",
+    href: "/shop/printers",
+    image: "/categ.webp",
+  },
+  {
+    id: 9,
+    title: "Earbuds",
+    src: "/ear buds icon.png",
+    href: "/shop/earbuds",
+    image: "/categ.webp",
+  },
+  {
+    id: 10,
+    title: "Head Phones",
+    src: "/headphone icon.png",
+    href: "/shop/headphones",
+    image: "/categ.webp",
+  },
+];
+
+/**
+ * Função mock que simula uma chamada de API para buscar categorias
+ * @returns Promise com a lista de categorias
+ */
+export const fetchCategories = async (): Promise<CategoryItem[]> => {
+  // Simula um delay de API
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
+  return MOCK_CATEGORIES;
+};
+
+/**
+ * Função mock que busca uma categoria por ID
+ * @param id - ID da categoria
+ * @returns Promise com a categoria ou null
+ */
+export const fetchCategoryById = async (
+  id: number
+): Promise<CategoryItem | null> => {
+  // Simula um delay de API
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  return MOCK_CATEGORIES.find((cat) => cat.id === id) || null;
+};
+
+// Exporta os dados diretamente também para uso síncrono se necessário
+export { MOCK_CATEGORIES };
+export default MOCK_MENU_DATA;

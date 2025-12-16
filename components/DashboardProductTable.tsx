@@ -31,7 +31,7 @@ const DashboardProductTable = () => {
 
   return (
     <div className="w-full">
-      <h1 className="text-3xl font-semibold text-center mb-5">All products</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">All products</h1>
       <div className="flex justify-end mb-5">
         <Link href="/admin/products/new">
           <CustomButton
@@ -45,7 +45,7 @@ const DashboardProductTable = () => {
         </Link>
       </div>
 
-      <div className="xl:ml-5 w-full max-xl:mt-5 overflow-auto w-full h-[80vh]">
+      <div className="w-full overflow-auto h-[80vh] bg-white rounded-lg border border-gray-200 shadow-sm">
         <table className="table table-md table-pin-cols">
           {/* head */}
           <thead>

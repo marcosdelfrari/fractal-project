@@ -1,25 +1,26 @@
 "use client";
 import { DashboardSidebar, StatsElement } from "@/components";
-import React, { useEffect } from "react";
+import React from "react";
 import { FaArrowUp } from "react-icons/fa6";
 
 const AdminDashboardPage = () => {
   return (
-    <div className="bg-white flex justify-start max-w-screen-2xl mx-auto max-xl:flex-col">
+    <div className="bg-gray-50 min-h-screen flex justify-start max-w-screen-2xl mx-auto max-xl:flex-col">
       <DashboardSidebar />
-      <div className="flex flex-col items-center ml-5 gap-y-4 w-full max-xl:ml-0 max-xl:px-2 max-xl:mt-5 max-md:gap-y-1">
-        <div className="flex justify-between w-full max-md:flex-col max-md:w-full max-md:gap-y-1">
+      <div className="flex-1 p-8 max-md:p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
           <StatsElement />
           <StatsElement />
           <StatsElement />
         </div>
-        <div className="w-full bg-zinc-900 text-white h-40 flex flex-col justify-center items-center gap-y-2">
-          <h4 className="text-3xl text-gray-100 max-[400px]:text-2xl">
+
+        <div className="w-full bg-white border border-gray-200 shadow-sm rounded-lg p-8 flex flex-col justify-center items-center gap-y-2">
+          <h4 className="text-xl text-gray-500 font-medium">
             Number of visitors today
           </h4>
-          <p className="text-3xl font-bold">1200</p>
-          <p className="text-green-300 flex gap-x-1 items-center">
-            <FaArrowUp />
+          <p className="text-4xl font-bold text-gray-900">1,200</p>
+          <p className="text-green-500 font-medium flex gap-x-1 items-center bg-green-50 px-3 py-1 rounded-full text-sm">
+            <FaArrowUp className="text-xs" />
             12.5% Since last month
           </p>
         </div>

@@ -123,7 +123,8 @@ app.use("/api/products", productsRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/images", productImagesRouter);
 app.use("/api/main-image", mainImageRouter);
-// app.use("/api/users", userRouter); // Removido - conflito com userProfileRouter
+app.use("/api/users", userRouter);
+app.use("/api/users", userProfileRouter);
 app.use("/api/search", searchRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/order-product", orderProductRouter);
@@ -131,7 +132,6 @@ app.use("/api/slugs", slugRouter);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/addresses", addressesRouter);
 app.use("/api/reviews", reviewsRouter);
-app.use("/api/users", userProfileRouter);
 
 // Health check endpoint (no rate limiting)
 app.get("/health", (req, res) => {

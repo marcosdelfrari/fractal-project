@@ -1,7 +1,7 @@
 // *********************
 // Role of the component: Category wrapper that will contain title and category items (Fashion Shows style)
 // Name of the component: CategoryMenu.tsx
-// Version: 2.1
+// Version: 2.2
 // Component call: <CategoryMenu />
 // Input parameters: no input parameters
 // Output: Fashion Shows carousel section with dots navigation
@@ -9,15 +9,33 @@
 
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Slider from "react-slick";
-import { categoryMenuList } from "@/lib/utils";
+import { fetchCategories, type CategoryItem } from "@/mocks/menuData";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 const CategoryMenu = () => {
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await fetchCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error("Erro ao carregar categorias:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
   const settings = {
     dots: true,
     infinite: true,
@@ -49,6 +67,23 @@ const CategoryMenu = () => {
     ],
   };
 
+  if (isLoading) {
+    return (
+      <section className="py-16 bg-white overflow-hidden category-menu-section">
+        <div className="max-w-screen-2xl mx-auto px-4 mb-10 relative">
+          <div className="flex flex-col items-center justify-center text-[#0a3928] mb-8">
+            <h2 className="text-3xl md:text-7xl font-thin tracking-wide uppercase mb-4 text-center">
+              Categorias
+            </h2>
+          </div>
+          <div className="flex justify-center items-center h-[550px]">
+            <div className="animate-pulse text-gray-400">Carregando...</div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-16 bg-white overflow-hidden category-menu-section">
       <div className="max-w-screen-2xl mx-auto px-4 mb-10 relative">
@@ -62,12 +97,12 @@ const CategoryMenu = () => {
         {/* Slider Content */}
         <div className="px-2 md:px-12 pb-8">
           <Slider {...settings}>
-            {categoryMenuList.map((item) => (
+            {categories.map((item) => (
               <div key={item.id} className="px-3 focus:outline-none py-2">
                 <div className="relative h-[550px] w-full rounded-[32px] overflow-hidden group cursor-pointer">
                   {/* Background Image */}
                   <Image
-                    src="/categ.webp"
+                    src={item.image || "/categ.webp"}
                     alt={item.title}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
