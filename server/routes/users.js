@@ -16,9 +16,10 @@ const {
 
 router.route("/").get(getAllUsers).post(createUser);
 
-router.route("/:id").get(getUser).put(updateUser).delete(deleteUser);
-
+// Rota específica deve vir ANTES da rota com parâmetro :id
 router.route("/email/:email").get(getUserByEmail);
+
+router.route("/:id").get(getUser).put(updateUser).delete(deleteUser);
 
 // Profile routes
 router.route("/:id/profile").get(getUserProfile).put(updateUserProfile);
