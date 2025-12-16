@@ -181,10 +181,13 @@ const Header = () => {
         {/* Mobile Menu Button */}
         <div className="xl:hidden">
           <button
-            className={`text-xl p-2 -mr-2 hover:opacity-70 transition-opacity ${
+            className={`text-xl p-2 -mr-2 hover:opacity-70 transition-opacity relative z-50 ${
               isHeaderWhite ? "text-black" : "text-white"
             }`}
-            onClick={() => setIsMobileMenuOpen(true)}
+            onClick={() => {
+              console.log("Menu clicked, setting open to true");
+              setIsMobileMenuOpen(true);
+            }}
             aria-label="Open menu"
           >
             <FaBars />

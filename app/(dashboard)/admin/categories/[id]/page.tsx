@@ -21,12 +21,9 @@ const DashboardSingleCategory = ({ params }: DashboardSingleCategoryProps) => {
   const router = useRouter();
 
   const deleteCategory = async () => {
-    const requestOptions = {
-      method: "DELETE",
-    };
     // sending API request for deleting a category
     apiClient
-      .delete(`/api/categories/${id}`, requestOptions)
+      .delete(`/api/categories/${id}`)
       .then((response) => {
         if (response.status === 204) {
           toast.success("Category deleted successfully");
@@ -42,16 +39,11 @@ const DashboardSingleCategory = ({ params }: DashboardSingleCategoryProps) => {
 
   const updateCategory = async () => {
     if (categoryInput.name.length > 0) {
-      const requestOptions = {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: convertCategoryNameToURLFriendly(categoryInput.name),
-        }),
-      };
       // sending API request for updating a category
       apiClient
-        .put(`/api/categories/${id}`, requestOptions)
+        .put(`/api/categories/${id}`, {
+          name: convertCategoryNameToURLFriendly(categoryInput.name),
+        })
         .then((response) => {
           if (response.status === 200) {
             return response.json();

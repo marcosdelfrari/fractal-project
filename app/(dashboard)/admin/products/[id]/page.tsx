@@ -222,22 +222,42 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
         {/* Product slug input div - end */}
         {/* Product inStock select input div - start */}
 
-        <div>
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
-              <span className="label-text">Is product in stock?</span>
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="form-control">
+            <label className="label cursor-pointer justify-start gap-4">
+              <span className="label-text font-medium">Is product in stock?</span>
+              <input 
+                type="checkbox" 
+                className="toggle toggle-success" 
+                checked={(product?.inStock || 0) > 0} 
+                onChange={(e) => {
+                  const hasStock = e.target.checked;
+                  setProduct({ ...product!, inStock: hasStock ? ((product?.inStock || 0) > 0 ? product!.inStock : 1) : 0 });
+                }}
+              />
+              <span className="label-text-alt">{(product?.inStock || 0) > 0 ? 'Yes' : 'No'}</span>
+            </label>
+          </div>
+          
+          {(product?.inStock || 0) > 0 && (
+            <div className="mt-3 animate-pulse-once">
+              <label className="form-control w-full max-w-xs">
+                <div className="label">
+                  <span className="label-text">Quantity available:</span>
+                </div>
+                <input
+                  type="number"
+                  min="1"
+                  className="input input-bordered w-full max-w-xs bg-white"
+                  value={product?.inStock}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    setProduct({ ...product!, inStock: isNaN(val) ? 0 : val });
+                  }}
+                />
+              </label>
             </div>
-            <select
-              className="select select-bordered"
-              value={product?.inStock ?? 1}
-              onChange={(e) => {
-                setProduct({ ...product!, inStock: Number(e.target.value) });
-              }}
-            >
-              <option value={1}>Yes</option>
-              <option value={0}>No</option>
-            </select>
-          </label>
+          )}
         </div>
         {/* Product inStock select input div - end */}
         {/* Product category select input div - start */}
