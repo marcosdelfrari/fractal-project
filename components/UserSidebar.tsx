@@ -40,12 +40,6 @@ const UserSidebar = ({
 
   const navigationItems = [
     {
-      href: "/user",
-      label: "Dashboard",
-      icon: FaHome,
-      description: "Visão geral da conta",
-    },
-    {
       href: "/user/perfil",
       label: "Perfil",
       icon: FaUser,
@@ -72,9 +66,6 @@ const UserSidebar = ({
   ];
 
   const isActive = (href: string) => {
-    if (href === "/user") {
-      return pathname === "/user";
-    }
     return pathname.startsWith(href);
   };
 

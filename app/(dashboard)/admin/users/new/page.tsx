@@ -5,6 +5,8 @@ import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { sanitizeFormData } from "@/lib/form-sanitize";
 import apiClient from "@/lib/api";
+import { FaUserPlus, FaChevronLeft, FaLock, FaShieldAlt } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 const DashboardCreateNewUser = () => {
   const [userInput, setUserInput] = useState<{
@@ -16,123 +18,135 @@ const DashboardCreateNewUser = () => {
     password: "",
     role: "user",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   const addNewUser = async () => {
     if (userInput.email === "" || userInput.password === "") {
-      toast.error("You must enter all input values to add a user");
+      toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
     }
 
-    // Sanitize form data before sending to API
+    if (!isValidEmailAddressFormat(userInput.email)) {
+      toast.error("Formato de email inválido");
+      return;
+    }
+
+    if (userInput.password.length < 8) {
+      toast.error("A senha deve ter pelo menos 8 caracteres");
+      return;
+    }
+
+    setIsSubmitting(true);
     const sanitizedUserInput = sanitizeFormData(userInput);
 
-    if (
-      userInput.email.length > 3 &&
-      userInput.role.length > 0 &&
-      userInput.password.length > 0
-    ) {
-      if (!isValidEmailAddressFormat(userInput.email)) {
-        toast.error("You entered invalid email address format");
-        return;
-      }
-
-      if (userInput.password.length > 7) {
-        const requestOptions: any = {
-          method: "post",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(sanitizedUserInput),
-        };
-        apiClient
-          .post(`/api/users`, requestOptions)
-          .then((response) => {
-            if (response.status === 201) {
-              return response.json();
-            } else {
-              throw Error("Error while creating user");
-            }
-          })
-          .then((data) => {
-            toast.success("User added successfully");
-            setUserInput({
-              email: "",
-              password: "",
-              role: "user",
-            });
-          })
-          .catch((error) => {
-            toast.error("Error while creating user");
+    apiClient
+      .post(`/api/users`, {
+        method: "post",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sanitizedUserInput),
+      })
+      .then((response) => {
+        if (response.status === 201) {
+          toast.success("Usuário criado com sucesso");
+          setUserInput({
+            email: "",
+            password: "",
+            role: "user",
           });
-      } else {
-        toast.error("Password must be longer than 7 characters");
-      }
-    } else {
-      toast.error("You must enter all input values to add a user");
-    }
+          router.push("/admin/users");
+        } else {
+          throw Error("Erro ao criar usuário");
+        }
+      })
+      .catch(() => toast.error("Erro ao criar usuário"))
+      .finally(() => setIsSubmitting(false));
   };
 
   return (
-    <div className="bg-white flex justify-start max-w-screen-2xl mx-auto xl:h-full max-xl:flex-col max-xl:gap-y-5">
+    <div className="bg-gray-50 flex min-h-screen max-w-screen-2xl mx-auto max-xl:flex-col animate-fade-in-up">
       <DashboardSidebar />
-      <div className="flex flex-col gap-y-7 xl:pl-5 max-xl:px-5 w-full">
-        <h1 className="text-3xl font-semibold">Add new user</h1>
-        <div>
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
-              <span className="label-text">Email:</span>
-            </div>
-            <input
-              type="email"
-              className="input input-bordered w-full max-w-xs"
-              value={userInput.email}
-              onChange={(e) =>
-                setUserInput({ ...userInput, email: e.target.value })
-              }
-            />
-          </label>
-        </div>
-
-        <div>
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
-              <span className="label-text">Password:</span>
-            </div>
-            <input
-              type="password"
-              className="input input-bordered w-full max-w-xs"
-              value={userInput.password}
-              onChange={(e) =>
-                setUserInput({ ...userInput, password: e.target.value })
-              }
-            />
-          </label>
-        </div>
-
-        <div>
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
-              <span className="label-text">User role: </span>
-            </div>
-            <select
-              className="select select-bordered"
-              defaultValue={userInput.role}
-              onChange={(e) =>
-                setUserInput({ ...userInput, role: e.target.value })
-              }
-            >
-              <option value="admin">admin</option>
-              <option value="user">user</option>
-            </select>
-          </label>
-        </div>
-
-        <div className="flex gap-x-2">
-          <button
-            type="button"
-            className="uppercase bg-zinc-900 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2"
-            onClick={addNewUser}
+      <div className="flex-1 p-10 max-md:p-4">
+        {/* Header Section */}
+        <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-10">
+          <button 
+            onClick={() => router.push("/admin/users")}
+            className="p-3 bg-gray-50 rounded-full text-gray-400 hover:text-gray-900 transition-colors"
           >
-            Create user
+            <FaChevronLeft size={14} />
           </button>
+          <div className="p-3 bg-gray-50 rounded-full text-gray-900">
+            <FaUserPlus size={16} />
+          </div>
+          <h1 className="text-lg font-light tracking-widest text-gray-900 uppercase">
+            Novo Usuário
+          </h1>
+        </div>
+
+        <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 space-y-12 transition-all duration-300">
+          <section>
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+                <FaShieldAlt size={12} />
+              </div>
+              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Dados de Acesso</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-2">
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Email *</label>
+                <input
+                  type="email"
+                  placeholder="email@exemplo.com"
+                  className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                  value={userInput.email}
+                  onChange={(e) => setUserInput({ ...userInput, email: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Cargo</label>
+                <select
+                  className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 appearance-none cursor-pointer"
+                  value={userInput.role}
+                  onChange={(e) => setUserInput({ ...userInput, role: e.target.value })}
+                >
+                  <option value="user">Usuário Padrão</option>
+                  <option value="admin">Administrador</option>
+                </select>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1 flex items-center gap-2">
+                  <FaLock size={10} /> Senha *
+                </label>
+                <input
+                  type="password"
+                  placeholder="Mínimo 8 caracteres"
+                  className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                  value={userInput.password}
+                  onChange={(e) => setUserInput({ ...userInput, password: e.target.value })}
+                />
+              </div>
+            </div>
+          </section>
+          
+          <div className="flex justify-end gap-x-4 pt-10 border-t border-gray-50">
+            <button
+               type="button"
+               onClick={() => router.push("/admin/users")}
+               className="px-8 py-3.5 rounded-full border border-gray-200 text-[11px] uppercase tracking-widest font-medium text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all duration-300"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={addNewUser}
+              disabled={isSubmitting}
+              className="px-12 py-3.5 rounded-full bg-black text-[11px] uppercase tracking-widest font-medium text-white hover:bg-zinc-800 transition-all duration-300 disabled:bg-gray-200 disabled:cursor-not-allowed flex items-center gap-2 shadow-none"
+            >
+              {isSubmitting ? "Criando..." : "Criar Usuário"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

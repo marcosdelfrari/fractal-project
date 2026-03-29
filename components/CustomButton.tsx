@@ -34,7 +34,7 @@ const CustomButton = ({
       disabled={disabled}
       className={`${
         customWidth !== "no" && `w-${customWidth}`
-      } uppercase bg-white px-${paddingX} py-${paddingY} text-${textSize} border border-black border-gray-300 font-bold text-blue-600 shadow-sm hover:bg-black hover:bg-gray-100 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed`}
+      } uppercase bg-black px-6 py-3 text-${textSize} font-medium tracking-widest text-white border border-black hover:bg-zinc-800 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed rounded-full`}
     >
       {text}
     </button>

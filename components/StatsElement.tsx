@@ -3,17 +3,36 @@
 // *********************
 
 import React from "react";
-import { FaArrowUp } from "react-icons/fa6";
+import { FaArrowUp, FaChartLine } from "react-icons/fa6";
 
-const StatsElement = () => {
+const StatsElement = ({ 
+  title = "Novos Produtos", 
+  value = "2,230", 
+  change = "12.5%", 
+  period = "Desde o mês passado",
+  icon = <FaChartLine size={16} /> 
+}) => {
   return (
-    <div className="w-full xl:w-80 h-32 bg-white border border-gray-200 shadow-sm flex flex-col justify-center items-center rounded-lg max-md:w-full hover:shadow-md transition-shadow">
-      <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide">New Products</h4>
-      <p className="text-3xl font-bold text-gray-900 mt-1">2,230</p>
-      <p className="text-green-500 text-sm font-medium flex gap-x-1 items-center mt-2">
-        <FaArrowUp />
-        12.5% Since last month
-      </p>
+    <div className="w-full bg-white border border-gray-100 flex flex-col p-6 rounded-3xl transition-all duration-300 hover:border-gray-200">
+      <div className="flex items-center justify-between mb-4">
+        <div className="p-3 bg-gray-50 rounded-full text-gray-900">
+          {icon}
+        </div>
+        <div className="text-green-500 bg-green-50 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+          <FaArrowUp size={10} />
+          {change}
+        </div>
+      </div>
+      
+      <div className="space-y-1">
+        <h4 className="text-xs font-light tracking-widest text-gray-500 uppercase">
+          {title}
+        </h4>
+        <p className="text-3xl font-bold text-gray-900">{value}</p>
+        <p className="text-[10px] text-gray-400 font-light uppercase tracking-tighter italic">
+          {period}
+        </p>
+      </div>
     </div>
   );
 };

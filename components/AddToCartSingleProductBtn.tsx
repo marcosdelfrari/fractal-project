@@ -29,7 +29,7 @@ const AddToCartSingleProductBtn = ({ product, quantityCount } : SingleProductBtn
   return (
     <button
       onClick={handleAddToCart}
-      className="w-full h-full bg-slate-600 text-white hover:bg-slate-700 font-medium text-base px-6 py-3 transition-colors uppercase tracking-wide"
+      className="w-full h-full bg-white text-black border border-black hover:bg-black hover:text-white font-medium text-sm lg:text-base px-6 py-3 transition-all uppercase tracking-widest rounded-full"
     >
       Adicionar à sacola
     </button>

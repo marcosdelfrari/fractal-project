@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { isValidEmailAddressFormat } from "@/lib/utils";
 import apiClient from "@/lib/api";
+import { FaRegUser, FaTrash, FaEdit, FaChevronLeft, FaLock, FaShieldAlt } from "react-icons/fa";
 
 interface DashboardUserDetailsProps {
   params: Promise<{ id: string }>;
@@ -23,78 +24,71 @@ const DashboardSingleUserPage = ({ params }: DashboardUserDetailsProps) => {
     newPassword: "",
     role: "",
   });
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
   const deleteUser = async () => {
-    const requestOptions = {
-      method: "DELETE",
-    };
+    if (!window.confirm("Tem certeza que deseja excluir este usuário?")) return;
+    
+    setIsDeleting(true);
     apiClient
-      .delete(`/api/users/${id}`, requestOptions)
+      .delete(`/api/users/${id}`)
       .then((response) => {
         if (response.status === 204) {
-          toast.success("User deleted successfully");
+          toast.success("Usuário excluído com sucesso");
           router.push("/admin/users");
         } else {
-          throw Error("There was an error while deleting user");
+          throw Error("Erro ao excluir usuário");
         }
       })
-      .catch((error) => {
-        toast.error("There was an error while deleting user");
-      });
+      .catch(() => toast.error("Erro ao excluir usuário"))
+      .finally(() => setIsDeleting(false));
   };
 
   const updateUser = async () => {
-    if (
-      userInput.email.length > 3 &&
-      userInput.role.length > 0 &&
-      userInput.newPassword.length > 0
-    ) {
-      if (!isValidEmailAddressFormat(userInput.email)) {
-        toast.error("You entered invalid email address format");
-        return;
-      }
-
-      if (userInput.newPassword.length > 7) {
-        const requestOptions = {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: userInput.email,
-            password: userInput.newPassword,
-            role: userInput.role,
-          }),
-        };
-        apiClient
-          .put(`/api/users/${id}`, requestOptions)
-          .then((response) => {
-            if (response.status === 200) {
-              return response.json();
-            } else {
-              throw Error("Error while updating user");
-            }
-          })
-          .then((data) => toast.success("User successfully updated"))
-          .catch((error) => {
-            toast.error("There was an error while updating user");
-          });
-      } else {
-        toast.error("Password must be longer than 7 characters");
-        return;
-      }
-    } else {
-      toast.error("For updating a user you must enter all values");
+    if (!userInput.email || !userInput.role) {
+      toast.error("Por favor, preencha os campos obrigatórios");
       return;
     }
+
+    if (!isValidEmailAddressFormat(userInput.email)) {
+      toast.error("Formato de email inválido");
+      return;
+    }
+
+    if (userInput.newPassword && userInput.newPassword.length < 8) {
+      toast.error("A senha deve ter pelo menos 8 caracteres");
+      return;
+    }
+
+    setIsUpdating(true);
+    apiClient
+      .put(`/api/users/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: userInput.email,
+          password: userInput.newPassword || undefined,
+          role: userInput.role,
+        }),
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          toast.success("Usuário atualizado com sucesso");
+          return response.json();
+        } else {
+          throw Error("Erro ao atualizar usuário");
+        }
+      })
+      .catch(() => toast.error("Erro ao atualizar usuário"))
+      .finally(() => setIsUpdating(false));
   };
 
   useEffect(() => {
-    // sending API request for a single user
     apiClient
       .get(`/api/users/${id}`)
-      .then((res) => {
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((data) => {
         setUserInput({
           email: data?.email,
@@ -105,74 +99,100 @@ const DashboardSingleUserPage = ({ params }: DashboardUserDetailsProps) => {
   }, [id]);
 
   return (
-    <div className="bg-white flex justify-start max-w-screen-2xl mx-auto xl:h-full max-xl:flex-col max-xl:gap-y-5">
+    <div className="bg-gray-50 flex min-h-screen max-w-screen-2xl mx-auto max-xl:flex-col animate-fade-in-up">
       <DashboardSidebar />
-      <div className="flex flex-col gap-y-7 xl:pl-5 max-xl:px-5 w-full">
-        <h1 className="text-3xl font-semibold">User details</h1>
-        <div>
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
-              <span className="label-text">Email:</span>
-            </div>
-            <input
-              type="email"
-              className="input input-bordered w-full max-w-xs"
-              value={userInput.email}
-              onChange={(e) =>
-                setUserInput({ ...userInput, email: e.target.value })
-              }
-            />
-          </label>
-        </div>
-
-        <div>
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
-              <span className="label-text">New password:</span>
-            </div>
-            <input
-              type="password"
-              className="input input-bordered w-full max-w-xs"
-              onChange={(e) =>
-                setUserInput({ ...userInput, newPassword: e.target.value })
-              }
-              value={userInput.newPassword}
-            />
-          </label>
-        </div>
-
-        <div>
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
-              <span className="label-text">User role: </span>
-            </div>
-            <select
-              className="select select-bordered"
-              value={userInput.role}
-              onChange={(e) =>
-                setUserInput({ ...userInput, role: e.target.value })
-              }
+      <div className="flex-1 p-10 max-md:p-4">
+        {/* Header Section */}
+        <div className="flex items-center justify-between border-b border-gray-100 pb-6 mb-10">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => router.push("/admin/users")}
+              className="p-3 bg-gray-50 rounded-full text-gray-400 hover:text-gray-900 transition-colors"
             >
-              <option value="admin">admin</option>
-              <option value="user">user</option>
-            </select>
-          </label>
-        </div>
-        <div className="flex gap-x-2 max-sm:flex-col">
+              <FaChevronLeft size={14} />
+            </button>
+            <div className="p-3 bg-gray-50 rounded-full text-gray-900">
+              <FaRegUser size={16} />
+            </div>
+            <h1 className="text-lg font-light tracking-widest text-gray-900 uppercase">
+              Detalhes do Usuário
+            </h1>
+          </div>
+          
           <button
-            type="button"
-            className="uppercase bg-zinc-900 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2"
-            onClick={updateUser}
-          >
-            Update user
-          </button>
-          <button
-            type="button"
-            className="uppercase bg-red-600 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-red-700 hover:text-white focus:outline-none focus:ring-2"
             onClick={deleteUser}
+            disabled={isDeleting}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-red-100 text-[10px] uppercase tracking-widest font-medium text-red-400 hover:bg-red-50 hover:text-red-600 transition-all duration-300 disabled:opacity-50"
           >
-            Delete user
+            <FaTrash size={10} />
+            {isDeleting ? "Excluindo..." : "Excluir Usuário"}
           </button>
+        </div>
+
+        <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 space-y-12 transition-all duration-300">
+          <section>
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+                <FaShieldAlt size={12} />
+              </div>
+              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Credenciais e Cargo</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-2">
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Email</label>
+                <input
+                  type="email"
+                  className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                  value={userInput.email}
+                  onChange={(e) => setUserInput({ ...userInput, email: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Cargo</label>
+                <select
+                  className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 appearance-none cursor-pointer"
+                  value={userInput.role}
+                  onChange={(e) => setUserInput({ ...userInput, role: e.target.value })}
+                >
+                  <option value="admin">Administrador</option>
+                  <option value="user">Usuário Padrão</option>
+                </select>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1 flex items-center gap-2">
+                  <FaLock size={10} /> Nova Senha
+                  <span className="text-[9px] text-gray-300 tracking-normal italic uppercase">(Deixe em branco para manter a atual)</span>
+                </label>
+                <input
+                  type="password"
+                  placeholder="Min. 8 caracteres"
+                  className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                  onChange={(e) => setUserInput({ ...userInput, newPassword: e.target.value })}
+                  value={userInput.newPassword}
+                />
+              </div>
+            </div>
+          </section>
+          
+          <div className="flex justify-end gap-x-4 pt-10 border-t border-gray-50">
+            <button
+               type="button"
+               onClick={() => router.push("/admin/users")}
+               className="px-8 py-3.5 rounded-full border border-gray-200 text-[11px] uppercase tracking-widest font-medium text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all duration-300"
+            >
+              Voltar
+            </button>
+            <button
+              onClick={updateUser}
+              disabled={isUpdating}
+              className="px-12 py-3.5 rounded-full bg-black text-[11px] uppercase tracking-widest font-medium text-white hover:bg-zinc-800 transition-all duration-300 disabled:bg-gray-200 disabled:cursor-not-allowed flex items-center gap-2 shadow-none"
+            >
+              {isUpdating ? "Salvando..." : "Salvar Alterações"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

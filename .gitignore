@@ -55,3 +55,9 @@ logs/
 # OS
 Thumbs.db
 .DS_Store
+
+# Uploads admin (mantém só .gitkeep)
+/public/uploads/site/*
+!/public/uploads/site/.gitkeep
+/public/uploads/sections/*
+!/public/uploads/sections/.gitkeep

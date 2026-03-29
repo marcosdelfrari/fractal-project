@@ -9,8 +9,8 @@
 
 import React from "react";
 import Link from "next/link";
-import ProductItem from "./ProductItem";
 import apiClient from "@/lib/api";
+import ProductListContent from "./ProductListContent";
 
 const ProductsSection = async () => {
   let products: Product[] = [];
@@ -83,11 +83,7 @@ const ProductsSection = async () => {
       <div className="max-w-screen-2xl mx-auto pt-10 pb-20">
         {products.length > 0 ? (
           <>
-            <div className="grid grid-cols-4 justify-items-center max-w-screen-2xl mx-auto gap-x-4 gap-y-12 px-4 max-xl:grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-2 max-sm:grid-cols-2">
-              {products.map((product: Product) => (
-                <ProductItem key={product.id} product={product} color="black" />
-              ))}
-            </div>
+            <ProductListContent products={products} />
             <div className="flex justify-center mt-10">
               <Link
                 href="/shop"

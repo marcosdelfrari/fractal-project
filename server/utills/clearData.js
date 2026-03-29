@@ -10,7 +10,9 @@ async function clearData() {
 
     // Depois deletar categorias
     const deletedCategories = await prisma.category.deleteMany({});
-    console.log(`✅ ${deletedCategories.count} categorias deletadas com sucesso!`);
+    console.log(
+      `✅ ${deletedCategories.count} categorias deletadas com sucesso!`,
+    );
 
     console.log("✅ Todos os dados foram removidos!");
   } catch (error) {
@@ -27,5 +29,3 @@ clearData()
   .finally(async () => {
     await prisma.$disconnect();
   });
-
-

@@ -60,7 +60,7 @@ interface Order {
   name: string;
   phone: string;
   postalCode: string;
-  status: "processing" | "canceled" | "delivered";
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   city: string;
   country: string;
   orderNotice: string?;
@@ -70,11 +70,6 @@ interface Order {
 interface SingleProductBtnProps {
   product: Product;
   quantityCount: number;
-}
-
-interface Category {
-  id: string;
-  name: string;
 }
 
 interface WishListItem {

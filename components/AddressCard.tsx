@@ -65,16 +65,16 @@ const AddressCard = ({
   const getLabelIcon = (label: string) => {
     const labelLower = label.toLowerCase();
     if (labelLower.includes("casa") || labelLower.includes("home")) {
-      return <FaHome className="text-blue-500" />;
+      return <FaHome className="text-gray-700" />;
     } else if (labelLower.includes("trabalho") || labelLower.includes("work")) {
-      return <FaBriefcase className="text-green-500" />;
+      return <FaBriefcase className="text-gray-700" />;
     } else if (
       labelLower.includes("apartamento") ||
       labelLower.includes("apt")
     ) {
-      return <FaBuilding className="text-purple-500" />;
+      return <FaBuilding className="text-gray-700" />;
     } else {
-      return <FaMapMarkerAlt className="text-gray-500" />;
+      return <FaMapMarkerAlt className="text-gray-700" />;
     }
   };
 
@@ -86,41 +86,27 @@ const AddressCard = ({
     return zipCode;
   };
 
-  const getAddressColor = () => {
-    if (address.isDefault) {
-      return "border-blue-200 bg-blue-50";
-    }
-    return "border-gray-200 bg-white";
-  };
-
-  const getLabelColor = () => {
-    if (address.isDefault) {
-      return "bg-blue-100 text-blue-800";
-    }
-    return "bg-gray-100 text-gray-800";
-  };
-
   return (
     <div
-      className={`rounded-lg border-2 shadow-sm hover:shadow-md transition-shadow duration-300 ${getAddressColor()} ${className}`}
+      className={`rounded-2xl border border-gray-100 bg-white shadow-md transition-all duration-300 hover:shadow-lg hover:border-gray-200 ${className}`}
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-6 border-b border-gray-100">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white rounded-lg shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 text-gray-700">
               {getLabelIcon(address.label)}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-gray-900">{address.label}</h3>
+                <h3 className="font-medium text-gray-900">{address.label}</h3>
                 {address.isDefault && (
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                  <span className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-700">
                     Padrão
                   </span>
                 )}
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm font-light text-gray-500 mt-0.5">
                 Criado em {formatDate(address.createdAt)}
               </p>
             </div>
@@ -147,27 +133,27 @@ const AddressCard = ({
       </div>
 
       {/* Address Details */}
-      <div className="p-4">
+      <div className="p-6">
         <div className="space-y-3">
           {/* Main Address */}
-          <div className="flex items-start gap-2">
-            <FaMapMarkerAlt className="text-gray-400 mt-1 flex-shrink-0" />
-            <div className="flex-1">
+          <div className="flex items-start gap-3">
+            <FaMapMarkerAlt className="text-gray-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
               <p className="font-medium text-gray-900">
                 {address.street}, {address.number}
                 {address.complement && `, ${address.complement}`}
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm font-light text-gray-600 mt-1">
                 {address.district} • {address.city} - {address.state}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm font-light text-gray-500 mt-0.5">
                 CEP: {formatZipCode(address.zipCode)} • {address.country}
               </p>
             </div>
           </div>
 
           {/* Additional Info */}
-          <div className="flex items-center gap-4 text-xs text-gray-500">
+          <div className="flex items-center gap-4 text-xs font-light text-gray-500 pt-2">
             <div className="flex items-center gap-1">
               <FaCalendarAlt />
               <span>Atualizado em {formatDate(address.updatedAt)}</span>
@@ -178,12 +164,12 @@ const AddressCard = ({
 
       {/* Actions */}
       {showActions && (onEdit || onDelete) && (
-        <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-          <div className="flex items-center justify-end gap-2">
+        <div className="border-t border-gray-100 p-4">
+          <div className="flex items-center justify-end gap-3">
             {onEdit && (
               <button
                 onClick={() => onEdit(address.id)}
-                className="flex items-center gap-2 px-3 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200 text-sm font-medium"
+                className="flex items-center gap-2 rounded-full border border-gray-200 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all duration-300"
               >
                 <FaEdit />
                 Editar
@@ -192,7 +178,7 @@ const AddressCard = ({
             {onDelete && (
               <button
                 onClick={() => onDelete(address.id)}
-                className="flex items-center gap-2 px-3 py-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors duration-200 text-sm font-medium"
+                className="flex items-center gap-2 rounded-full border border-gray-200 px-5 py-2 text-sm font-medium text-gray-600 hover:border-red-200 hover:text-red-600 transition-all duration-300"
               >
                 <FaTrash />
                 Excluir

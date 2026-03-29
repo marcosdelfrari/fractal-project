@@ -1,6 +1,51 @@
+const path = require("path");
+const fs = require("fs");
+const { randomUUID } = require("crypto");
 const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
+
+const HOME_SECTION_DEFAULTS = require(path.join(
+  __dirname,
+  "..",
+  "..",
+  "data",
+  "home-section-defaults.json",
+));
+
+/** Mesmo id usado em `prisma/seed-settings.js` e no controller Express (`default-site-id`). */
+const DEMO_SITE_SETTINGS_ID = "default-site-id";
+
+/**
+ * Dados de vitrine para nome da loja, contato e endereço (editáveis depois em Admin → Configurações).
+ * Manter alinhado com `prisma/seed-settings.js` (SITE).
+ */
+const DEMO_SITE_SETTINGS = {
+  id: DEMO_SITE_SETTINGS_ID,
+  storeName: "Fractal Store",
+  storeIcon: null,
+  storeLogo: null,
+  email: "contato@fractalstore.com.br",
+  phone: "+55 (11) 3456-7890",
+  whatsapp: "+55 11 99999-9999",
+  address:
+    "Av. Paulista, 1578 — Bela Vista, São Paulo/SP — CEP 01310-200",
+  pickupAddresses: [
+    {
+      id: "pickup-demo-paulista",
+      name: "Loja — Av. Paulista",
+      address:
+        "Av. Paulista, 1578 — Bela Vista, São Paulo/SP — CEP 01310-200\nHorário: seg a sex 10h–19h",
+    },
+    {
+      id: "pickup-demo-zsul",
+      name: "Depósito — Zona Sul",
+      address:
+        "Rua das Flores, 450 — Vila Mariana, São Paulo/SP — CEP 04120-000\nRetirada agendada.",
+    },
+  ],
+  deliveryEnabled: true,
+};
 
 const demoProducts = [
   {
@@ -214,6 +259,23 @@ const demoCategories = [
 
 async function insertDemoData() {
   try {
+    await prisma.siteSettings.upsert({
+      where: { id: DEMO_SITE_SETTINGS.id },
+      create: DEMO_SITE_SETTINGS,
+      update: {
+        storeName: DEMO_SITE_SETTINGS.storeName,
+        email: DEMO_SITE_SETTINGS.email,
+        phone: DEMO_SITE_SETTINGS.phone,
+        whatsapp: DEMO_SITE_SETTINGS.whatsapp,
+        address: DEMO_SITE_SETTINGS.address,
+        pickupAddresses: DEMO_SITE_SETTINGS.pickupAddresses,
+        deliveryEnabled: DEMO_SITE_SETTINGS.deliveryEnabled,
+      },
+    });
+    console.log(
+      "✅ SiteSettings (nome, contato, endereço, pontos de retirada) inserido/atualizado!",
+    );
+
     // Inserir categorias (usando upsert para evitar erros se já existirem)
     for (const category of demoCategories) {
       await prisma.category.upsert({
@@ -233,6 +295,76 @@ async function insertDemoData() {
       });
     }
     console.log("✅ Demo products inserted/updated successfully!");
+
+    /** Copia imagens atuais da raiz de `public/` para `public/uploads/sections/` (URLs usadas no JSON das seções). */
+    const projectRoot = path.join(__dirname, "..", "..");
+    const publicDir = path.join(projectRoot, "public");
+    const sectionsDir = path.join(publicDir, "uploads", "sections");
+    fs.mkdirSync(sectionsDir, { recursive: true });
+    const copyIntoSections = (fromBasename, toBasename) => {
+      const src = path.join(publicDir, fromBasename);
+      const dest = path.join(sectionsDir, toBasename);
+      if (fs.existsSync(src)) {
+        fs.copyFileSync(src, dest);
+        return true;
+      }
+      console.warn(
+        `⚠️ insertDemoData: arquivo ausente em public/${fromBasename}, pulando cópia para uploads/sections/${toBasename}`,
+      );
+      return false;
+    };
+    copyIntoSections("hero.webp", "hero.webp");
+    copyIntoSections("categ.webp", "categ.webp");
+    copyIntoSections("bertp.webp", "bertp.webp");
+    copyIntoSections("bag.webp", "bag.webp");
+    const bagPath = path.join(publicDir, "bag.webp");
+    if (fs.existsSync(bagPath)) {
+      fs.copyFileSync(bagPath, path.join(sectionsDir, "racket.webp"));
+      fs.copyFileSync(bagPath, path.join(sectionsDir, "shoes.webp"));
+    } else {
+      console.warn(
+        "⚠️ insertDemoData: bag.webp ausente; racket.webp/shoes.webp não gerados.",
+      );
+    }
+    console.log("✅ Imagens de seção (uploads/sections) copiadas a partir de public/.");
+
+    const categoryMenuDemoContent = JSON.parse(
+      JSON.stringify(HOME_SECTION_DEFAULTS.categoryMenu),
+    );
+
+    for (const s of [
+      {
+        name: "hero",
+        order: 0,
+        content: HOME_SECTION_DEFAULTS.hero,
+      },
+      {
+        name: "categoryMenu",
+        order: 1,
+        content: categoryMenuDemoContent,
+      },
+      {
+        name: "featuredProducts",
+        order: 3,
+        content: HOME_SECTION_DEFAULTS.featuredProducts,
+      },
+    ]) {
+      await prisma.homeSection.upsert({
+        where: { name: s.name },
+        create: {
+          id: randomUUID(),
+          name: s.name,
+          enabled: true,
+          order: s.order,
+          content: s.content,
+        },
+        update: { content: s.content },
+      });
+    }
+    console.log(
+      "✅ HomeSection hero + categoryMenu + featuredProducts (conteúdo demo) atualizado!",
+    );
+
     console.log("✅ All demo data has been inserted!");
   } catch (error) {
     console.error("❌ Error inserting demo data:", error);

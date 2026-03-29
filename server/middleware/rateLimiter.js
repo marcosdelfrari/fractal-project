@@ -1,15 +1,21 @@
 const rateLimit = require('express-rate-limit');
 
+const skipGeneralRateLimit = () =>
+  process.env.NODE_ENV === 'development' ||
+  process.env.DISABLE_API_RATE_LIMIT === 'true';
+
 // General API rate limiter - applies to all API routes
+// Em desenvolvimento: desligado — Next (SSR + HMR + prefetch) gera muitas chamadas ao Express local.
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200, // Limit each IP to 100 requests per windowMs
+  max: 200, // Limit each IP per windowMs (produção)
   message: {
     error: 'Too many requests from this IP, please try again later.',
     retryAfter: '15 minutes'
   },
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: skipGeneralRateLimit,
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many requests from this IP, please try again later.',

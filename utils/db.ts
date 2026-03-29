@@ -16,7 +16,7 @@ const prismaClientSingleton = () => {
     throw new Error(
       `Invalid DATABASE_URL format: ${
         error instanceof Error ? error.message : "Unknown error"
-      }`
+      }`,
     );
   }
 
@@ -25,10 +25,10 @@ const prismaClientSingleton = () => {
     console.log(
       ` Database connection: ${url.protocol}//${url.hostname}:${
         url.port || "3306"
-      }`
+      }`,
     );
     console.log(
-      `🔒 SSL Mode: ${url.searchParams.get("sslmode") || "not specified"}`
+      `🔒 SSL Mode: ${url.searchParams.get("sslmode") || "not specified"}`,
     );
   }
 

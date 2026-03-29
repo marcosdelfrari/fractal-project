@@ -73,16 +73,45 @@ const SingleProductDynamicFields = ({ product }: { product: Product }) => {
 
       {/* Quantity & Add to Cart */}
       {Boolean(product.inStock) && (
-        <div className="flex gap-4 items-stretch mt-2">
-          <div className="bg-gray-100">
-            <QuantityInput
-              quantityCount={quantityCount}
-              setQuantityCount={setQuantityCount}
-            />
+        <div className="flex flex-col gap-4 mt-2">
+          <div className="flex gap-4 items-stretch h-12">
+            <div className="border border-gray-200 rounded-full px-2">
+              <QuantityInput
+                quantityCount={quantityCount}
+                setQuantityCount={setQuantityCount}
+              />
+            </div>
+
+            <div className="flex-1">
+              <AddToCartSingleProductBtn
+                quantityCount={quantityCount}
+                product={product}
+              />
+            </div>
           </div>
 
+          <div className="hidden lg:block">
+            <BuyNowSingleProductBtn
+              quantityCount={quantityCount}
+              product={product}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Fixed Bottom Bar */}
+      {Boolean(product.inStock) && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50 flex gap-4 items-center shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
           <div className="flex-1">
-            <AddToCartSingleProductBtn
+            <p className="text-lg font-bold text-gray-900 leading-tight">
+              R$ {product.price?.toFixed(2).replace(".", ",")}
+            </p>
+            <p className="text-xs text-gray-500">
+              ou 7x de R$ {(product.price / 7).toFixed(2).replace(".", ",")}
+            </p>
+          </div>
+          <div className="flex-[1.5]">
+            <BuyNowSingleProductBtn
               quantityCount={quantityCount}
               product={product}
             />

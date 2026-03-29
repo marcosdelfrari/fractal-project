@@ -29,15 +29,15 @@ const BuyNowSingleProductBtn = ({
       amount: quantityCount,
     });
     calculateTotals();
-    toast.success("Product added to the cart");
+    toast.success("Produto adicionado ao carrinho!");
     router.push("/checkout");
   };
   return (
     <button
       onClick={handleAddToCart}
-      className="btn w-[200px] text-lg border border-blue-500 hover:border-blue-500 border-1 font-normal bg-zinc-900 text-white hover:bg-white hover:scale-110 hover:text-blue-500 transition-all uppercase ease-in max-[500px]:w-full"
+      className="w-full bg-black text-white hover:bg-gray-800 font-medium text-sm lg:text-base px-6 py-4 transition-all uppercase tracking-widest rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5"
     >
-      Buy Now
+      Comprar Agora
     </button>
   );
 };

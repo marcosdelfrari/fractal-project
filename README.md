@@ -147,11 +147,11 @@ npm install
 npx prisma migrate dev
 ```
 
-<p>11. Next is to insert demo data. To do it you need to go to the server/utills folder and call insertDemoData.js:</p>
+<p>11. Insert demo data (from the <code>server</code> folder you can run <code>npm run db:seed</code>, or from the project root: <code>node server/insertDemoData.js</code> — the script lives in <code>server/utills/insertDemoData.js</code>):</p>
 
 ```
-cd utills
-node insertDemoData.js
+cd server
+npm run db:seed
 ```
 
 <p>12. Now you can go back to the server folder and run the backend:</p>

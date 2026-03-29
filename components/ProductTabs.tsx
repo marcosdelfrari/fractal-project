@@ -20,30 +20,37 @@ const ProductTabs = ({ product }: { product: Product }) => {
 
   return (
     <div className="px-5 text-black">
-      <div role="tablist" className="tabs tabs-bordered">
-        <a
-          role="tab"
-          className={`tab text-lg text-black pb-8 max-[500px]:text-base max-[400px]:text-sm max-[370px]:text-xs ${
-            currentProductTab === 0 && "tab-active"
+      <div
+        role="tablist"
+        className="flex items-center gap-8 border-b border-gray-200 text-sm sm:text-base"
+      >
+        <button
+          type="button"
+          className={`pb-3 uppercase tracking-widest font-light border-b-2 transition-colors ${
+            currentProductTab === 0
+              ? "border-black text-black"
+              : "border-transparent text-gray-400 hover:text-black"
           }`}
           onClick={() => setCurrentProductTab(0)}
         >
-          Description
-        </a>
-        <a
-          role="tab"
-          className={`tab text-black text-lg pb-8 max-[500px]:text-base max-[400px]:text-sm max-[370px]:text-xs ${
-            currentProductTab === 1 && "tab-active"
+          Descrição
+        </button>
+        <button
+          type="button"
+          className={`pb-3 uppercase tracking-widest font-light border-b-2 transition-colors ${
+            currentProductTab === 1
+              ? "border-black text-black"
+              : "border-transparent text-gray-400 hover:text-black"
           }`}
           onClick={() => setCurrentProductTab(1)}
         >
-          Additional info
-        </a>
+          Informações adicionais
+        </button>
       </div>
       <div className="pt-5">
         {currentProductTab === 0 && (
           <div 
-            className="text-lg max-sm:text-base max-sm:text-sm"
+            className="text-base lg:text-lg font-light leading-relaxed text-gray-600 space-y-4 whitespace-pre-line"
             dangerouslySetInnerHTML={{ 
               __html: sanitizeHtml(product?.description) 
             }}
@@ -52,26 +59,30 @@ const ProductTabs = ({ product }: { product: Product }) => {
 
         {currentProductTab === 1 && (
           <div className="overflow-x-auto">
-            <table className="table text-xl text-center max-[500px]:text-base">
-              <tbody>
+            <table className="table text-base lg:text-lg text-left w-full">
+              <tbody className="divide-y divide-gray-100">
                 {/* row 1 */}
-                <tr>
-                  <th>Manufacturer:</th>
-                  <td>{sanitize(product?.manufacturer)}</td>
+                <tr className="hover:bg-gray-50">
+                  <th className="font-medium p-4 w-1/3">Fabricante:</th>
+                  <td className="p-4">{sanitize(product?.manufacturer)}</td>
                 </tr>
                 {/* row 2 */}
-                <tr>
-                  <th>Category:</th>
-                  <td>
+                <tr className="hover:bg-gray-50">
+                  <th className="font-medium p-4">Categoria:</th>
+                  <td className="p-4">
                     {product?.category?.name
                       ? sanitize(formatCategoryName(product?.category?.name))
-                      : "No category"}
+                      : "Sem categoria"}
                   </td>
                 </tr>
                 {/* row 3 */}
-                <tr>
-                  <th>Color:</th>
-                  <td>Silver, LightSlateGray, Blue</td>
+                <tr className="hover:bg-gray-50">
+                  <th className="font-medium p-4">Cor:</th>
+                  <td className="p-4">
+                     {product?.colors && product.colors.length > 0 
+                        ? product.colors.map(c => c.name).join(", ") 
+                        : "N/A"}
+                  </td>
                 </tr>
               </tbody>
             </table>

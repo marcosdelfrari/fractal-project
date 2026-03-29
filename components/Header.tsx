@@ -1,8 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import HeaderTop from "./HeaderTop";
-import Image from "next/image";
 import SearchInput from "./SearchInput";
 import Link from "next/link";
 import {
@@ -19,6 +17,7 @@ import {
   FaTimes,
   FaChevronDown,
   FaChevronUp,
+  FaThLarge,
 } from "react-icons/fa";
 
 import CartElement from "./CartElement";
@@ -34,6 +33,7 @@ import {
   type MenuData,
   type HeaderNavLink,
 } from "@/mocks/menuData";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 const Header = () => {
   const { data: session, status } = useSession();
@@ -42,7 +42,7 @@ const Header = () => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileItem, setExpandedMobileItem] = useState<string | null>(
-    null
+    null,
   );
   const [menuData, setMenuData] = useState<{
     men: MenuData | null;
@@ -52,6 +52,8 @@ const Header = () => {
     women: null,
   });
   const [headerNavLinks, setHeaderNavLinks] = useState<HeaderNavLink[]>([]);
+  const { settings: siteSettings } = useSiteSettings();
+  const storeName = siteSettings.storeName || "Loja";
 
   const handleLogout = () => {
     setTimeout(() => signOut(), 1000);
@@ -81,7 +83,7 @@ const Header = () => {
         image: item?.product?.mainImage,
         slug: item?.product?.slug,
         stockAvailabillity: item?.product?.inStock,
-      })
+      }),
     );
 
     setWishlist(productArray);
@@ -148,7 +150,7 @@ const Header = () => {
       className={`${
         isHomepage
           ? "absolute top-0 w-full z-50 transition-all duration-300"
-          : "bg-white text-black relative shadow-md"
+          : "bg-white text-black relative border-b border-gray-100"
       } ${isHeaderWhite ? "bg-white text-black" : "bg-transparent text-white"}`}
       onMouseLeave={() => setHoveredItem(null)}
     >
@@ -202,7 +204,7 @@ const Header = () => {
                 isHeaderWhite ? "text-black" : "text-white"
               }`}
             >
-              MARCOS
+              {storeName}
             </span>
           </Link>
         </div>
@@ -229,35 +231,72 @@ const Header = () => {
 
           {/* User Account */}
           {session?.user ? (
-            <div className="dropdown dropdown-end">
+            <div className="dropdown dropdown-end group">
               <div
                 tabIndex={0}
                 role="button"
-                className="flex items-center gap-2 hover:opacity-70 transition-opacity"
+                className="flex items-center gap-2 hover:opacity-70 transition-opacity py-2 outline-none"
               >
                 <FaUser className="text-sm" />
               </div>
               <ul
                 tabIndex={0}
-                className="dropdown-content z-[1] menu p-2 shadow bg-white text-black rounded-lg w-64 border border-gray-200 mt-4"
+                className="dropdown-content z-[100] p-2 shadow-xl bg-white text-gray-700 rounded-xl w-72 border border-gray-100 mt-4 animate-in fade-in slide-in-from-top-2 duration-200"
               >
-                <li className="px-3 py-2 text-sm text-gray-500 border-b border-gray-100">
-                  {session.user.name || session.user.email}
+                <li className="px-4 py-3 border-b border-gray-100 mb-2">
+                  <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block mb-1">
+                    Logado como
+                  </span>
+                  <span className="text-sm font-bold text-gray-900 truncate block">
+                    {session.user.name || session.user.email}
+                  </span>
+                </li>
+
+                <li>
+                  <Link
+                    href="/user"
+                    className="group flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 rounded-lg transition-all duration-200 font-medium text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    <FaThLarge className="text-gray-400 group-hover:text-gray-900 transition-colors text-xs" />
+                    Dashboard
+                  </Link>
                 </li>
                 <li>
-                  <Link href="/user">Dashboard</Link>
+                  <Link
+                    href="/user/perfil"
+                    className="group flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 rounded-lg transition-all duration-200 font-medium text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    <FaUser className="text-gray-400 group-hover:text-gray-900 transition-colors text-xs" />
+                    Meu Perfil
+                  </Link>
                 </li>
                 <li>
-                  <Link href="/user/perfil">Meu Perfil</Link>
+                  <Link
+                    href="/user/pedidos"
+                    className="group flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 rounded-lg transition-all duration-200 font-medium text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    <FaShoppingBag className="text-gray-400 group-hover:text-gray-900 transition-colors text-xs" />
+                    Meus Pedidos
+                  </Link>
                 </li>
                 <li>
-                  <Link href="/user/pedidos">Meus Pedidos</Link>
+                  <Link
+                    href="/user/enderecos"
+                    className="group flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 rounded-lg transition-all duration-200 font-medium text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    <FaMapMarkerAlt className="text-gray-400 group-hover:text-gray-900 transition-colors text-xs" />
+                    Endereços
+                  </Link>
                 </li>
+
+                <div className="my-2 border-t border-gray-100"></div>
+
                 <li>
-                  <Link href="/user/enderecos">Endereços</Link>
-                </li>
-                <li className="border-t border-gray-100 mt-1">
-                  <button onClick={handleLogout} className="text-red-600">
+                  <button
+                    onClick={handleLogout}
+                    className="group flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 text-red-600 rounded-lg transition-all duration-200 font-medium w-full text-left text-sm"
+                  >
+                    <FaSignOutAlt className="text-red-400 group-hover:text-red-600 transition-colors text-xs" />
                     Sair
                   </button>
                 </li>
@@ -305,7 +344,7 @@ const Header = () => {
         <div className="flex justify-between items-center p-6 sm:p-8">
           <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
             <span className="font-thin text-2xl tracking-[0.2em] text-black uppercase">
-              MARCOS
+              {storeName}
             </span>
           </Link>
           <button

@@ -232,19 +232,19 @@ const UserProfileForm = ({
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-md border border-gray-200 ${className}`}
+      className={`bg-white rounded-3xl shadow-md border border-gray-100 ${className} animate-fade-in-up`}
     >
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-blue-100 rounded-lg">
-            <FaUser className="text-blue-600 text-xl" />
+      <div className="p-8 border-b border-gray-100">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-gray-50 rounded-full text-gray-900">
+            <FaUser className="text-lg" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-lg font-light tracking-widest text-gray-900 uppercase">
               Editar Perfil
             </h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 font-light mt-1">
               Atualize suas informações pessoais
             </p>
           </div>
@@ -252,10 +252,10 @@ const UserProfileForm = ({
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="p-6 space-y-6">
+      <form onSubmit={handleSubmit} className="p-8 space-y-8">
         {/* Basic Information */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-900">
+        <div className="space-y-6">
+          <h3 className="text-sm font-light tracking-widest text-gray-900 uppercase">
             Informações Básicas
           </h3>
 

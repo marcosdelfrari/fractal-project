@@ -43,7 +43,7 @@ const createWishItem = asyncHandler(async (request, response) => {
 
   // Check if product exists
   const product = await prisma.product.findUnique({
-    where: { id: productId }
+    where: { id: productId },
   });
 
   if (!product) {
@@ -92,7 +92,7 @@ const deleteWishItem = asyncHandler(async (request, response) => {
   if (deletedItems.count === 0) {
     throw new AppError("Wishlist item not found", 404);
   }
-  
+
   return response.status(204).send();
 });
 
@@ -106,14 +106,14 @@ const getSingleProductFromWishlist = asyncHandler(async (request, response) => {
   if (!productId) {
     throw new AppError("Product ID is required", 400);
   }
-  
+
   const wishItem = await prisma.wishlist.findMany({
     where: {
       userId: userId,
       productId: productId,
     },
   });
-  
+
   return response.status(200).json(wishItem);
 });
 
@@ -123,13 +123,13 @@ const deleteAllWishItemByUserId = asyncHandler(async (request, response) => {
   if (!userId) {
     throw new AppError("User ID is required", 400);
   }
-  
+
   await prisma.wishlist.deleteMany({
     where: {
       userId: userId,
     },
   });
-  
+
   return response.status(204).send();
 });
 
@@ -139,5 +139,5 @@ module.exports = {
   createWishItem,
   deleteWishItem,
   getSingleProductFromWishlist,
-  deleteAllWishItemByUserId
+  deleteAllWishItemByUserId,
 };

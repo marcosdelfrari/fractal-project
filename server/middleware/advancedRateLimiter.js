@@ -1,5 +1,9 @@
 const rateLimit = require('express-rate-limit');
 
+const skipProductRateLimit = () =>
+  process.env.NODE_ENV === 'development' ||
+  process.env.DISABLE_API_RATE_LIMIT === 'true';
+
 // Rate limiter for password reset attempts
 const passwordResetLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
@@ -57,13 +61,14 @@ const wishlistLimiter = rateLimit({
 // Rate limiter for product operations (viewing, etc.)
 const productLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 120, // Allow more requests for product viewing
+  max: 120,
   message: {
     error: 'Too many product requests, please try again later.',
     retryAfter: '1 minute'
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: skipProductRateLimit,
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many product requests, please try again later.',

@@ -2,7 +2,7 @@
 
 import { useProductStore } from "@/app/_zustand/store";
 import toast from "react-hot-toast";
-import Image from "next/image"
+import Image from "next/image";
 import Link from "next/link";
 import { FaCheck, FaCircleQuestion, FaClock, FaXmark } from "react-icons/fa6";
 import QuantityInputCart from "@/components/QuantityInputCart";
@@ -18,9 +18,41 @@ export const CartModule = () => {
     calculateTotals();
     toast.success("Product removed from the cart");
   };
-  return (
 
-    <form className="mt-12 lg:grid lg:grid-cols-12 lg:items-start lg:gap-x-12 xl:gap-x-16">
+  if (products.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-400">
+          <svg
+            className="h-8 w-8"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            <path d="M3 3h2l.4 2M7 13h10l3-8H6.4" />
+            <circle cx="9" cy="19" r="1.5" />
+            <circle cx="17" cy="19" r="1.5" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-light text-gray-900 tracking-tight mb-2">
+          Seu carrinho está vazio
+        </h2>
+        <p className="text-sm font-light text-gray-500 mb-8 max-w-sm">
+          Adicione produtos ao carrinho para continuar com a sua compra.
+        </p>
+        <Link
+          href="/"
+          className="inline-flex items-center justify-center rounded-full border border-transparent bg-black px-8 py-3 text-sm font-medium uppercase tracking-wider text-white shadow-lg hover:bg-zinc-800 transition-all duration-300"
+        >
+          Voltar para a loja
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <form className="mt-6 lg:grid lg:grid-cols-12 lg:items-start lg:gap-x-12 xl:gap-x-16">
       <section aria-labelledby="cart-heading" className="lg:col-span-7">
         <h2 id="cart-heading" className="sr-only">
           Items in your shopping cart
@@ -28,7 +60,7 @@ export const CartModule = () => {
 
         <ul
           role="list"
-          className="divide-y divide-gray-200 border-b border-t border-gray-200"
+          className="divide-y divide-gray-100 border-y border-gray-100"
         >
           {products.map((product) => (
             <li key={product.id} className="flex py-6 sm:py-10">
@@ -105,13 +137,13 @@ export const CartModule = () => {
       {/* Order summary */}
       <section
         aria-labelledby="summary-heading"
-        className="mt-16 rounded-lg bg-gray-50 px-4 py-6 sm:p-6 lg:col-span-5 lg:mt-0 lg:p-8"
+        className="mt-10 rounded-3xl border border-gray-100 bg-white px-6 py-6 shadow-md sm:p-8 lg:col-span-5 lg:mt-0"
       >
         <h2
           id="summary-heading"
-          className="text-lg font-medium text-gray-900"
+          className="text-lg font-light tracking-widest text-gray-900 uppercase"
         >
-          Order summary
+          Resumo do Pedido
         </h2>
 
         <dl className="mt-6 space-y-4">
@@ -121,7 +153,7 @@ export const CartModule = () => {
               ${total}
             </dd>
           </div>
-          <div className="flex items-center justify-between border-t border-gray-200 pt-4">
+          <div className="flex items-center justify-between border-t border-gray-100 pt-4">
             <dt className="flex items-center text-sm text-gray-600">
               <span>Shipping estimate</span>
               <a
@@ -139,7 +171,7 @@ export const CartModule = () => {
             </dt>
             <dd className="text-sm font-medium text-gray-900">$5.00</dd>
           </div>
-          <div className="flex items-center justify-between border-t border-gray-200 pt-4">
+          <div className="flex items-center justify-between border-t border-gray-100 pt-4">
             <dt className="flex text-sm text-gray-600">
               <span>Tax estimate</span>
               <a
@@ -159,7 +191,7 @@ export const CartModule = () => {
               ${total / 5}
             </dd>
           </div>
-          <div className="flex items-center justify-between border-t border-gray-200 pt-4">
+          <div className="flex items-center justify-between border-t border-gray-100 pt-4">
             <dt className="text-base font-medium text-gray-900">
               Order total
             </dt>
@@ -172,9 +204,9 @@ export const CartModule = () => {
           <div className="mt-6">
             <Link
               href="/checkout"
-              className="block flex justify-center items-center w-full uppercase bg-white px-4 py-3 text-base border border-black border-gray-300 font-bold text-blue-600 shadow-sm hover:bg-black hover:bg-gray-100 focus:outline-none focus:ring-2"
+              className="flex w-full items-center justify-center rounded-full border border-transparent bg-black px-6 py-3 text-sm font-medium uppercase tracking-wider text-white shadow-lg hover:bg-zinc-800 transition-all duration-300"
             >
-              <span>Checkout</span>
+              <span>Ir para o Checkout</span>
             </Link>
           </div>
         )}

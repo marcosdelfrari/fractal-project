@@ -10,9 +10,12 @@
 "use client";
 import React from "react";
 import { usePathname } from "next/navigation";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 const Footer = () => {
   const pathname = usePathname();
+  const { settings } = useSiteSettings();
+  const storeName = settings.storeName || "Loja";
 
   // Ocultar footer nas páginas de login, verify-pin e admin
   if (
@@ -33,10 +36,10 @@ const Footer = () => {
       </h2>
       <div className="mx-auto max-w-screen-2xl px-6 lg:px-8 py-16 flex flex-col items-center justify-center">
         <span className="font-thin text-4xl tracking-widest text-black">
-          MARCOS
+          {storeName}
         </span>
         <p className="mt-8 text-xs leading-5 text-gray-500 text-center">
-          &copy; {new Date().getFullYear()} Fractal Project. Todos os direitos
+          &copy; {new Date().getFullYear()} {storeName}. Todos os direitos
           reservados.
         </p>
       </div>

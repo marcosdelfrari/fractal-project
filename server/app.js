@@ -1,3 +1,10 @@
+const path = require("path");
+try {
+  require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
+} catch (_) {
+  /* dotenv é opcional se variáveis já estiverem no ambiente */
+}
+
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const fileUpload = require("express-fileupload");
@@ -14,6 +21,7 @@ const wishlistRouter = require("./routes/wishlist");
 const addressesRouter = require("./routes/addresses");
 const reviewsRouter = require("./routes/reviews");
 const userProfileRouter = require("./routes/userProfile");
+const settingsRouter = require("./routes/settings");
 var cors = require("cors");
 
 // Import logging middleware
@@ -132,6 +140,9 @@ app.use("/api/slugs", slugRouter);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/addresses", addressesRouter);
 app.use("/api/reviews", reviewsRouter);
+app.use("/api/settings", settingsRouter);
+
+console.log("✅ All routes mounted successfully");
 
 // Health check endpoint (no rate limiting)
 app.get("/health", (req, res) => {

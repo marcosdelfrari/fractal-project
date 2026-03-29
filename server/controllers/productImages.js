@@ -80,8 +80,6 @@ async function deleteImage(request, response) {
   }
 }
 
-
-
 module.exports = {
   getSingleProductImages,
   createImage,

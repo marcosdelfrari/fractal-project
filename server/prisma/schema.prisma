@@ -137,3 +137,33 @@ model VerificationToken {
   @@index([email])
   @@index([token])
 }
+
+model SiteSettings {
+  id          String   @id @default(uuid())
+  storeName   String   @default("Fractal Store")
+  storeIcon   String?  // URL do ícone da loja
+  storeLogo   String?  // URL do logo
+  whatsapp    String?  // Número WhatsApp com país
+  address     String?  // Endereço físico
+  email       String?  // Email de contato
+  phone       String?  // Telefone
+  pickupAddresses Json? // [{ id, name, address }] pontos de retirada
+  /// false = só retirada no checkout; true = entrega e retirada
+  deliveryEnabled Boolean @default(true)
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([id]) // Sempre apenas um registro
+}
+
+model HomeSection {
+  id          String   @id @default(uuid())
+  name        String   // "hero", "categoryMenu", "productsSection", "featuredProducts", etc
+  enabled     Boolean  @default(true)
+  order       Int      @default(0)
+  content     Json? // conteúdo específico da seção (menu de categorias, slides, etc.)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([name]) // Um nome único por seção
+  @@index([order])
+}

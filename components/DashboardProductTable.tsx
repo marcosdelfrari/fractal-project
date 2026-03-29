@@ -20,7 +20,8 @@ const DashboardProductTable = () => {
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    apiClient.get("/api/products?mode=admin", {cache: "no-store"})
+    apiClient
+      .get("/api/products?mode=admin", { cache: "no-store" })
       .then((res) => {
         return res.json();
       })
@@ -31,99 +32,109 @@ const DashboardProductTable = () => {
 
   return (
     <div className="w-full">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">All products</h1>
-      <div className="flex justify-end mb-5">
+      <div className="flex justify-end mb-8">
         <Link href="/admin/products/new">
-          <CustomButton
-            buttonType="button"
-            customWidth="110px"
-            paddingX={10}
-            paddingY={5}
-            textSize="base"
-            text="Add new product"
-          />
+          <button className="flex items-center justify-center rounded-full bg-black px-6 py-3 text-[11px] uppercase tracking-widest font-medium text-white hover:bg-zinc-800 transition-all duration-300">
+            Adicionar Produto
+          </button>
         </Link>
       </div>
 
-      <div className="w-full overflow-auto h-[80vh] bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div className="w-full overflow-auto h-[70vh] bg-white rounded-3xl border border-gray-100">
         <table className="table table-md table-pin-cols">
           {/* head */}
-          <thead>
+          <thead className="bg-gray-50/50">
             <tr>
-              <th>
+              <th className="py-4 px-6 text-[11px] font-light tracking-widest text-gray-500 uppercase">
                 <label>
-                  <input type="checkbox" className="checkbox" />
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-sm rounded-md"
+                  />
                 </label>
               </th>
-              <th>Product</th>
-              <th>Stock Availability</th>
-              <th>Price</th>
-              <th></th>
+              <th className="py-4 text-[11px] font-light tracking-widest text-gray-500 uppercase">
+                Produto
+              </th>
+              <th className="py-4 text-[11px] font-light tracking-widest text-gray-500 uppercase">
+                Disponibilidade
+              </th>
+              <th className="py-4 text-[11px] font-light tracking-widest text-gray-500 uppercase">
+                Preço
+              </th>
+              <th className="py-4"></th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-50">
             {/* row 1 */}
             {products &&
               products.map((product) => (
-                <tr key={nanoid()}>
-                  <th>
+                <tr
+                  key={nanoid()}
+                  className="hover:bg-gray-50/50 transition-colors"
+                >
+                  <th className="px-6">
                     <label>
-                      <input type="checkbox" className="checkbox" />
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-sm rounded-md"
+                      />
                     </label>
                   </th>
 
-                  <td>
+                  <td className="py-4">
                     <div className="flex items-center gap-3">
                       <div className="avatar">
                         <div className="mask mask-squircle w-12 h-12">
                           <Image
                             width={48}
                             height={48}
-                            src={product?.mainImage ? `/${product?.mainImage}` : "/product_placeholder.jpg"}
+                            src={
+                              product?.mainImage
+                                ? `/${product?.mainImage}`
+                                : "/product_placeholder.jpg"
+                            }
                             alt={sanitize(product?.title) || "Product image"}
-                            className="w-auto h-auto"
+                            className="w-auto h-auto object-cover"
                           />
                         </div>
                       </div>
                       <div>
-                        <div className="font-bold">{sanitize(product?.title)}</div>
-                        <div className="text-sm opacity-50">
+                        <div className="font-medium text-gray-900">
+                          {sanitize(product?.title)}
+                        </div>
+                        <div className="text-[10px] text-gray-400 uppercase tracking-widest">
                           {sanitize(product?.manufacturer)}
                         </div>
                       </div>
                     </div>
                   </td>
 
-                  <td>
-                    { product?.inStock ? (<span className="badge badge-success text-white badge-sm">
-                      In stock
-                    </span>) : (<span className="badge badge-error text-white badge-sm">
-                      Out of stock
-                    </span>) }
-                    
+                  <td className="py-4">
+                    {product?.inStock ? (
+                      <span className="px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider bg-green-50 text-green-600 border border-green-100">
+                        Em estoque
+                      </span>
+                    ) : (
+                      <span className="px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider bg-red-50 text-red-600 border border-red-100">
+                        Esgotado
+                      </span>
+                    )}
                   </td>
-                  <td>${product?.price}</td>
-                  <th>
+                  <td className="py-4 font-medium text-gray-900">
+                    R$ {product?.price}
+                  </td>
+                  <th className="py-4 text-right pr-6">
                     <Link
                       href={`/admin/products/${product.id}`}
-                      className="btn btn-ghost btn-xs"
+                      className="text-[10px] font-medium uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
                     >
-                      details
+                      Editar
                     </Link>
                   </th>
                 </tr>
               ))}
           </tbody>
-          {/* foot */}
-          <tfoot>
-            <tr>
-              <th></th>
-              <th>Product</th>
-              <th>Stock Availability</th>
-              <th>Price</th>
-              <th></th>
-            </tr>
-          </tfoot>
         </table>
       </div>
     </div>

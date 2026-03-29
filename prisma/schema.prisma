@@ -154,3 +154,36 @@ model wishlist {
   @@index([productId], map: "Wishlist_productId_fkey")
   @@index([userId], map: "Wishlist_userId_fkey")
 }
+
+/// Configurações globais da loja (um registro)
+model SiteSettings {
+  id               String  @id
+  storeName        String  @default("Fractal Store")
+  storeIcon        String? @db.LongText
+  storeLogo        String? @db.LongText
+  whatsapp         String?
+  address          String? @db.Text
+  email            String?
+  phone            String?
+  /// Lista de pontos de retirada: [{ id, name, address }]
+  pickupAddresses  Json?
+  /// Se false, o checkout oferece apenas retirada na loja (sem entrega).
+  deliveryEnabled  Boolean  @default(true)
+  updatedAt        DateTime @updatedAt
+
+  @@map("SiteSettings")
+}
+
+/// Seções da home (ordem e ativação)
+model HomeSection {
+  id        String   @id
+  name      String   @unique
+  enabled   Boolean  @default(true)
+  order     Int      @default(0)
+  content   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order], map: "HomeSection_order_idx")
+  @@map("HomeSection")
+}

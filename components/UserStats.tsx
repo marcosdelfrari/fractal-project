@@ -40,34 +40,39 @@ const UserStats = ({ stats, className = "" }: UserStatsProps) => {
   const getColorClasses = (color: StatCard["color"]) => {
     const colorMap = {
       blue: {
-        bg: "bg-zinc-900",
-        text: "text-white",
-        change: "text-blue-200",
-        icon: "text-blue-200",
+        card: "bg-white border-gray-100",
+        iconBg: "bg-gray-50 text-gray-900",
+        title: "text-gray-600 font-light",
+        value: "text-gray-900",
+        change: "text-gray-500",
       },
       green: {
-        bg: "bg-green-500",
-        text: "text-white",
-        change: "text-green-200",
-        icon: "text-green-200",
+        card: "bg-white border-gray-100",
+        iconBg: "bg-gray-50 text-gray-900",
+        title: "text-gray-600 font-light",
+        value: "text-gray-900",
+        change: "text-gray-500",
       },
       purple: {
-        bg: "bg-purple-500",
-        text: "text-white",
-        change: "text-purple-200",
-        icon: "text-purple-200",
+        card: "bg-white border-gray-100",
+        iconBg: "bg-gray-50 text-gray-900",
+        title: "text-gray-600 font-light",
+        value: "text-gray-900",
+        change: "text-gray-500",
       },
       orange: {
-        bg: "bg-orange-500",
-        text: "text-white",
-        change: "text-orange-200",
-        icon: "text-orange-200",
+        card: "bg-white border-gray-100",
+        iconBg: "bg-gray-50 text-gray-900",
+        title: "text-gray-600 font-light",
+        value: "text-gray-900",
+        change: "text-gray-500",
       },
       red: {
-        bg: "bg-red-500",
-        text: "text-white",
-        change: "text-red-200",
-        icon: "text-red-200",
+        card: "bg-white border-gray-100",
+        iconBg: "bg-gray-50 text-gray-900",
+        title: "text-gray-600 font-light",
+        value: "text-gray-900",
+        change: "text-gray-500",
       },
     };
     return colorMap[color];
@@ -101,7 +106,7 @@ const UserStats = ({ stats, className = "" }: UserStatsProps) => {
 
   return (
     <div
-      className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ${className}`}
+      className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ${className}`}
     >
       {stats.map((stat) => {
         const colors = getColorClasses(stat.color);
@@ -109,15 +114,17 @@ const UserStats = ({ stats, className = "" }: UserStatsProps) => {
         return (
           <div
             key={stat.id}
-            className={`${colors.bg} ${colors.text} rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow duration-300`}
+            className={`${colors.card} rounded-2xl p-6 shadow-md border hover:shadow-lg transition-all duration-300`}
           >
             <div className="flex items-center justify-between mb-4">
-              <div className={`${colors.icon} text-2xl`}>{stat.icon}</div>
+              <div className={`p-3 rounded-full ${colors.iconBg}`}>
+                {stat.icon}
+              </div>
               {stat.change && (
                 <div
                   className={`${getChangeColor(
                     stat.change.type
-                  )} flex items-center gap-1 text-sm`}
+                  )} flex items-center gap-1 text-xs font-light`}
                 >
                   {getChangeIcon(stat.change.type)}
                   <span>{stat.change.value}%</span>
@@ -126,14 +133,14 @@ const UserStats = ({ stats, className = "" }: UserStatsProps) => {
             </div>
 
             <div className="space-y-1">
-              <h3 className={`${colors.text} text-lg font-medium`}>
+              <h3 className={`${colors.title} text-sm uppercase tracking-wider`}>
                 {stat.title}
               </h3>
-              <p className={`${colors.text} text-3xl font-bold`}>
+              <p className={`${colors.value} text-2xl font-medium`}>
                 {stat.value}
               </p>
               {stat.change && (
-                <p className={`${colors.change} text-sm`}>
+                <p className={`${colors.change} text-xs font-light`}>
                   {stat.change.type === "increase" && "Aumento"}
                   {stat.change.type === "decrease" && "Diminuição"}
                   {stat.change.type === "neutral" && "Sem alteração"}{" "}

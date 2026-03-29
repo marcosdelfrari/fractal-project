@@ -1,0 +1,19 @@
+---
+description: Conta administradora do projeto e como promover usuário a admin no banco
+alwaysApply: true
+---
+
+# Administrador do projeto
+
+- **Email do usuário admin de referência:** `afk.marcos@gmail.com`
+- O acesso às rotas `/admin/*` exige `role === "admin"` na tabela `user` (sessão NextAuth / token).
+
+## Promover este email a admin no MySQL
+
+Na raiz do projeto (com `.env` e banco acessíveis):
+
+```bash
+node server/utills/setAdmin.js afk.marcos@gmail.com
+```
+
+O usuário **precisa já existir** (cadastro/login pelo menos uma vez). Se não existir, criar a conta antes e rodar o comando de novo.

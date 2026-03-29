@@ -2,6 +2,8 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { asyncHandler, AppError } = require("../utills/errorHandler");
 
+const { nanoid } = require("nanoid");
+
 const createCategory = asyncHandler(async (request, response) => {
   const { name } = request.body;
 
@@ -11,6 +13,7 @@ const createCategory = asyncHandler(async (request, response) => {
 
   const category = await prisma.category.create({
     data: {
+      id: nanoid(),
       name: name.trim(),
     },
   });
@@ -99,11 +102,11 @@ const getCategory = asyncHandler(async (request, response) => {
       id: id,
     },
   });
-  
+
   if (!category) {
     throw new AppError("Category not found", 404);
   }
-  
+
   return response.status(200).json(category);
 });
 

@@ -7,6 +7,20 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import {
+  FaChevronLeft,
+  FaTrash,
+  FaCheck,
+  FaTruck,
+  FaClock,
+  FaUser,
+  FaEnvelope,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaCommentAlt,
+  FaReceipt,
+} from "react-icons/fa";
+import { FaBagShopping } from "react-icons/fa6";
 
 interface OrderProduct {
   id: string;
@@ -46,8 +60,10 @@ const AdminSingleOrder = () => {
     status: "processing",
     total: 0,
   });
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
   const params = useParams<{ id: string }>();
-
   const router = useRouter();
 
   useEffect(() => {
@@ -63,329 +79,377 @@ const AdminSingleOrder = () => {
       setOrderProducts(data);
     };
 
-    fetchOrderData();
-    fetchOrderProducts();
+    if (params?.id) {
+      fetchOrderData();
+      fetchOrderProducts();
+    }
   }, [params?.id]);
 
   const updateOrder = async () => {
     if (
-      order?.name.length > 0 &&
-      order?.lastname.length > 0 &&
-      order?.phone.length > 0 &&
-      order?.email.length > 0 &&
-      order?.company.length > 0 &&
-      order?.adress.length > 0 &&
-      order?.apartment.length > 0 &&
-      order?.city.length > 0 &&
-      order?.country.length > 0 &&
-      order?.postalCode.length > 0
+      !order?.name ||
+      !order?.lastname ||
+      !order?.phone ||
+      !order?.email ||
+      !order?.adress ||
+      !order?.city ||
+      !order?.country ||
+      !order?.postalCode
     ) {
-      if (!isValidNameOrLastname(order?.name)) {
-        toast.error("You entered invalid name format");
-        return;
-      }
+      toast.error("Por favor, preencha todos os campos obrigatórios");
+      return;
+    }
 
-      if (!isValidNameOrLastname(order?.lastname)) {
-        toast.error("You entered invalid lastname format");
-        return;
-      }
+    if (!isValidNameOrLastname(order?.name) || !isValidNameOrLastname(order?.lastname)) {
+      toast.error("Formato de nome ou sobrenome inválido");
+      return;
+    }
 
-      if (!isValidEmailAddressFormat(order?.email)) {
-        toast.error("You entered invalid email format");
-        return;
-      }
+    if (!isValidEmailAddressFormat(order?.email)) {
+      toast.error("Formato de email inválido");
+      return;
+    }
 
-      apiClient
-        .put(`/api/orders/${order?.id}`, {
-          method: "PUT", // or 'PUT'
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(order),
-        })
-        .then((response) => {
-          if (response.status === 200) {
-            toast.success("Order updated successfuly");
-          } else {
-            throw Error("There was an error while updating a order");
-          }
-        })
-        .catch((error) =>
-          toast.error("There was an error while updating a order")
-        );
-    } else {
-      toast.error("Please fill all fields");
+    setIsUpdating(true);
+    try {
+      const response = await apiClient.put(`/api/orders/${order?.id}`, order);
+      if (response.status === 200) {
+        toast.success("Pedido atualizado com sucesso");
+      } else {
+        throw Error("Erro ao atualizar pedido");
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar pedido:", error);
+      toast.error("Erro ao atualizar pedido");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   const deleteOrder = async () => {
-    const requestOptions = {
-      method: "DELETE",
-    };
+    if (!window.confirm("Tem certeza que deseja excluir este pedido?")) return;
+    
+    setIsDeleting(true);
+    try {
+      await apiClient.delete(`/api/order-product/${order?.id}`);
+      await apiClient.delete(`/api/orders/${order?.id}`);
+      toast.success("Pedido excluído com sucesso");
+      router.push("/admin/orders");
+    } catch (error) {
+      toast.error("Erro ao excluir pedido");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
-    apiClient
-      .delete(`/api/order-product/${order?.id}`, requestOptions)
-      .then((response) => {
-        apiClient
-          .delete(`/api/orders/${order?.id}`, requestOptions)
-          .then((response) => {
-            toast.success("Order deleted successfully");
-            router.push("/admin/orders");
-          });
-      });
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "delivered": return <FaCheck size={10} />;
+      case "cancelled": return <FaTrash size={10} />;
+      case "shipped": return <FaTruck size={10} />;
+      default: return <FaClock size={10} />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "delivered": return "bg-green-50 text-green-600 border-green-100";
+      case "cancelled": return "bg-red-50 text-red-600 border-red-100";
+      case "shipped": return "bg-orange-50 text-orange-600 border-orange-100";
+      case "processing": return "bg-blue-50 text-blue-600 border-blue-100";
+      default: return "bg-gray-50 text-gray-600 border-gray-100";
+    }
   };
 
   return (
-    <div className="bg-white flex justify-start max-w-screen-2xl mx-auto xl:h-full max-xl:flex-col max-xl:gap-y-5">
+    <div className="bg-gray-50 flex min-h-screen max-w-screen-2xl mx-auto max-xl:flex-col animate-fade-in-up">
       <DashboardSidebar />
-      <div className="flex flex-col gap-y-7 xl:ml-5 w-full max-xl:px-5">
-        <h1 className="text-3xl font-semibold">Order details</h1>
-        <div className="mt-5">
-          <label className="w-full">
-            <div>
-              <span className="text-xl font-bold">Order ID:</span>
-              <span className="text-base"> {order?.id}</span>
-            </div>
-          </label>
-        </div>
-        <div className="flex gap-x-2 max-sm:flex-col">
-          <div>
-            <label className="form-control w-full max-w-xs">
-              <div className="label">
-                <span className="label-text">Name:</span>
-              </div>
-              <input
-                type="text"
-                className="input input-bordered w-full max-w-xs"
-                value={order?.name}
-                onChange={(e) => setOrder({ ...order, name: e.target.value })}
-              />
-            </label>
-          </div>
-          <div>
-            <label className="form-control w-full max-w-xs">
-              <div className="label">
-                <span className="label-text">Lastname:</span>
-              </div>
-              <input
-                type="text"
-                className="input input-bordered w-full max-w-xs"
-                value={order?.lastname}
-                onChange={(e) =>
-                  setOrder({ ...order, lastname: e.target.value })
-                }
-              />
-            </label>
-          </div>
-        </div>
-
-        <div>
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
-              <span className="label-text">Phone number:</span>
-            </div>
-            <input
-              type="text"
-              className="input input-bordered w-full max-w-xs"
-              value={order?.phone}
-              onChange={(e) => setOrder({ ...order, phone: e.target.value })}
-            />
-          </label>
-        </div>
-
-        <div>
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
-              <span className="label-text">Email adress:</span>
-            </div>
-            <input
-              type="email"
-              className="input input-bordered w-full max-w-xs"
-              value={order?.email}
-              onChange={(e) => setOrder({ ...order, email: e.target.value })}
-            />
-          </label>
-        </div>
-
-        <div>
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
-              <span className="label-text">Company (optional):</span>
-            </div>
-            <input
-              type="text"
-              className="input input-bordered w-full max-w-xs"
-              value={order?.company}
-              onChange={(e) => setOrder({ ...order, company: e.target.value })}
-            />
-          </label>
-        </div>
-
-        <div className="flex gap-x-2 max-sm:flex-col">
-          <div>
-            <label className="form-control w-full max-w-xs">
-              <div className="label">
-                <span className="label-text">Address:</span>
-              </div>
-              <input
-                type="text"
-                className="input input-bordered w-full max-w-xs"
-                value={order?.adress}
-                onChange={(e) => setOrder({ ...order, adress: e.target.value })}
-              />
-            </label>
-          </div>
-
-          <div>
-            <label className="form-control w-full max-w-xs">
-              <div className="label">
-                <span className="label-text">Apartment, suite, etc. :</span>
-              </div>
-              <input
-                type="text"
-                className="input input-bordered w-full max-w-xs"
-                value={order?.apartment}
-                onChange={(e) =>
-                  setOrder({ ...order, apartment: e.target.value })
-                }
-              />
-            </label>
-          </div>
-        </div>
-
-        <div className="flex gap-x-2 max-sm:flex-col">
-          <div>
-            <label className="form-control w-full max-w-xs">
-              <div className="label">
-                <span className="label-text">City:</span>
-              </div>
-              <input
-                type="text"
-                className="input input-bordered w-full max-w-xs"
-                value={order?.city}
-                onChange={(e) => setOrder({ ...order, city: e.target.value })}
-              />
-            </label>
-          </div>
-
-          <div>
-            <label className="form-control w-full max-w-xs">
-              <div className="label">
-                <span className="label-text">Country:</span>
-              </div>
-              <input
-                type="text"
-                className="input input-bordered w-full max-w-xs"
-                value={order?.country}
-                onChange={(e) =>
-                  setOrder({ ...order, country: e.target.value })
-                }
-              />
-            </label>
-          </div>
-
-          <div>
-            <label className="form-control w-full max-w-xs">
-              <div className="label">
-                <span className="label-text">Postal Code:</span>
-              </div>
-              <input
-                type="text"
-                className="input input-bordered w-full max-w-xs"
-                value={order?.postalCode}
-                onChange={(e) =>
-                  setOrder({ ...order, postalCode: e.target.value })
-                }
-              />
-            </label>
-          </div>
-        </div>
-
-        <div>
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
-              <span className="label-text">Order status</span>
-            </div>
-            <select
-              className="select select-bordered"
-              value={order?.status}
-              onChange={(e) =>
-                setOrder({
-                  ...order,
-                  status: e.target.value as
-                    | "processing"
-                    | "delivered"
-                    | "canceled",
-                })
-              }
+      <div className="flex-1 p-10 max-md:p-4">
+        {/* Header Section */}
+        <div className="flex items-center justify-between border-b border-gray-100 pb-6 mb-10">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => router.push("/admin/orders")}
+              className="p-3 bg-gray-50 rounded-full text-gray-400 hover:text-gray-900 transition-colors"
             >
-              <option value="processing">Processing</option>
-              <option value="delivered">Delivered</option>
-              <option value="canceled">Canceled</option>
-            </select>
-          </label>
-        </div>
-        <div>
-          <label className="form-control">
-            <div className="label">
-              <span className="label-text">Order notice:</span>
-            </div>
-            <textarea
-              className="textarea textarea-bordered h-24"
-              value={order?.orderNotice || ""}
-              onChange={(e) =>
-                setOrder({ ...order, orderNotice: e.target.value })
-              }
-            ></textarea>
-          </label>
-        </div>
-        <div>
-          {orderProducts?.map((product) => (
-            <div className="flex items-center gap-x-4" key={product?.id}>
-              <Image
-                src={
-                  product?.product?.mainImage
-                    ? `/${product?.product?.mainImage}`
-                    : "/product_placeholder.jpg"
-                }
-                alt={product?.product?.title}
-                width={50}
-                height={50}
-                className="w-auto h-auto"
-              />
-              <div>
-                <Link href={`/product/${product?.product?.slug}`}>
-                  {product?.product?.title}
-                </Link>
-                <p>
-                  ${product?.product?.price} * {product?.quantity} items
-                </p>
-              </div>
-            </div>
-          ))}
-          <div className="flex flex-col gap-y-2 mt-10">
-            <p className="text-2xl">Subtotal: ${order?.total}</p>
-            <p className="text-2xl">Tax 20%: ${order?.total / 5}</p>
-            <p className="text-2xl">Shipping: $5</p>
-            <p className="text-3xl font-semibold">
-              Total: ${order?.total + order?.total / 5 + 5}
-            </p>
-          </div>
-          <div className="flex gap-x-2 max-sm:flex-col mt-5">
-            <button
-              type="button"
-              className="uppercase bg-zinc-900 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2"
-              onClick={updateOrder}
-            >
-              Update order
+              <FaChevronLeft size={14} />
             </button>
-            <button
-              type="button"
-              className="uppercase bg-red-600 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-red-700 hover:text-white focus:outline-none focus:ring-2"
-              onClick={deleteOrder}
-            >
-              Delete order
-            </button>
+            <div className="p-3 bg-gray-50 rounded-full text-gray-900">
+              <FaBagShopping size={16} />
+            </div>
+            <h1 className="text-lg font-light tracking-widest text-gray-900 uppercase">
+              Detalhes do Pedido
+            </h1>
+          </div>
+          
+          <button
+            onClick={deleteOrder}
+            disabled={isDeleting}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-red-100 text-[10px] uppercase tracking-widest font-medium text-red-400 hover:bg-red-50 hover:text-red-600 transition-all duration-300 disabled:opacity-50"
+          >
+            <FaTrash size={10} />
+            {isDeleting ? "Excluindo..." : "Excluir Pedido"}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* Main Content - Left Side */}
+          <div className="lg:col-span-8 space-y-10">
+            {/* Order Items */}
+            <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+                  <FaReceipt size={12} />
+                </div>
+                <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Itens do Pedido</h2>
+              </div>
+
+              <div className="divide-y divide-gray-50">
+                {orderProducts?.map((item) => (
+                  <div className="flex items-center py-6 first:pt-0" key={item?.id}>
+                    <div className="relative w-20 h-20 rounded-2xl overflow-hidden border border-gray-50 flex-shrink-0">
+                      <Image
+                        src={item?.product?.mainImage ? `/${item?.product?.mainImage}` : "/product_placeholder.jpg"}
+                        alt={item?.product?.title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="ml-6 flex-1">
+                      <Link 
+                        href={`/product/${item?.product?.slug}`}
+                        className="text-sm font-medium text-gray-900 hover:underline transition-all"
+                      >
+                        {item?.product?.title}
+                      </Link>
+                      <div className="flex items-center gap-4 mt-1">
+                        <p className="text-[10px] text-gray-400 uppercase tracking-widest">
+                          R$ {item?.product?.price} × {item?.quantity}
+                        </p>
+                        <p className="text-xs font-bold text-gray-900">
+                          R$ {item?.product?.price * item?.quantity}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-10 pt-10 border-t border-gray-50 space-y-3">
+                <div className="flex justify-between text-xs text-gray-400 uppercase tracking-widest">
+                  <span>Subtotal</span>
+                  <span className="text-gray-900">R$ {order?.total}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-400 uppercase tracking-widest">
+                  <span>Taxas (20%)</span>
+                  <span className="text-gray-900">R$ {order?.total / 5}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-400 uppercase tracking-widest">
+                  <span>Entrega</span>
+                  <span className="text-gray-900">R$ 5</span>
+                </div>
+                <div className="flex justify-between items-end pt-4">
+                  <span className="text-sm font-light uppercase tracking-[0.2em] text-gray-900">Total do Pedido</span>
+                  <span className="text-3xl font-bold text-gray-900 tracking-tighter">
+                    R$ {order?.total + order?.total / 5 + 5}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Customer Information Form */}
+            <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-10">
+                <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+                  <FaUser size={12} />
+                </div>
+                <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Informações do Cliente</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Nome</label>
+                  <input
+                    type="text"
+                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    value={order?.name}
+                    onChange={(e) => setOrder({ ...order, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Sobrenome</label>
+                  <input
+                    type="text"
+                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    value={order?.lastname}
+                    onChange={(e) => setOrder({ ...order, lastname: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1 flex items-center gap-2">
+                    <FaEnvelope size={10} /> Email
+                  </label>
+                  <input
+                    type="email"
+                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    value={order?.email}
+                    onChange={(e) => setOrder({ ...order, email: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1 flex items-center gap-2">
+                    <FaPhone size={10} /> WhatsApp
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    value={order?.phone}
+                    onChange={(e) => setOrder({ ...order, phone: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Delivery Details */}
+            <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-10">
+                <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+                  <FaMapMarkerAlt size={12} />
+                </div>
+                <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Endereço de Entrega</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Empresa (Opcional)</label>
+                  <input
+                    type="text"
+                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    value={order?.company}
+                    onChange={(e) => setOrder({ ...order, company: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Endereço</label>
+                  <input
+                    type="text"
+                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    value={order?.adress}
+                    onChange={(e) => setOrder({ ...order, adress: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Complemento</label>
+                  <input
+                    type="text"
+                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    value={order?.apartment}
+                    onChange={(e) => setOrder({ ...order, apartment: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Cidade</label>
+                  <input
+                    type="text"
+                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    value={order?.city}
+                    onChange={(e) => setOrder({ ...order, city: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">CEP</label>
+                  <input
+                    type="text"
+                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    value={order?.postalCode}
+                    onChange={(e) => setOrder({ ...order, postalCode: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">País</label>
+                  <input
+                    type="text"
+                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    value={order?.country}
+                    onChange={(e) => setOrder({ ...order, country: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Order Notice */}
+            <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-10">
+                <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+                  <FaCommentAlt size={12} />
+                </div>
+                <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Observações do Pedido</h2>
+              </div>
+              <textarea
+                className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-3xl py-6 px-8 transition-all duration-300 text-gray-900 h-32 leading-relaxed resize-none"
+                value={order?.orderNotice || ""}
+                onChange={(e) => setOrder({ ...order, orderNotice: e.target.value })}
+                placeholder="Nenhuma observação informada."
+              ></textarea>
+            </div>
+          </div>
+
+          {/* Sidebar Info - Right Side */}
+          <div className="lg:col-span-4 space-y-10">
+            {/* Status Card */}
+            <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+                  <FaTruck size={12} />
+                </div>
+                <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Status</h2>
+              </div>
+
+              <div className="space-y-6">
+                <div className={`flex items-center gap-3 px-6 py-4 rounded-2xl border ${getStatusColor(order?.status)}`}>
+                  {getStatusIcon(order?.status)}
+                  <span className="text-[10px] uppercase font-bold tracking-[0.2em]">{order?.status}</span>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Alterar Status</label>
+                  <select
+                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 appearance-none cursor-pointer text-sm"
+                    value={order?.status}
+                    onChange={(e) => setOrder({ ...order, status: e.target.value as "pending" | "processing" | "shipped" | "delivered" | "cancelled" })}
+                  >
+                    <option value="pending">Pendente</option>
+                    <option value="processing">Em Processamento</option>
+                    <option value="shipped">Enviado</option>
+                    <option value="delivered">Entregue</option>
+                    <option value="cancelled">Cancelado</option>
+                  </select>
+                </div>
+
+                <div className="pt-4 border-t border-gray-50">
+                  <p className="text-[10px] text-gray-300 uppercase tracking-widest mb-1">Data do Pedido</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {order?.dateTime ? new Date(order.dateTime).toLocaleString('pt-BR') : "---"}
+                  </p>
+                </div>
+                
+                <div className="pt-6">
+                  <button
+                    onClick={updateOrder}
+                    disabled={isUpdating}
+                    className="w-full py-4 rounded-full bg-black text-[11px] uppercase tracking-widest font-medium text-white hover:bg-zinc-800 transition-all duration-300 disabled:bg-gray-200 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-none"
+                  >
+                    {isUpdating ? "Salvando..." : "Salvar Alterações"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Order Summary ID */}
+            <div className="p-8 bg-gray-50 rounded-[2rem] border border-gray-100">
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-2 font-light italic">Identificação Única</p>
+              <p className="text-[10px] font-mono text-gray-900 break-all">{order?.id}</p>
+            </div>
           </div>
         </div>
       </div>

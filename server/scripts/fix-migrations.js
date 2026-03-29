@@ -127,7 +127,7 @@ async function fixMigrations() {
         console.log(`\n   ⚠️  Tabelas faltando: ${missingTables.length}`);
         console.log(`      ${missingTables.join(", ")}`);
         console.log(
-          "\n   💡 Executando migrações para criar as tabelas faltantes...\n"
+          "\n   💡 Executando migrações para criar as tabelas faltantes...\n",
         );
 
         try {
@@ -146,7 +146,7 @@ async function fixMigrations() {
       // Se todas as tabelas existem mas _prisma_migrations está vazia,
       // significa que o banco foi criado manualmente
       console.log(
-        "\n   💡 Todas as tabelas existem, mas _prisma_migrations está vazia."
+        "\n   💡 Todas as tabelas existem, mas _prisma_migrations está vazia.",
       );
       console.log("   💡 Isso indica que o banco foi criado manualmente.");
       console.log("   💡 Marcando migração como aplicada...\n");
@@ -177,7 +177,7 @@ async function fixMigrations() {
         console.error("\n❌ Erro ao marcar migração:", error.message);
         console.log("\n💡 Alternativa: Execute manualmente:");
         console.log(
-          `   npx prisma migrate resolve --applied ${latestMigration}`
+          `   npx prisma migrate resolve --applied ${latestMigration}`,
         );
         throw error;
       }
@@ -187,7 +187,7 @@ async function fixMigrations() {
         console.log(
           `   - ${migration.migration_name} (${
             migration.finished_at || "pendente"
-          })`
+          })`,
         );
       });
       console.log("\n✅ Nenhuma ação necessária!");
@@ -214,4 +214,3 @@ if (require.main === module) {
 }
 
 module.exports = { fixMigrations };
-

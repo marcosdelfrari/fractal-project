@@ -10,6 +10,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
+    "db:seed-settings": "node prisma/seed-settings.js",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -24,6 +25,7 @@
     "express-fileupload": "^1.5.0",
     "express-rate-limit": "^8.1.0",
     "flowbite-react": "^0.7.2",
+    "framer-motion": "^12.38.0",
     "nanoid": "^5.0.6",
     "next": "^15.5.7",
     "next-auth": "^4.24.13",

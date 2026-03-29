@@ -20,7 +20,7 @@ const AdminOrders = () => {
     const fetchOrders = async () => {
       const response = await apiClient.get("/api/orders");
       const data = await response.json();
-      
+
       setOrders(data?.orders);
     };
     fetchOrders();
@@ -28,85 +28,102 @@ const AdminOrders = () => {
 
   return (
     <div className="w-full">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">All orders</h1>
-      <div className="overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div className="overflow-x-auto bg-white rounded-3xl border border-gray-100">
         <table className="table table-md table-pin-cols">
           {/* head */}
-          <thead>
+          <thead className="bg-gray-50/50">
             <tr>
-              <th>
+              <th className="py-4 px-6 text-[11px] font-light tracking-widest text-gray-500 uppercase">
                 <label>
-                  <input type="checkbox" className="checkbox" />
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-sm rounded-md"
+                  />
                 </label>
               </th>
-              <th>Order ID</th>
-              <th>Name and country</th>
-              <th>Status</th>
-              <th>Subtotal</th>
-              <th>Date</th>
-              <th></th>
+              <th className="py-4 text-[11px] font-light tracking-widest text-gray-500 uppercase">
+                ID do Pedido
+              </th>
+              <th className="py-4 text-[11px] font-light tracking-widest text-gray-500 uppercase">
+                Cliente e País
+              </th>
+              <th className="py-4 text-[11px] font-light tracking-widest text-gray-500 uppercase">
+                Status
+              </th>
+              <th className="py-4 text-[11px] font-light tracking-widest text-gray-500 uppercase">
+                Total
+              </th>
+              <th className="py-4 text-[11px] font-light tracking-widest text-gray-500 uppercase">
+                Data
+              </th>
+              <th className="py-4"></th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-50">
             {/* row 1 */}
-            {orders && orders.length > 0 &&
+            {orders &&
+              orders.length > 0 &&
               orders.map((order) => (
-                <tr key={order?.id}>
-                  <th>
+                <tr
+                  key={order?.id}
+                  className="hover:bg-gray-50/50 transition-colors"
+                >
+                  <th className="px-6">
                     <label>
-                      <input type="checkbox" className="checkbox" />
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-sm rounded-md"
+                      />
                     </label>
                   </th>
 
-                  <td>
-                    <div>
-                      <p className="font-bold">#{order?.id}</p>
-                    </div>
+                  <td className="py-4">
+                    <span className="font-medium text-gray-900">
+                      #{order?.id.slice(0, 8)}...
+                    </span>
                   </td>
 
-                  <td>
-                    <div className="flex items-center gap-5">
+                  <td className="py-4">
+                    <div className="flex items-center gap-3">
                       <div>
-                        <div className="font-bold">{order?.name}</div>
-                        <div className="text-sm opacity-50">{order?.country}</div>
+                        <div className="font-medium text-gray-900">
+                          {order?.name}
+                        </div>
+                        <div className="text-[10px] text-gray-400 uppercase tracking-wider">
+                          {order?.country}
+                        </div>
                       </div>
                     </div>
                   </td>
 
-                  <td>
-                    <span className="badge badge-success text-white badge-sm">
+                  <td className="py-4">
+                    <span className="px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider bg-green-50 text-green-600 border border-green-100">
                       {order?.status}
                     </span>
                   </td>
 
-                  <td>
-                    <p>${order?.total}</p>
+                  <td className="py-4">
+                    <span className="font-medium text-gray-900">
+                      R$ {order?.total}
+                    </span>
                   </td>
 
-                  <td>{ new Date(Date.parse(order?.dateTime)).toDateString() }</td>
-                  <th>
+                  <td className="py-4 text-sm text-gray-500">
+                    {new Date(Date.parse(order?.dateTime)).toLocaleDateString(
+                      "pt-BR",
+                    )}
+                  </td>
+                  <th className="py-4">
                     <Link
                       href={`/admin/orders/${order?.id}`}
-                      className="btn btn-ghost btn-xs"
+                      className="text-[10px] font-medium uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
                     >
-                      details
+                      Detalhes
                     </Link>
                   </th>
                 </tr>
               ))}
           </tbody>
-          {/* foot */}
-          <tfoot>
-            <tr>
-              <th></th>
-              <th>Order ID</th>
-              <th>Name and country</th>
-              <th>Status</th>
-              <th>Subtotal</th>
-              <th>Date</th>
-              <th></th>
-            </tr>
-          </tfoot>
         </table>
       </div>
     </div>

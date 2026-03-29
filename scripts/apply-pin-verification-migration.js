@@ -1,15 +1,15 @@
 // Carregar variáveis de ambiente
-require('dotenv').config({ path: '.env.local' });
-require('dotenv').config(); // Fallback para .env
+require("dotenv").config({ path: ".env.local" });
+require("dotenv").config(); // Fallback para .env
 
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
 async function applyMigration() {
   try {
-    console.log('🔄 Aplicando migração para criar tabela PinVerification...');
-    
+    console.log("🔄 Aplicando migração para criar tabela PinVerification...");
+
     // SQL da migração
     const migrationSQL = `
       CREATE TABLE IF NOT EXISTS \`PinVerification\` (
@@ -27,13 +27,13 @@ async function applyMigration() {
 
     // Executar SQL diretamente
     await prisma.$executeRawUnsafe(migrationSQL);
-    
-    console.log('✅ Tabela PinVerification criada com sucesso!');
+
+    console.log("✅ Tabela PinVerification criada com sucesso!");
   } catch (error) {
-    if (error.message.includes('already exists') || error.code === 'P2010') {
-      console.log('ℹ️  Tabela PinVerification já existe.');
+    if (error.message.includes("already exists") || error.code === "P2010") {
+      console.log("ℹ️  Tabela PinVerification já existe.");
     } else {
-      console.error('❌ Erro ao aplicar migração:', error);
+      console.error("❌ Erro ao aplicar migração:", error);
       throw error;
     }
   } finally {
@@ -43,11 +43,10 @@ async function applyMigration() {
 
 applyMigration()
   .then(() => {
-    console.log('✅ Migração concluída!');
+    console.log("✅ Migração concluída!");
     process.exit(0);
   })
   .catch((error) => {
-    console.error('❌ Falha na migração:', error);
+    console.error("❌ Falha na migração:", error);
     process.exit(1);
   });
-
