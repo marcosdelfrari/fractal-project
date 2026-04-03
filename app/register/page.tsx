@@ -33,20 +33,20 @@ const RegisterPage = () => {
     const confirmPassword = e.target[4].value;
 
     if (!isValidEmail(email)) {
-      setError("Email is invalid");
-      toast.error("Email is invalid");
+      setError("E-mail inválido");
+      toast.error("E-mail inválido");
       return;
     }
 
     if (!password || password.length < 8) {
-      setError("Password is invalid");
-      toast.error("Password is invalid");
+      setError("Senha inválida");
+      toast.error("Senha inválida");
       return;
     }
 
     if (confirmPassword !== password) {
-      setError("Passwords are not equal");
-      toast.error("Passwords are not equal");
+      setError("As senhas não coincidem");
+      toast.error("As senhas não coincidem");
       return;
     }
 
@@ -67,7 +67,7 @@ const RegisterPage = () => {
 
       if (res.ok) {
         setError("");
-        toast.success("Registration successful");
+        toast.success("Cadastro realizado com sucesso");
         router.push("/login");
       } else {
         // Handle different types of errors
@@ -83,13 +83,13 @@ const RegisterPage = () => {
           setError(data.error);
           toast.error(data.error);
         } else {
-          setError("Registration failed");
-          toast.error("Registration failed");
+          setError("Falha no cadastro");
+          toast.error("Falha no cadastro");
         }
       }
     } catch (error) {
-      toast.error("Error, try again");
-      setError("Error, try again");
+      toast.error("Erro. Tente novamente.");
+      setError("Erro. Tente novamente.");
       console.log(error);
     }
   };

@@ -16,20 +16,25 @@ const SortBy = () => {
   const { sortBy, changeSortBy } = useSortStore();
 
   return (
-    <div className="flex items-center gap-x-5 max-lg:flex-col max-lg:w-full max-lg:items-start">
-      <h3 className="text-xl">Sort by:</h3>
-      <select
-        defaultValue={sortBy}
-        onChange={(e) => changeSortBy(e.target.value)}
-        className="select border-gray-400 py-2 px-2 text-base border-2 select-bordered w-40 focus:outline-none outline-none max-lg:w-full bg-white"
-        name="sort"
-      >
-        <option value="defaultSort">Default</option>
-        <option value="titleAsc">Sort A-Z</option>
-        <option value="titleDesc">Sort Z-A</option>
-        <option value="lowPrice">Lowest Price</option>
-        <option value="highPrice">Highest Price</option>
-      </select>
+    <div className="flex items-center gap-x-3 w-full md:w-auto">
+      <span className="text-sm font-medium text-zinc-500 whitespace-nowrap">Ordenar por:</span>
+      <div className="relative w-full md:w-48">
+        <select
+          defaultValue={sortBy}
+          onChange={(e) => changeSortBy(e.target.value)}
+          className="w-full appearance-none bg-zinc-50 border border-zinc-200 text-zinc-900 text-sm rounded-xl py-2.5 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all cursor-pointer"
+          name="sort"
+        >
+          <option value="defaultSort">Padrão</option>
+          <option value="titleAsc">Nome: A a Z</option>
+          <option value="titleDesc">Nome: Z a A</option>
+          <option value="lowPrice">Menor Preço</option>
+          <option value="highPrice">Maior Preço</option>
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-500">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+        </div>
+      </div>
     </div>
   );
 };

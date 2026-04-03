@@ -34,7 +34,7 @@ const logError = (error, context = '') => {
 const handlePrismaError = (error) => {
   if (!error || typeof error !== 'object' || !('code' in error)) {
     return {
-      error: "Internal server error. Please try again later.",
+      error: "Erro interno do servidor. Tente novamente mais tarde.",
       timestamp: new Date().toISOString()
     };
   }
@@ -44,39 +44,39 @@ const handlePrismaError = (error) => {
   switch (prismaError.code) {
     case 'P2002':
       return {
-        error: "A record with this information already exists",
-        details: prismaError.meta?.target ? `Field: ${prismaError.meta.target.join(', ')}` : undefined,
+        error: "Já existe um registro com essas informações",
+        details: prismaError.meta?.target ? `Campo: ${prismaError.meta.target.join(', ')}` : undefined,
         timestamp: new Date().toISOString()
       };
     case 'P2025':
       return {
-        error: "Record not found",
+        error: "Registro não encontrado",
         timestamp: new Date().toISOString()
       };
     case 'P2003':
       return {
-        error: "Foreign key constraint failed",
+        error: "Violação de chave estrangeira",
         timestamp: new Date().toISOString()
       };
     case 'P2014':
       return {
-        error: "The change you are trying to make would violate the required relation",
+        error: "Esta alteração violaria uma relação obrigatória no banco de dados",
         timestamp: new Date().toISOString()
       };
     case 'P2021':
       return {
-        error: "The table does not exist in the current database",
+        error: "A tabela não existe no banco de dados atual",
         timestamp: new Date().toISOString()
       };
     case 'P2022':
       return {
-        error: "The column does not exist in the current database",
+        error: "A coluna não existe no banco de dados atual",
         timestamp: new Date().toISOString()
       };
     default:
       return {
-        error: "Database operation failed",
-        details: `Error code: ${prismaError.code}`,
+        error: "Falha na operação no banco de dados",
+        details: `Código do erro: ${prismaError.code}`,
         timestamp: new Date().toISOString()
       };
   }
@@ -127,7 +127,7 @@ const handleServerError = (error, res, context = '') => {
 
   // Generic server error
   res.status(500).json({
-    error: "Internal server error. Please try again later.",
+    error: "Erro interno do servidor. Tente novamente mais tarde.",
     timestamp
   });
 };

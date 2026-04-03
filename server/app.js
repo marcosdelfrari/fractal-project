@@ -172,7 +172,7 @@ app.get("/rate-limit-info", (req, res) => {
 // 404 handler - deve ser o último middleware antes do error handler
 app.use("*", (req, res) => {
   res.status(404).json({
-    error: "Route not found",
+    error: "Rota não encontrada",
     path: req.originalUrl,
     method: req.method,
     requestId: req.reqId || "unknown",

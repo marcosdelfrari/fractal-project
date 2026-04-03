@@ -27,14 +27,14 @@ const CategoriesPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#E3E1D6] flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-[#E3E1D6] min-h-screen">
       <main className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 animate-fade-in-up">
         {/* Header */}
         <div className="flex flex-col items-center mb-16">
@@ -46,16 +46,17 @@ const CategoriesPage = () => {
           </h1>
           <div className="w-20 h-px bg-gray-200"></div>
           <p className="mt-6 text-gray-400 font-light tracking-wide text-center max-w-md">
-            Explore nossa curadoria de produtos organizada por categorias para facilitar sua busca.
+            Explore nossa curadoria de produtos organizada por categorias para
+            facilitar sua busca.
           </p>
         </div>
 
         {/* Categories Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {categories.map((category) => (
-            <Link 
-              key={category.id} 
-              href={`/shop/${category.name}`}
+            <Link
+              key={category.id}
+              href={`/loja/${category.name}`}
               className="group block relative overflow-hidden bg-white rounded-[2.5rem] border border-gray-100 transition-all duration-500 hover:border-gray-200"
             >
               <div className="aspect-[4/5] relative overflow-hidden">
@@ -66,7 +67,7 @@ const CategoriesPage = () => {
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
-                
+
                 <div className="absolute inset-0 flex flex-col justify-end p-8 text-white">
                   <h2 className="text-2xl font-light tracking-widest uppercase mb-2">
                     {formatCategoryName(category.name)}
@@ -83,7 +84,9 @@ const CategoriesPage = () => {
 
         {categories.length === 0 && (
           <div className="text-center py-20 bg-white rounded-[2.5rem] border border-gray-100">
-            <p className="text-gray-400 font-light italic">Nenhuma categoria encontrada no momento.</p>
+            <p className="text-gray-400 font-light italic">
+              Nenhuma categoria encontrada no momento.
+            </p>
           </div>
         )}
       </main>

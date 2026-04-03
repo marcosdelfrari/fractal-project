@@ -10,6 +10,8 @@
 import React from "react";
 import Link from "next/link";
 import apiClient from "@/lib/api";
+import BrandTiragem from "./BrandTiragem";
+import HomeProductsSearchBar from "./HomeProductsSearchBar";
 import ProductListContent from "./ProductListContent";
 
 const ProductsSection = async () => {
@@ -20,7 +22,9 @@ const ProductsSection = async () => {
     const data = await apiClient.get("/api/products");
 
     if (!data.ok) {
-      const errorText = await data.text().catch(() => 'Unable to read error response');
+      const errorText = await data
+        .text()
+        .catch(() => "Não foi possível ler a resposta de erro");
       console.error(`API Error: ${data.status} ${data.statusText}`, {
         url: data.url,
         status: data.status,
@@ -29,13 +33,13 @@ const ProductsSection = async () => {
       });
       // Return empty state instead of crashing
       return (
-        <div className="bg-white">
+        <div className="bg-[#E3E1D6]">
           <div className="max-w-screen-2xl mx-auto pt-10 pb-20">
             <div className="text-center py-10">
               <p className="text-gray-500">
                 Não foi possível carregar os produtos no momento.
               </p>
-              {process.env.NODE_ENV === 'development' && (
+              {process.env.NODE_ENV === "development" && (
                 <p className="text-xs text-gray-400 mt-2">
                   Erro: {data.status} {data.statusText}
                 </p>
@@ -61,13 +65,13 @@ const ProductsSection = async () => {
     });
     // Return empty state instead of crashing
     return (
-      <div className="bg-white">
+      <div className="bg-[#E3E1D6]">
         <div className="max-w-screen-2xl mx-auto pt-10 pb-20">
           <div className="text-center py-10">
             <p className="text-gray-500">
               Não foi possível carregar os produtos no momento.
             </p>
-            {process.env.NODE_ENV === 'development' && (
+            {process.env.NODE_ENV === "development" && (
               <p className="text-xs text-gray-400 mt-2">
                 {error instanceof Error ? error.message : String(error)}
               </p>
@@ -79,28 +83,44 @@ const ProductsSection = async () => {
   }
 
   return (
-    <div className="bg-white">
-      <div className="max-w-screen-2xl mx-auto pt-10 pb-20">
-        {products.length > 0 ? (
-          <>
+    <div className="bg-[#E3E1D6] overflow-x-hidden">
+      {products.length > 0 ? (
+        <>
+          <div className="pt-10">
+            <BrandTiragem />
+          </div>
+          <div className="max-w-screen-2xl mx-auto px-6 pt-10 pb-8 sm:px-8 md:px-12 lg:px-14">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 lg:gap-10">
+              <h2 className="shrink-0 text-[clamp(2.25rem,12vw,6rem)] font-bold leading-none tracking-tight text-black md:text-[clamp(3rem,7.5vw,6rem)]">
+                Nossos produtos
+              </h2>
+              <HomeProductsSearchBar className="w-full shrink-0 sm:ml-2 sm:w-auto sm:max-w-[15rem] md:max-w-[16rem]" />
+            </div>
+          </div>
+          <div className="max-w-screen-2xl mx-auto pt-2">
             <ProductListContent products={products} />
-            <div className="flex justify-center mt-10">
+          </div>
+
+          <div className="max-w-screen-2xl mx-auto pb-20 pt-10">
+            <div className="flex justify-center">
               <Link
-                href="/shop"
-                className="text-black text-sm font-light underline uppercase leading-relaxed"
+                href="/loja"
+                className="text-center text-white bg-[#861201] px-5 py-2.5 rounded-full text-sm font-light uppercase leading-relaxed"
               >
-                + VER TUDO
+                VER TUDO
               </Link>
             </div>
-          </>
-        ) : (
+          </div>
+        </>
+      ) : (
+        <div className="max-w-screen-2xl mx-auto pt-10 pb-20">
           <div className="text-center py-10">
             <p className="text-gray-500">
               Nenhum produto disponível no momento.
             </p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -6,11 +6,12 @@ import { FaArrowLeft } from "react-icons/fa6";
 type Props = {
   title: string;
   description?: string;
+  className?: string;
 };
 
-export function SettingsBackHeader({ title, description }: Props) {
+export function SettingsBackHeader({ title, description, className }: Props) {
   return (
-    <div className="border-b border-gray-100 pb-6 mb-8">
+    <div className={`border-b border-gray-100 pb-6 mb-8 ${className ?? ""}`}>
       <Link
         href="/admin/settings"
         className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-5 transition-colors"

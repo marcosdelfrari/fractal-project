@@ -9,15 +9,15 @@ const passwordResetLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 6, // Limit to 3 password reset attempts per hour per IP
   message: {
-    error: 'Too many password reset attempts, please try again later.',
-    retryAfter: '1 hour'
+    error: 'Muitas tentativas de redefinição de senha. Tente novamente mais tarde.',
+    retryAfter: '1 hora'
   },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     res.status(429).json({
-      error: 'Too many password reset attempts, please try again later.',
-      retryAfter: '1 hour'
+      error: 'Muitas tentativas de redefinição de senha. Tente novamente mais tarde.',
+      retryAfter: '1 hora'
     });
   }
 });
@@ -27,15 +27,15 @@ const adminLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Higher limit for admin operations
   message: {
-    error: 'Too many admin operations, please try again later.',
-    retryAfter: '15 minutes'
+    error: 'Muitas operações administrativas. Tente novamente mais tarde.',
+    retryAfter: '15 minutos'
   },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     res.status(429).json({
-      error: 'Too many admin operations, please try again later.',
-      retryAfter: '15 minutes'
+      error: 'Muitas operações administrativas. Tente novamente mais tarde.',
+      retryAfter: '15 minutos'
     });
   }
 });
@@ -45,15 +45,15 @@ const wishlistLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
   max: 40, // Limit wishlist operations
   message: {
-    error: 'Too many wishlist operations, please try again later.',
-    retryAfter: '5 minutes'
+    error: 'Muitas operações na lista de desejos. Tente novamente mais tarde.',
+    retryAfter: '5 minutos'
   },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     res.status(429).json({
-      error: 'Too many wishlist operations, please try again later.',
-      retryAfter: '5 minutes'
+      error: 'Muitas operações na lista de desejos. Tente novamente mais tarde.',
+      retryAfter: '5 minutos'
     });
   }
 });
@@ -63,16 +63,16 @@ const productLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
   max: 120,
   message: {
-    error: 'Too many product requests, please try again later.',
-    retryAfter: '1 minute'
+    error: 'Muitas requisições de produto. Tente novamente mais tarde.',
+    retryAfter: '1 minuto'
   },
   standardHeaders: true,
   legacyHeaders: false,
   skip: skipProductRateLimit,
   handler: (req, res) => {
     res.status(429).json({
-      error: 'Too many product requests, please try again later.',
-      retryAfter: '1 minute'
+      error: 'Muitas requisições de produto. Tente novamente mais tarde.',
+      retryAfter: '1 minuto'
     });
   }
 });
@@ -84,14 +84,14 @@ const createDynamicLimiter = (windowMs, max, message) => {
     max,
     message: {
       error: message,
-      retryAfter: `${Math.ceil(windowMs / 60000)} minutes`
+      retryAfter: `${Math.ceil(windowMs / 60000)} minutos`
     },
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {
       res.status(429).json({
         error: message,
-        retryAfter: `${Math.ceil(windowMs / 60000)} minutes`
+        retryAfter: `${Math.ceil(windowMs / 60000)} minutos`
       });
     }
   });

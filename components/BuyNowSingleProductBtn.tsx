@@ -16,21 +16,27 @@ import { useRouter } from "next/navigation";
 const BuyNowSingleProductBtn = ({
   product,
   quantityCount,
+  selectedColor,
+  selectedSize,
 }: SingleProductBtnProps) => {
   const router = useRouter();
   const { addToCart, calculateTotals } = useProductStore();
 
   const handleAddToCart = () => {
+    const cartItemKey = `${product?.id.toString()}__${selectedColor || ""}__${selectedSize || ""}`;
     addToCart({
+      cartItemKey,
       id: product?.id.toString(),
       title: product?.title,
       price: product?.price,
       image: product?.mainImage,
       amount: quantityCount,
+      selectedColor,
+      selectedSize,
     });
     calculateTotals();
     toast.success("Produto adicionado ao carrinho!");
-    router.push("/checkout");
+    router.push("/compra");
   };
   return (
     <button

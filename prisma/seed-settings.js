@@ -41,29 +41,40 @@ const SITE = {
     },
   ],
   deliveryEnabled: true,
+  upcomingEvents: {
+    enabled: true,
+    ...JSON.parse(JSON.stringify(HOME_DEFAULTS.upcomingEvents)),
+  },
 };
 
 const SECTIONS = [
   { id: "hero-id", name: "hero", enabled: true, order: 0, content: HOME_DEFAULTS.hero },
   {
+    id: "promo-slider-id",
+    name: "promoSlider",
+    enabled: true,
+    order: 1,
+    content: HOME_DEFAULTS.promoSlider,
+  },
+  {
     id: "category-menu-id",
     name: "categoryMenu",
     enabled: true,
-    order: 1,
+    order: 2,
     content: HOME_DEFAULTS.categoryMenu,
   },
   {
     id: "products-section-id",
     name: "productsSection",
     enabled: true,
-    order: 2,
+    order: 3,
     content: null,
   },
   {
     id: "featured-products-id",
     name: "featuredProducts",
     enabled: true,
-    order: 3,
+    order: 4,
     content: HOME_DEFAULTS.featuredProducts,
   },
 ];
@@ -80,7 +91,12 @@ async function main() {
       address: SITE.address,
       pickupAddresses: SITE.pickupAddresses,
       deliveryEnabled: SITE.deliveryEnabled,
+      upcomingEvents: SITE.upcomingEvents,
     },
+  });
+
+  await prisma.homeSection.deleteMany({
+    where: { name: "upcomingEvents" },
   });
 
   for (const s of SECTIONS) {

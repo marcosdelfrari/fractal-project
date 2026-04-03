@@ -55,17 +55,19 @@ const AddToWishlistBtn = ({ product, slug }: AddToWishlistBtnProps) => {
             slug: product?.slug,
             stockAvailabillity: product?.inStock,
           });
-          toast.success("Product added to the wishlist");
+          toast.success("Produto adicionado à lista de desejos");
         } else {
           const errorData = await wishlistResponse.json();
-          toast.error(errorData.message || "Failed to add product to wishlist");
+          toast.error(
+            errorData.message || "Não foi possível adicionar o produto à lista de desejos",
+          );
         }
       } catch (error) {
         console.error("Error adding to wishlist:", error);
-        toast.error("Failed to add product to wishlist");
+        toast.error("Não foi possível adicionar o produto à lista de desejos");
       }
     } else {
-      toast.error("You need to be logged in to add a product to the wishlist");
+      toast.error("Faça login para adicionar produtos à lista de desejos");
     }
   };
 
@@ -88,16 +90,17 @@ const AddToWishlistBtn = ({ product, slug }: AddToWishlistBtnProps) => {
 
         if (deleteResponse.ok) {
           removeFromWishlist(product?.id);
-          toast.success("Product removed from the wishlist");
+          toast.success("Produto removido da lista de desejos");
         } else {
           const errorData = await deleteResponse.json();
           toast.error(
-            errorData.message || "Failed to remove product from wishlist"
+            errorData.message ||
+              "Não foi possível remover o produto da lista de desejos",
           );
         }
       } catch (error) {
         console.error("Error removing from wishlist:", error);
-        toast.error("Failed to remove product from wishlist");
+        toast.error("Não foi possível remover o produto da lista de desejos");
       }
     }
   };

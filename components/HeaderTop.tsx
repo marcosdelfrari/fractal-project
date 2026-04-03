@@ -23,7 +23,7 @@ const HeaderTop = () => {
 
   const handleLogout = () => {
     setTimeout(() => signOut(), 1000);
-    toast.success("Logout successful!");
+    toast.success("Logout realizado com sucesso!");
   };
   return (
     <div className="h-10 text-white bg-zinc-900 max-lg:px-5 max-lg:h-16 max-[573px]:px-0">

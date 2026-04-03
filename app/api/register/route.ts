@@ -15,7 +15,7 @@ export const POST = async (request: Request) => {
 
     // Check rate limit
     if (!commonValidations.checkRateLimit(clientIP, 5, 15 * 60 * 1000)) {
-      throw new AppError("Too many registration attempts. Please try again later.", 429);
+      throw new AppError("Muitas tentativas de cadastro. Tente novamente mais tarde.", 429);
     }
 
     const body = await sanitizeInput.validateJsonInput(request);
@@ -33,7 +33,7 @@ export const POST = async (request: Request) => {
     });
 
     if (existingUser) {
-      throw new AppError("Email is already in use", 400);
+      throw new AppError("Este e-mail já está em uso", 400);
     }
 
     const hashedPassword = await bcrypt.hash(password, 14);
@@ -52,7 +52,7 @@ export const POST = async (request: Request) => {
     // Return success response without sensitive data
     return new NextResponse(
       JSON.stringify({ 
-        message: "User registered successfully",
+        message: "Cadastro realizado com sucesso",
         userId: newUser.id 
       }),
       { 

@@ -3,7 +3,7 @@
 // *********************
 
 import React from "react";
-import { FaArrowUp, FaChartLine } from "react-icons/fa6";
+import { FaArrowUp, FaArrowDown, FaChartLine } from "react-icons/fa6";
 
 const StatsElement = ({ 
   title = "Novos Produtos", 
@@ -12,14 +12,20 @@ const StatsElement = ({
   period = "Desde o mês passado",
   icon = <FaChartLine size={16} /> 
 }) => {
+  const isNegativeChange = String(change).trim().startsWith("-");
+  const trendClassName = isNegativeChange
+    ? "text-red-500 bg-red-50"
+    : "text-green-500 bg-green-50";
+  const trendIcon = isNegativeChange ? <FaArrowDown size={10} /> : <FaArrowUp size={10} />;
+
   return (
     <div className="w-full bg-white border border-gray-100 flex flex-col p-6 rounded-3xl transition-all duration-300 hover:border-gray-200">
       <div className="flex items-center justify-between mb-4">
-        <div className="p-3 bg-gray-50 rounded-full text-gray-900">
+        <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
           {icon}
         </div>
-        <div className="text-green-500 bg-green-50 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-          <FaArrowUp size={10} />
+        <div className={`${trendClassName} px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1`}>
+          {trendIcon}
           {change}
         </div>
       </div>

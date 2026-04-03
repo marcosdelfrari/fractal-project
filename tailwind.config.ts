@@ -8,6 +8,19 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: [
+          "Economica",
+          "Inter",
+          '"Sour Gummy"',
+          "system-ui",
+          "sans-serif",
+        ],
+        economica: ["Economica", "sans-serif"],
+        inter: ["Inter", "sans-serif"],
+        gummy: ['"Sour Gummy"', "sans-serif"],
+        playball: ["Playball", "cursive"],
+      },
       colors: {
         "custom-yellow": "#FED700",
       },
@@ -26,10 +39,15 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(20px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        brandTiragemMarquee: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
       },
       animation: {
         "bounce-slow": "bounceSlow 3s infinite",
         "fade-in-up": "fadeInUp 0.8s ease-out forwards",
+        "brand-tiragem": "brandTiragemMarquee 45s linear infinite",
       },
     },
   },

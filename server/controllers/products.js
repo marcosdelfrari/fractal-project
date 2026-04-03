@@ -2,8 +2,8 @@ const prisma = require("../utills/db"); // ✅ Use shared connection with SSL
 const { asyncHandler, handleServerError, AppError } = require("../utills/errorHandler");
 
 // Security: Define whitelists for allowed filter types and operators
-const ALLOWED_FILTER_TYPES = ['price', 'rating', 'category', 'inStock', 'outOfStock'];
-const ALLOWED_OPERATORS = ['gte', 'lte', 'gt', 'lt', 'equals', 'contains'];
+const ALLOWED_FILTER_TYPES = ['price', 'rating', 'category', 'inStock', 'outOfStock', 'sizes'];
+const ALLOWED_OPERATORS = ['gte', 'lte', 'gt', 'lt', 'equals', 'contains', 'array_contains'];
 const ALLOWED_SORT_VALUES = ['defaultSort', 'titleAsc', 'titleDesc', 'lowPrice', 'highPrice'];
 
 // Security: Input validation functions
@@ -28,6 +28,7 @@ function validateAndSanitizeFilterValue(filterType, filterValue) {
       const numValue = parseInt(filterValue);
       return isNaN(numValue) ? null : numValue;
     case 'category':
+    case 'sizes':
       return typeof filterValue === 'string' && filterValue.trim().length > 0 
         ? filterValue.trim() 
         : null;
@@ -86,6 +87,22 @@ const getAllProducts = asyncHandler(async (request, response) => {
     const page = Number(request.query.page);
     const validatedPage = (page && page > 0) ? page : 1;
 
+    const qRaw = request.query.q;
+    const q = typeof qRaw === "string" ? qRaw.trim().slice(0, 120) : "";
+
+    function mergeTextSearch(baseWhere) {
+      if (!q) return baseWhere;
+      const textSearch = {
+        OR: [
+          { title: { contains: q } },
+          { description: { contains: q } },
+        ],
+      };
+      const hasBase = baseWhere && Object.keys(baseWhere).length > 0;
+      if (!hasBase) return textSearch;
+      return { AND: [baseWhere, textSearch] };
+    }
+
     if (dividerLocation !== -1) {
       const queryArray = request.url
         .substring(dividerLocation + 1, request.url.length)
@@ -110,6 +127,8 @@ const getAllProducts = asyncHandler(async (request, response) => {
             filterType = "inStock";
           } else if (queryParam.includes("outOfStock")) {
             filterType = "outOfStock";
+          } else if (queryParam.includes("sizes")) {
+            filterType = "sizes";
           } else {
             // Skip unknown filter types
             continue;
@@ -129,7 +148,7 @@ const getAllProducts = asyncHandler(async (request, response) => {
           let filterValue;
           
           // Extract filter value based on type
-          if (filterType === "category") {
+          if (filterType === "category" || filterType === "sizes") {
             filterValue = queryParam.substring(queryParam.indexOf("=") + 1);
           } else {
             const numValue = parseInt(queryParam.substring(queryParam.indexOf("=") + 1));
@@ -190,6 +209,7 @@ const getAllProducts = asyncHandler(async (request, response) => {
     let products;
 
     if (Object.keys(filterObj).length === 0) {
+      const whereEmpty = mergeTextSearch(undefined);
       products = await prisma.product.findMany({
         skip: (validatedPage - 1) * 10,
         take: 12,
@@ -200,11 +220,20 @@ const getAllProducts = asyncHandler(async (request, response) => {
             },
           },
         },
+        ...(whereEmpty ? { where: whereEmpty } : {}),
         orderBy: sortObj,
       });
     } else {
       // Security: Handle category filter with proper validation
       if (filterObj.category && filterObj.category.equals) {
+        const whereCat = mergeTextSearch({
+          ...whereClause,
+          category: {
+            name: {
+              equals: filterObj.category.equals,
+            },
+          },
+        });
         products = await prisma.product.findMany({
           skip: (validatedPage - 1) * 10,
           take: 12,
@@ -215,17 +244,11 @@ const getAllProducts = asyncHandler(async (request, response) => {
               },
             },
           },
-          where: {
-            ...whereClause,
-            category: {
-              name: {
-                equals: filterObj.category.equals,
-              },
-            },
-          },
+          where: whereCat,
           orderBy: sortObj,
         });
       } else {
+        const whereElse = mergeTextSearch(whereClause);
         products = await prisma.product.findMany({
           skip: (validatedPage - 1) * 10,
           take: 12,
@@ -236,7 +259,7 @@ const getAllProducts = asyncHandler(async (request, response) => {
               },
             },
           },
-          where: whereClause,
+          ...(whereElse ? { where: whereElse } : {}),
           orderBy: sortObj,
         });
       }
@@ -266,6 +289,10 @@ const createProduct = asyncHandler(async (request, response) => {
     mainImage,
     price,
     description,
+    additionalInfo,
+    material,
+    colors,
+    sizes,
     manufacturer,
     categoryId,
     inStock,
@@ -273,7 +300,10 @@ const createProduct = asyncHandler(async (request, response) => {
 
   // Basic validation
   if (!title || !slug || !price || !categoryId) {
-    throw new AppError("Missing required fields: title, slug, price, and categoryId are required", 400);
+    throw new AppError(
+      "Campos obrigatórios: título, slug, preço e categoria (categoryId)",
+      400,
+    );
   }
 
   const product = await prisma.product.create({
@@ -284,6 +314,10 @@ const createProduct = asyncHandler(async (request, response) => {
       price,
       rating: 5,
       description,
+      additionalInfo,
+      material,
+      colors,
+      sizes,
       manufacturer,
       categoryId,
       inStock,
@@ -302,6 +336,10 @@ const updateProduct = asyncHandler(async (request, response) => {
     price,
     rating,
     description,
+    additionalInfo,
+    material,
+    colors,
+    sizes,
     manufacturer,
     categoryId,
     inStock,
@@ -309,7 +347,7 @@ const updateProduct = asyncHandler(async (request, response) => {
 
   // Basic validation
   if (!id) {
-    throw new AppError("Product ID is required", 400);
+    throw new AppError("ID do produto é obrigatório", 400);
   }
 
   // Finding a product by id
@@ -320,7 +358,7 @@ const updateProduct = asyncHandler(async (request, response) => {
   });
 
   if (!existingProduct) {
-    throw new AppError("Product not found", 404);
+    throw new AppError("Produto não encontrado", 404);
   }
 
   // Updating found product
@@ -335,6 +373,10 @@ const updateProduct = asyncHandler(async (request, response) => {
       price: price,
       rating: rating,
       description: description,
+      additionalInfo: additionalInfo,
+      material: material,
+      colors: colors,
+      sizes: sizes,
       manufacturer: manufacturer,
       categoryId: categoryId,
       inStock: inStock,
@@ -349,7 +391,7 @@ const deleteProduct = asyncHandler(async (request, response) => {
   const { id } = request.params;
 
   if (!id) {
-    throw new AppError("Product ID is required", 400);
+    throw new AppError("ID do produto é obrigatório", 400);
   }
 
   // Check for related records in order_product table
@@ -360,7 +402,10 @@ const deleteProduct = asyncHandler(async (request, response) => {
   });
   
   if(relatedOrderProductItems.length > 0){
-    throw new AppError("Cannot delete product because of foreign key constraint", 400);
+    throw new AppError(
+      "Não é possível excluir o produto: existem pedidos vinculados",
+      400,
+    );
   }
 
   await prisma.product.delete({
@@ -375,7 +420,7 @@ const searchProducts = asyncHandler(async (request, response) => {
   const { query } = request.query;
   
   if (!query) {
-    throw new AppError("Query parameter is required", 400);
+    throw new AppError("O parâmetro de busca (query) é obrigatório", 400);
   }
 
   const products = await prisma.product.findMany({
@@ -402,7 +447,7 @@ const getProductById = asyncHandler(async (request, response) => {
   const { id } = request.params;
   
   if (!id) {
-    throw new AppError("Product ID is required", 400);
+    throw new AppError("ID do produto é obrigatório", 400);
   }
 
   const product = await prisma.product.findUnique({
@@ -415,7 +460,7 @@ const getProductById = asyncHandler(async (request, response) => {
   });
   
   if (!product) {
-    throw new AppError("Product not found", 404);
+    throw new AppError("Produto não encontrado", 404);
   }
   
   return response.status(200).json(product);

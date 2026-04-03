@@ -86,39 +86,112 @@ export default function UserOrders() {
     dateTo: "",
   });
 
+  const buildQueryParams = (page: number, currentFilters: Filters) => {
+    const queryParams = new URLSearchParams({
+      page: page.toString(),
+      limit: "10",
+    });
+
+    if (currentFilters.status) {
+      queryParams.append("status", currentFilters.status);
+    }
+    if (currentFilters.search) {
+      queryParams.append("search", currentFilters.search);
+    }
+    if (currentFilters.dateFrom) {
+      queryParams.append("dateFrom", currentFilters.dateFrom);
+    }
+    if (currentFilters.dateTo) {
+      queryParams.append("dateTo", currentFilters.dateTo);
+    }
+
+    return queryParams.toString();
+  };
+
+  const resolveBackendUserId = async () => {
+    if (session?.user?.id) {
+      return session.user.id;
+    }
+
+    if (!session?.user?.email) {
+      return null;
+    }
+
+    const userByEmailResponse = await apiClient.get(
+      `/api/users/email/${encodeURIComponent(session.user.email)}`
+    );
+
+    if (!userByEmailResponse.ok) {
+      return null;
+    }
+
+    const userByEmailData = await userByEmailResponse.json();
+    return userByEmailData?.id || null;
+  };
+
+  const fetchOrdersByUserId = async (
+    userId: string,
+    page: number,
+    currentFilters: Filters
+  ) => {
+    const query = buildQueryParams(page, currentFilters);
+    return apiClient.get(`/api/users/${userId}/orders?${query}`);
+  };
+
   // Fetch orders
   const fetchOrders = async (page = 1, currentFilters = filters) => {
-    if (!session?.user?.id) return;
+    if (!session?.user) return;
 
     try {
       setIsLoading(true);
       setError(null);
 
-      const queryParams = new URLSearchParams({
-        page: page.toString(),
-        limit: "10",
-      });
+      let backendUserId = await resolveBackendUserId();
+      let response: Response | null = null;
 
-      // Add filters to query params
-      if (currentFilters.status) {
-        queryParams.append("status", currentFilters.status);
-      }
-      if (currentFilters.search) {
-        queryParams.append("search", currentFilters.search);
-      }
-      if (currentFilters.dateFrom) {
-        queryParams.append("dateFrom", currentFilters.dateFrom);
-      }
-      if (currentFilters.dateTo) {
-        queryParams.append("dateTo", currentFilters.dateTo);
+      if (backendUserId) {
+        response = await fetchOrdersByUserId(backendUserId, page, currentFilters);
       }
 
-      const response = await apiClient.get(
-        `/api/users/${session.user.id}/orders?${queryParams.toString()}`
-      );
+      // Fallback: em alguns casos o session.user.id não é o mesmo ID da tabela user.
+      if (
+        (!response || response.status === 404 || response.status === 400) &&
+        session?.user?.email
+      ) {
+        const userByEmailResponse = await apiClient.get(
+          `/api/users/email/${encodeURIComponent(session.user.email)}`
+        );
 
-      if (!response.ok) {
-        throw new Error("Falha ao carregar pedidos");
+        if (userByEmailResponse.ok) {
+          const userByEmailData = await userByEmailResponse.json();
+          backendUserId = userByEmailData?.id;
+          if (backendUserId) {
+            response = await fetchOrdersByUserId(
+              backendUserId,
+              page,
+              currentFilters
+            );
+          }
+        }
+      }
+
+      if (!response || !response.ok) {
+        const status = response?.status;
+        let apiMessage = "";
+
+        try {
+          const body = response ? await response.json() : null;
+          apiMessage =
+            body?.message || body?.error || body?.details || body?.msg || "";
+        } catch {
+          // Ignora parse de body inválido
+        }
+
+        throw new Error(
+          apiMessage
+            ? `Falha ao carregar pedidos (${status ?? "sem status"}): ${apiMessage}`
+            : `Falha ao carregar pedidos (${status ?? "sem status"})`
+        );
       }
 
       const data: OrdersResponse = await response.json();
@@ -168,7 +241,7 @@ export default function UserOrders() {
   const handleViewDetails = (orderId: string) => {
     // Navigate to order details page - this still needs to be a separate page
     // or we could implement it as a modal/sub-view here if requested
-    router.push(`/user/pedidos/${orderId}`);
+    router.push(`/usuario/pedidos/${orderId}`);
   };
 
   // Show loading state
@@ -227,7 +300,7 @@ export default function UserOrders() {
 
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 px-5 py-3 bg-white border border-gray-200 rounded-2xl shadow-md hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 w-fit font-light tracking-wide"
+          className="flex items-center gap-2 px-5 py-3 bg-white border border-gray-200 rounded-2xl shadow-md hover:bg-[#E3E1D6] hover:border-gray-300 transition-all duration-300 w-fit font-light tracking-wide"
         >
           <FaFilter />
           Filtros
@@ -238,7 +311,7 @@ export default function UserOrders() {
       {showFilters && (
         <div className="mb-8 bg-white rounded-3xl shadow-md border border-gray-100 p-8">
           <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-6">
-            <div className="p-3 bg-gray-50 rounded-full text-gray-900">
+            <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
               <FaFilter size={16} />
             </div>
             <h3 className="text-lg font-light tracking-widest text-gray-900 uppercase">
@@ -319,7 +392,7 @@ export default function UserOrders() {
             </button>
             <button
               onClick={handleClearFilters}
-              className="px-6 py-3 border border-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-50 transition-all duration-300"
+              className="px-6 py-3 border border-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-[#E3E1D6] transition-all duration-300"
             >
               Limpar Filtros
             </button>
@@ -386,7 +459,7 @@ export default function UserOrders() {
           {/* Orders Summary */}
           <div className="mt-8 bg-white rounded-3xl shadow-md border border-gray-100 p-8">
             <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-6">
-              <div className="p-3 bg-gray-50 rounded-full text-gray-900">
+              <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
                 <FaShoppingBag size={16} />
               </div>
               <h3 className="text-lg font-light tracking-widest text-gray-900 uppercase">

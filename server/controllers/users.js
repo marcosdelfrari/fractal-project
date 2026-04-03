@@ -17,22 +17,22 @@ const getAllUsers = asyncHandler(async (request, response) => {
 });
 
 const createUser = asyncHandler(async (request, response) => {
-  const { email, password, role } = request.body;
+  const { email, password } = request.body;
 
   // Basic validation
   if (!email || !password) {
-    throw new AppError("Email and password are required", 400);
+    throw new AppError("E-mail e senha são obrigatórios", 400);
   }
 
   // Email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    throw new AppError("Invalid email format", 400);
+    throw new AppError("Formato de e-mail inválido", 400);
   }
 
   // Password validation
   if (password.length < 8) {
-    throw new AppError("Password must be at least 8 characters long", 400);
+    throw new AppError("A senha deve ter pelo menos 8 caracteres", 400);
   }
 
   const hashedPassword = await bcrypt.hash(password, 14);
@@ -41,7 +41,7 @@ const createUser = asyncHandler(async (request, response) => {
     data: {
       email,
       password: hashedPassword,
-      role: role || "user",
+      role: "user",
     },
   });
   // Exclude password from response
@@ -50,10 +50,10 @@ const createUser = asyncHandler(async (request, response) => {
 
 const updateUser = asyncHandler(async (request, response) => {
   const { id } = request.params;
-  const { email, password, role } = request.body;
+  const { email, password } = request.body;
 
   if (!id) {
-    throw new AppError("User ID is required", 400);
+    throw new AppError("ID do usuário é obrigatório", 400);
   }
 
   const existingUser = await prisma.user.findUnique({
@@ -63,7 +63,7 @@ const updateUser = asyncHandler(async (request, response) => {
   });
 
   if (!existingUser) {
-    throw new AppError("User not found", 404);
+    throw new AppError("Usuário não encontrado", 404);
   }
 
   // Prepare update data
@@ -71,20 +71,16 @@ const updateUser = asyncHandler(async (request, response) => {
   if (email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      throw new AppError("Invalid email format", 400);
+      throw new AppError("Formato de e-mail inválido", 400);
     }
     updateData.email = email;
   }
   if (password) {
     if (password.length < 8) {
-      throw new AppError("Password must be at least 8 characters long", 400);
+      throw new AppError("A senha deve ter pelo menos 8 caracteres", 400);
     }
     updateData.password = await bcrypt.hash(password, 14);
   }
-  if (role) {
-    updateData.role = role;
-  }
-
   const updatedUser = await prisma.user.update({
     where: {
       id: existingUser.id,
@@ -100,7 +96,7 @@ const deleteUser = asyncHandler(async (request, response) => {
   const { id } = request.params;
 
   if (!id) {
-    throw new AppError("User ID is required", 400);
+    throw new AppError("ID do usuário é obrigatório", 400);
   }
 
   const existingUser = await prisma.user.findUnique({
@@ -110,7 +106,7 @@ const deleteUser = asyncHandler(async (request, response) => {
   });
 
   if (!existingUser) {
-    throw new AppError("User not found", 404);
+    throw new AppError("Usuário não encontrado", 404);
   }
 
   await prisma.user.delete({
@@ -125,7 +121,7 @@ const getUser = asyncHandler(async (request, response) => {
   const { id } = request.params;
 
   if (!id) {
-    throw new AppError("User ID is required", 400);
+    throw new AppError("ID do usuário é obrigatório", 400);
   }
 
   const user = await prisma.user.findUnique({
@@ -135,7 +131,7 @@ const getUser = asyncHandler(async (request, response) => {
   });
 
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError("Usuário não encontrado", 404);
   }
 
   // Exclude password from response
@@ -146,7 +142,7 @@ const getUserByEmail = asyncHandler(async (request, response) => {
   const { email } = request.params;
 
   if (!email) {
-    throw new AppError("Email is required", 400);
+    throw new AppError("E-mail é obrigatório", 400);
   }
 
   const user = await prisma.user.findUnique({
@@ -156,7 +152,7 @@ const getUserByEmail = asyncHandler(async (request, response) => {
   });
 
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError("Usuário não encontrado", 404);
   }
 
   // Exclude password from response
@@ -168,7 +164,7 @@ const getUserProfile = asyncHandler(async (request, response) => {
   const { id } = request.params;
 
   if (!id) {
-    throw new AppError("User ID is required", 400);
+    throw new AppError("ID do usuário é obrigatório", 400);
   }
 
   const user = await prisma.user.findUnique({
@@ -216,7 +212,7 @@ const getUserProfile = asyncHandler(async (request, response) => {
   });
 
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError("Usuário não encontrado", 404);
   }
 
   // Exclude password from response
@@ -229,7 +225,7 @@ const updateUserProfile = asyncHandler(async (request, response) => {
   const { name, phone, cpf, photo } = request.body;
 
   if (!id) {
-    throw new AppError("User ID is required", 400);
+    throw new AppError("ID do usuário é obrigatório", 400);
   }
 
   const existingUser = await prisma.user.findUnique({
@@ -239,7 +235,7 @@ const updateUserProfile = asyncHandler(async (request, response) => {
   });
 
   if (!existingUser) {
-    throw new AppError("User not found", 404);
+    throw new AppError("Usuário não encontrado", 404);
   }
 
   // Prepare update data (only allow profile fields)
@@ -247,21 +243,21 @@ const updateUserProfile = asyncHandler(async (request, response) => {
 
   if (name !== undefined) {
     if (name && name.trim().length < 2) {
-      throw new AppError("Name must be at least 2 characters long", 400);
+      throw new AppError("O nome deve ter pelo menos 2 caracteres", 400);
     }
     updateData.name = name?.trim() || null;
   }
 
   if (phone !== undefined) {
     if (phone && phone.trim().length < 10) {
-      throw new AppError("Phone must be at least 10 characters long", 400);
+      throw new AppError("O telefone deve ter pelo menos 10 caracteres", 400);
     }
     updateData.phone = phone?.trim() || null;
   }
 
   if (cpf !== undefined) {
     if (cpf && cpf.trim().length !== 11) {
-      throw new AppError("CPF must be exactly 11 digits", 400);
+      throw new AppError("O CPF deve ter exatamente 11 dígitos", 400);
     }
     updateData.cpf = cpf?.trim() || null;
   }
@@ -324,7 +320,7 @@ const getUserOrders = asyncHandler(async (request, response) => {
   const { id } = request.params;
 
   if (!id) {
-    throw new AppError("User ID is required", 400);
+    throw new AppError("ID do usuário é obrigatório", 400);
   }
 
   // Get user information
@@ -338,7 +334,7 @@ const getUserOrders = asyncHandler(async (request, response) => {
   });
 
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError("Usuário não encontrado", 404);
   }
 
   // Add pagination parameters
@@ -349,7 +345,7 @@ const getUserOrders = asyncHandler(async (request, response) => {
   // Validate pagination parameters
   if (page < 1 || limit < 1 || limit > 50) {
     throw new AppError(
-      "Invalid pagination parameters. Page must be >= 1, limit must be between 1 and 50",
+      "Parâmetros de paginação inválidos. A página deve ser >= 1 e o limite entre 1 e 50",
       400
     );
   }
@@ -360,9 +356,24 @@ const getUserOrders = asyncHandler(async (request, response) => {
       where: {
         email: user.email,
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        lastname: true,
+        phone: true,
+        email: true,
+        company: true,
+        adress: true,
+        postalCode: true,
+        dateTime: true,
+        status: true,
+        city: true,
+        country: true,
+        total: true,
         products: {
-          include: {
+          select: {
+            id: true,
+            quantity: true,
             product: {
               select: {
                 id: true,
@@ -398,13 +409,13 @@ const getUserOrders = asyncHandler(async (request, response) => {
     company: order.company,
     address: {
       street: order.adress,
-      apartment: order.apartment,
+      apartment: null,
       postalCode: order.postalCode,
       city: order.city,
       country: order.country,
     },
     status: order.status,
-    orderNotice: order.orderNotice,
+    orderNotice: null,
     total: order.total,
     dateTime: order.dateTime,
     products: order.products.map((orderProduct) => ({

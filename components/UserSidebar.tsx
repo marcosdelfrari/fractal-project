@@ -17,7 +17,6 @@ import {
   FaUser,
   FaShoppingBag,
   FaMapMarkerAlt,
-  FaStar,
   FaSignOutAlt,
   FaBars,
   FaTimes,
@@ -40,28 +39,22 @@ const UserSidebar = ({
 
   const navigationItems = [
     {
-      href: "/user/perfil",
+      href: "/usuario/perfil",
       label: "Perfil",
       icon: FaUser,
       description: "Editar informações pessoais",
     },
     {
-      href: "/user/pedidos",
+      href: "/usuario/pedidos",
       label: "Pedidos",
       icon: FaShoppingBag,
       description: "Histórico de compras",
     },
     {
-      href: "/user/enderecos",
+      href: "/usuario/enderecos",
       label: "Endereços",
       icon: FaMapMarkerAlt,
       description: "Gerenciar endereços",
-    },
-    {
-      href: "/user/avaliacoes",
-      label: "Avaliações",
-      icon: FaStar,
-      description: "Minhas avaliações",
     },
   ];
 

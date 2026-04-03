@@ -41,35 +41,35 @@ const UserStats = ({ stats, className = "" }: UserStatsProps) => {
     const colorMap = {
       blue: {
         card: "bg-white border-gray-100",
-        iconBg: "bg-gray-50 text-gray-900",
+        iconBg: "bg-[#E3E1D6] text-gray-900",
         title: "text-gray-600 font-light",
         value: "text-gray-900",
         change: "text-gray-500",
       },
       green: {
         card: "bg-white border-gray-100",
-        iconBg: "bg-gray-50 text-gray-900",
+        iconBg: "bg-[#E3E1D6] text-gray-900",
         title: "text-gray-600 font-light",
         value: "text-gray-900",
         change: "text-gray-500",
       },
       purple: {
         card: "bg-white border-gray-100",
-        iconBg: "bg-gray-50 text-gray-900",
+        iconBg: "bg-[#E3E1D6] text-gray-900",
         title: "text-gray-600 font-light",
         value: "text-gray-900",
         change: "text-gray-500",
       },
       orange: {
         card: "bg-white border-gray-100",
-        iconBg: "bg-gray-50 text-gray-900",
+        iconBg: "bg-[#E3E1D6] text-gray-900",
         title: "text-gray-600 font-light",
         value: "text-gray-900",
         change: "text-gray-500",
       },
       red: {
         card: "bg-white border-gray-100",
-        iconBg: "bg-gray-50 text-gray-900",
+        iconBg: "bg-[#E3E1D6] text-gray-900",
         title: "text-gray-600 font-light",
         value: "text-gray-900",
         change: "text-gray-500",
@@ -123,7 +123,7 @@ const UserStats = ({ stats, className = "" }: UserStatsProps) => {
               {stat.change && (
                 <div
                   className={`${getChangeColor(
-                    stat.change.type
+                    stat.change.type,
                   )} flex items-center gap-1 text-xs font-light`}
                 >
                   {getChangeIcon(stat.change.type)}
@@ -133,7 +133,9 @@ const UserStats = ({ stats, className = "" }: UserStatsProps) => {
             </div>
 
             <div className="space-y-1">
-              <h3 className={`${colors.title} text-sm uppercase tracking-wider`}>
+              <h3
+                className={`${colors.title} text-sm uppercase tracking-wider`}
+              >
                 {stat.title}
               </h3>
               <p className={`${colors.value} text-2xl font-medium`}>

@@ -67,7 +67,7 @@ export default function UserAddresses() {
   const [isLoadingCep, setIsLoadingCep] = useState(false);
   const [cepError, setCepError] = useState<string | null>(null);
 
-  // Busca endereço pelo CEP (ViaCEP)
+  // Busca endereço pelo CEP via API interna (/api/cep)
   const fetchAddressByCep = async (cep: string) => {
     const digits = cep.replace(/\D/g, "");
     if (digits.length !== 8) return;
@@ -75,11 +75,17 @@ export default function UserAddresses() {
     setIsLoadingCep(true);
     setCepError(null);
     try {
-      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
-      const data = await res.json();
+      const res = await fetch(`/api/cep/${digits}`, { cache: "no-store" });
+      const data = (await res.json()) as {
+        error?: string;
+        endereco?: string;
+        bairro?: string;
+        cidade?: string;
+        uf?: string;
+      };
 
-      if (data.erro) {
-        setCepError("CEP não encontrado.");
+      if (!res.ok) {
+        setCepError(data.error || "CEP não encontrado.");
         setFormData((prev) => ({
           ...prev,
           street: "",
@@ -92,9 +98,9 @@ export default function UserAddresses() {
 
       setFormData((prev) => ({
         ...prev,
-        street: data.logradouro || "",
+        street: data.endereco || "",
         district: data.bairro || "",
-        city: data.localidade || "",
+        city: data.cidade || "",
         state: data.uf || "",
       }));
     } catch {
@@ -435,7 +441,7 @@ export default function UserAddresses() {
 
       {/* Success Message */}
       {successMessage && (
-        <div className="mb-8 rounded-2xl border border-gray-100 bg-gray-50 p-5 shadow-sm">
+        <div className="mb-8 rounded-2xl border border-gray-100 bg-[#E3E1D6] p-5 shadow-sm">
           <div className="flex items-center gap-4">
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 text-gray-600">
               <svg className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
@@ -449,7 +455,7 @@ export default function UserAddresses() {
 
       {/* Error Message */}
       {error && (
-        <div className="mb-8 rounded-2xl border border-gray-100 bg-gray-50 p-5 shadow-sm">
+        <div className="mb-8 rounded-2xl border border-gray-100 bg-[#E3E1D6] p-5 shadow-sm">
           <div className="flex items-center gap-4">
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 text-red-600">
               <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -468,7 +474,7 @@ export default function UserAddresses() {
             <div className="p-8">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-gray-50 rounded-full text-gray-900">
+                  <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
                     <FaMapMarkerAlt size={16} />
                   </div>
                   <h2 className="text-lg font-light tracking-widest text-gray-900 uppercase">
@@ -479,7 +485,7 @@ export default function UserAddresses() {
                   type="button"
                   onClick={handleCancel}
                   aria-label="Fechar"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-[#E3E1D6] hover:text-gray-700 transition-colors"
                 >
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -522,18 +528,10 @@ export default function UserAddresses() {
                         className="block w-full rounded-lg border border-gray-300 py-2.5 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm"
                         required
                       />
-                      {isLoadingCep && (
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
-                          Buscando...
-                        </span>
-                      )}
                     </div>
                     {cepError && (
                       <p className="mt-1 text-sm text-red-600">{cepError}</p>
                     )}
-                    <p className="mt-1 text-xs font-light text-gray-500">
-                      Rua, bairro e cidade serão preenchidos automaticamente.
-                    </p>
                   </div>
                 </div>
 
@@ -549,7 +547,7 @@ export default function UserAddresses() {
                       value={formData.street}
                       readOnly
                       placeholder="Preencha o CEP acima"
-                      className="block w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 text-gray-700 cursor-not-allowed sm:text-sm"
+                      className="block w-full rounded-lg border border-gray-200 bg-[#E3E1D6] py-2.5 text-gray-700 cursor-not-allowed sm:text-sm"
                       required
                     />
                   </div>
@@ -598,7 +596,7 @@ export default function UserAddresses() {
                       value={formData.district}
                       readOnly
                       placeholder="Preencha o CEP acima"
-                      className="block w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 text-gray-700 cursor-not-allowed sm:text-sm"
+                      className="block w-full rounded-lg border border-gray-200 bg-[#E3E1D6] py-2.5 text-gray-700 cursor-not-allowed sm:text-sm"
                       required
                     />
                   </div>
@@ -614,7 +612,7 @@ export default function UserAddresses() {
                       value={formData.city}
                       readOnly
                       placeholder="Preencha o CEP acima"
-                      className="block w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 text-gray-700 cursor-not-allowed sm:text-sm"
+                      className="block w-full rounded-lg border border-gray-200 bg-[#E3E1D6] py-2.5 text-gray-700 cursor-not-allowed sm:text-sm"
                       required
                     />
                   </div>
@@ -630,7 +628,7 @@ export default function UserAddresses() {
                       value={formData.state}
                       readOnly
                       placeholder="Preencha o CEP acima"
-                      className="block w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 text-gray-700 cursor-not-allowed sm:text-sm"
+                      className="block w-full rounded-lg border border-gray-200 bg-[#E3E1D6] py-2.5 text-gray-700 cursor-not-allowed sm:text-sm"
                       required
                     />
                   </div>
@@ -670,7 +668,7 @@ export default function UserAddresses() {
                   <button
                     type="button"
                     onClick={handleCancel}
-                    className="rounded-full border border-gray-200 px-6 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all duration-300"
+                    className="rounded-full border border-gray-200 px-6 py-3 text-sm font-medium text-gray-700 hover:bg-[#E3E1D6] transition-all duration-300"
                     disabled={isSubmitting}
                   >
                     Cancelar
@@ -696,7 +694,7 @@ export default function UserAddresses() {
       {/* Addresses List */}
       {addresses.length === 0 ? (
         <div className="rounded-3xl border border-gray-100 bg-white p-12 text-center shadow-md">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-400">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#E3E1D6] text-gray-400">
             <FaMapMarkerAlt className="h-8 w-8" />
           </div>
           <h3 className="text-xl font-light tracking-tight text-gray-900 mb-2">
@@ -731,7 +729,7 @@ export default function UserAddresses() {
       {addresses.length > 0 && (
         <div className="mt-8 rounded-3xl border border-gray-100 bg-white p-8 shadow-md">
           <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-6">
-            <div className="p-3 rounded-full bg-gray-50 text-gray-900">
+            <div className="p-3 rounded-full bg-[#E3E1D6] text-gray-900">
               <FaMapMarkerAlt size={16} />
             </div>
             <h3 className="text-lg font-light tracking-widest text-gray-900 uppercase">

@@ -3,11 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { DashboardSidebar } from "@/components";
 import { FaFloppyDisk } from "react-icons/fa6";
-import { getExpressApiBase } from "@/lib/expressApi";
+import { getAdminSettingsApiBase } from "@/lib/adminSettingsApi";
 import { parsePickupAddresses } from "@/lib/pickupAddresses";
 import type { SiteSettings } from "../types";
 import { SettingsBackHeader } from "../SettingsBackHeader";
-import { FaPlus, FaTrash } from "react-icons/fa6";
 
 export default function AdminSettingsLojaPage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -31,7 +30,7 @@ export default function AdminSettingsLojaPage() {
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${getExpressApiBase()}/settings/site`);
+      const res = await fetch(`${getAdminSettingsApiBase()}/site`);
       if (res.ok) {
         const data = (await res.json()) as Record<string, unknown>;
         setSettings({
@@ -55,51 +54,6 @@ export default function AdminSettingsLojaPage() {
     setSettings((prev) => (prev ? { ...prev, [field]: value } : null));
   };
 
-  const addPickupLocation = () => {
-    setSettings((prev) => {
-      if (!prev) return prev;
-      const id =
-        typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : `pickup-${Date.now()}`;
-      return {
-        ...prev,
-        pickupAddresses: [
-          ...prev.pickupAddresses,
-          { id, name: "", address: "" },
-        ],
-      };
-    });
-  };
-
-  const removePickupLocation = (id: string) => {
-    setSettings((prev) =>
-      prev
-        ? {
-            ...prev,
-            pickupAddresses: prev.pickupAddresses.filter((p) => p.id !== id),
-          }
-        : null,
-    );
-  };
-
-  const updatePickupLocation = (
-    id: string,
-    field: "name" | "address",
-    value: string,
-  ) => {
-    setSettings((prev) =>
-      prev
-        ? {
-            ...prev,
-            pickupAddresses: prev.pickupAddresses.map((p) =>
-              p.id === id ? { ...p, [field]: value } : p,
-            ),
-          }
-        : null,
-    );
-  };
-
   const uploadSiteFile = async (field: "storeIcon" | "storeLogo", file: File | null) => {
     if (!file) return;
     const setBusy = field === "storeIcon" ? setUploadingIcon : setUploadingLogo;
@@ -108,7 +62,7 @@ export default function AdminSettingsLojaPage() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("type", field);
-      const res = await fetch(`${getExpressApiBase()}/settings/site/upload`, {
+      const res = await fetch(`${getAdminSettingsApiBase()}/site/upload`, {
         method: "POST",
         body: formData,
       });
@@ -142,7 +96,7 @@ export default function AdminSettingsLojaPage() {
 
     try {
       setSaving(true);
-      const res = await fetch(`${getExpressApiBase()}/settings/site`, {
+      const res = await fetch(`${getAdminSettingsApiBase()}/site`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -150,15 +104,14 @@ export default function AdminSettingsLojaPage() {
           email: settings.email,
           phone: settings.phone,
           whatsapp: settings.whatsapp,
+          facebook: settings.facebook,
+          instagram: settings.instagram,
+          x: settings.x,
+          pinterest: settings.pinterest,
+          youtube: settings.youtube,
+          linkedin: settings.linkedin,
+          tiktok: settings.tiktok,
           address: settings.address,
-          deliveryEnabled: settings.deliveryEnabled,
-          pickupAddresses: settings.pickupAddresses
-            .map((p) => ({
-              id: p.id,
-              name: p.name.trim(),
-              address: p.address.trim(),
-            }))
-            .filter((p) => p.name && p.address),
         }),
       });
 
@@ -177,7 +130,7 @@ export default function AdminSettingsLojaPage() {
 
   if (loading) {
     return (
-      <div className="bg-gray-50 min-h-screen flex justify-start max-w-screen-2xl mx-auto max-xl:flex-col">
+      <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
         <DashboardSidebar />
         <div className="flex-1 p-10 flex items-center justify-center">
           <p className="text-gray-500">Carregando...</p>
@@ -187,7 +140,7 @@ export default function AdminSettingsLojaPage() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen flex justify-start max-w-screen-2xl mx-auto max-xl:flex-col">
+    <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
       <DashboardSidebar />
       <div className="flex-1 p-10 max-md:p-4 animate-fade-in-up">
         <SettingsBackHeader
@@ -262,6 +215,114 @@ export default function AdminSettingsLojaPage() {
               />
             </div>
 
+            <div className="md:col-span-2 border-t border-gray-100 pt-8">
+              <h3 className="text-sm font-medium text-gray-900 mb-1">
+                Redes sociais
+              </h3>
+              <p className="text-[11px] text-gray-500 mb-4 max-w-2xl">
+                Cadastre apenas as redes que deseja exibir no site. Campos vazios não
+                serão exibidos.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">
+                    Instagram (URL)
+                  </label>
+                  <input
+                    type="url"
+                    value={settings?.instagram || ""}
+                    onChange={(e) =>
+                      handleSettingsChange("instagram", e.target.value)
+                    }
+                    placeholder="https://instagram.com/sualoja"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">
+                    Facebook (URL)
+                  </label>
+                  <input
+                    type="url"
+                    value={settings?.facebook || ""}
+                    onChange={(e) =>
+                      handleSettingsChange("facebook", e.target.value)
+                    }
+                    placeholder="https://facebook.com/sualoja"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">
+                    X / Twitter (URL)
+                  </label>
+                  <input
+                    type="url"
+                    value={settings?.x || ""}
+                    onChange={(e) => handleSettingsChange("x", e.target.value)}
+                    placeholder="https://x.com/sualoja"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">
+                    Pinterest (URL)
+                  </label>
+                  <input
+                    type="url"
+                    value={settings?.pinterest || ""}
+                    onChange={(e) =>
+                      handleSettingsChange("pinterest", e.target.value)
+                    }
+                    placeholder="https://pinterest.com/sualoja"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">
+                    YouTube (URL)
+                  </label>
+                  <input
+                    type="url"
+                    value={settings?.youtube || ""}
+                    onChange={(e) =>
+                      handleSettingsChange("youtube", e.target.value)
+                    }
+                    placeholder="https://youtube.com/@sualoja"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">
+                    LinkedIn (URL)
+                  </label>
+                  <input
+                    type="url"
+                    value={settings?.linkedin || ""}
+                    onChange={(e) =>
+                      handleSettingsChange("linkedin", e.target.value)
+                    }
+                    placeholder="https://linkedin.com/company/sualoja"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">
+                    TikTok (URL)
+                  </label>
+                  <input
+                    type="url"
+                    value={settings?.tiktok || ""}
+                    onChange={(e) =>
+                      handleSettingsChange("tiktok", e.target.value)
+                    }
+                    placeholder="https://tiktok.com/@sualoja"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="md:col-span-2">
               <label className="block text-xs font-medium text-gray-700 mb-2">
                 Endereço (geral / correspondência)
@@ -279,151 +340,13 @@ export default function AdminSettingsLojaPage() {
               </p>
             </div>
 
-            <div className="md:col-span-2 border-t border-gray-100 pt-8">
-              <h3 className="text-sm font-medium text-gray-900 mb-1">
-                Checkout: entrega ou só retirada
-              </h3>
-              <p className="text-[11px] text-gray-500 mb-4 max-w-2xl">
-                Define se o cliente pode escolher entrega no endereço ou apenas retirada em um dos pontos abaixo.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <label
-                  className={`flex items-start gap-3 p-4 border rounded-xl cursor-pointer hover:bg-gray-50/80 ${
-                    settings?.deliveryEnabled !== false
-                      ? "border-gray-900 bg-gray-50"
-                      : "border-gray-200"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="delivery-mode"
-                    className="mt-1"
-                    checked={settings?.deliveryEnabled !== false}
-                    onChange={() =>
-                      setSettings((prev) =>
-                        prev ? { ...prev, deliveryEnabled: true } : prev,
-                      )
-                    }
-                  />
-                  <span>
-                    <span className="block text-sm font-medium text-gray-900">
-                      Entrega e retirada
-                    </span>
-                    <span className="block text-[11px] text-gray-500 mt-0.5">
-                      O cliente escolhe entre receber em casa ou buscar na loja.
-                    </span>
-                  </span>
-                </label>
-                <label
-                  className={`flex items-start gap-3 p-4 border rounded-xl cursor-pointer hover:bg-gray-50/80 ${
-                    settings?.deliveryEnabled === false
-                      ? "border-gray-900 bg-gray-50"
-                      : "border-gray-200"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="delivery-mode"
-                    className="mt-1"
-                    checked={settings?.deliveryEnabled === false}
-                    onChange={() =>
-                      setSettings((prev) =>
-                        prev ? { ...prev, deliveryEnabled: false } : prev,
-                      )
-                    }
-                  />
-                  <span>
-                    <span className="block text-sm font-medium text-gray-900">
-                      Somente retirada na loja
-                    </span>
-                    <span className="block text-[11px] text-gray-500 mt-0.5">
-                      Sem opção de entrega; fluxo direto para retirada.
-                    </span>
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            <div className="md:col-span-2 border-t border-gray-100 pt-8">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900">
-                    Pontos de retirada
-                  </h3>
-                  <p className="text-[11px] text-gray-500 mt-1 max-w-xl">
-                    O cliente escolhe um deles ao finalizar com &quot;retirada na
-                    loja&quot;. Você pode cadastrar vários (filiais, depósitos,
-                    horários).
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={addPickupLocation}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 shrink-0"
-                >
-                  <FaPlus size={14} />
-                  Adicionar ponto
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {settings?.pickupAddresses?.length === 0 && (
-                  <p className="text-sm text-amber-800 bg-amber-50 border border-amber-100 rounded-lg px-4 py-3">
-                    Nenhum ponto cadastrado. Quem escolher retirada no checkout verá um
-                    aviso até você incluir ao menos um ponto com nome e endereço.
-                  </p>
-                )}
-                {settings?.pickupAddresses?.map((p) => (
-                  <div
-                    key={p.id}
-                    className="p-4 border border-gray-200 rounded-xl bg-gray-50/50 space-y-3"
-                  >
-                    <div className="flex justify-between items-start gap-2">
-                      <label className="block text-xs font-medium text-gray-700 flex-1">
-                        Nome do ponto (ex.: filial, bairro)
-                        <input
-                          type="text"
-                          value={p.name}
-                          onChange={(e) =>
-                            updatePickupLocation(p.id, "name", e.target.value)
-                          }
-                          placeholder="Loja Centro"
-                          className="mt-1.5 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-gray-400"
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => removePickupLocation(p.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg shrink-0"
-                        aria-label="Remover ponto"
-                      >
-                        <FaTrash size={14} />
-                      </button>
-                    </div>
-                    <label className="block text-xs font-medium text-gray-700">
-                      Endereço e observações (horário, andar, etc.)
-                      <textarea
-                        value={p.address}
-                        onChange={(e) =>
-                          updatePickupLocation(p.id, "address", e.target.value)
-                        }
-                        rows={3}
-                        placeholder="Rua, número, CEP, horário de retirada..."
-                        className="mt-1.5 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-gray-400 font-mono"
-                      />
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-2">
                   Ícone (favicon)
                 </label>
                 <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div className="w-16 h-16 border border-gray-200 rounded-lg bg-[#E3E1D6] flex items-center justify-center overflow-hidden flex-shrink-0">
                     {settings?.storeIcon ? (
                       <img
                         src={settings.storeIcon}
@@ -452,7 +375,7 @@ export default function AdminSettingsLojaPage() {
                       type="button"
                       disabled={uploadingIcon}
                       onClick={() => iconInputRef.current?.click()}
-                      className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                      className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#E3E1D6] disabled:opacity-50"
                     >
                       {uploadingIcon ? "Enviando…" : "Enviar imagem"}
                     </button>
@@ -468,7 +391,7 @@ export default function AdminSettingsLojaPage() {
                   Logo da loja
                 </label>
                 <div className="flex items-start gap-4">
-                  <div className="w-32 h-16 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div className="w-32 h-16 border border-gray-200 rounded-lg bg-[#E3E1D6] flex items-center justify-center overflow-hidden flex-shrink-0">
                     {settings?.storeLogo ? (
                       <img
                         src={settings.storeLogo}
@@ -497,7 +420,7 @@ export default function AdminSettingsLojaPage() {
                       type="button"
                       disabled={uploadingLogo}
                       onClick={() => logoInputRef.current?.click()}
-                      className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                      className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#E3E1D6] disabled:opacity-50"
                     >
                       {uploadingLogo ? "Enviando…" : "Enviar imagem"}
                     </button>

@@ -105,7 +105,7 @@ export default function UserReviews() {
       }
 
       const response = await apiClient.get(
-        `/api/reviews/user/${session.user.id}?${queryParams.toString()}`
+        `/api/reviews/user/${session.user.id}?${queryParams.toString()}`,
       );
 
       if (!response.ok) {
@@ -119,7 +119,7 @@ export default function UserReviews() {
     } catch (err) {
       console.error("Erro ao buscar avaliações:", err);
       setError(
-        err instanceof Error ? err.message : "Erro ao carregar avaliações"
+        err instanceof Error ? err.message : "Erro ao carregar avaliações",
       );
     } finally {
       setIsLoading(false);
@@ -186,7 +186,7 @@ export default function UserReviews() {
     } catch (err) {
       console.error("Erro ao excluir avaliação:", err);
       setError(
-        err instanceof Error ? err.message : "Erro ao excluir avaliação"
+        err instanceof Error ? err.message : "Erro ao excluir avaliação",
       );
     }
   };
@@ -258,7 +258,9 @@ export default function UserReviews() {
       {/* Header */}
       <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-light text-gray-900 tracking-tight">Minhas Avaliações</h2>
+          <h2 className="text-3xl font-light text-gray-900 tracking-tight">
+            Minhas Avaliações
+          </h2>
           <p className="text-gray-500 font-light mt-1">
             Gerencie suas avaliações de produtos e acompanhe seu histórico.
           </p>
@@ -266,7 +268,7 @@ export default function UserReviews() {
 
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 px-5 py-3 bg-white border border-gray-200 rounded-2xl shadow-md hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 w-fit font-light tracking-wide"
+          className="flex items-center gap-2 px-5 py-3 bg-white border border-gray-200 rounded-2xl shadow-md hover:bg-[#E3E1D6] hover:border-gray-300 transition-all duration-300 w-fit font-light tracking-wide"
         >
           <FaFilter />
           Filtros
@@ -426,7 +428,7 @@ export default function UserReviews() {
             correspondam aos filtros aplicados.
           </p>
           <Link
-            href="/shop"
+            href="/loja"
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Fazer Compras
@@ -476,7 +478,7 @@ export default function UserReviews() {
                       {/* Actions */}
                       <div className="flex items-center gap-2">
                         <Link
-                          href={`/product/${review.product.slug}`}
+                          href={`/produto/${review.product.slug}`}
                           className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
                           title="Ver produto"
                         >

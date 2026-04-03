@@ -21,6 +21,10 @@ model Product {
   price          Int                      @default(0)
   rating         Int                      @default(0)
   description    String                   @db.Text
+  additionalInfo String?                  @db.Text
+  material       String?                  @db.Text
+  colors         Json?
+  sizes          Json?
   manufacturer   String
   inStock        Int                      @default(1)
   categoryId     String
@@ -78,6 +82,8 @@ model customer_order_product {
   product         Product        @relation(fields: [productId], references: [id])
   productId       String
   quantity        Int
+  selectedColor   String?
+  selectedSize    String?
 }
 
 model Category {
@@ -143,13 +149,32 @@ model SiteSettings {
   storeName   String   @default("Fractal Store")
   storeIcon   String?  // URL do ícone da loja
   storeLogo   String?  // URL do logo
+  /// name | logo (desktop)
+  navBrandDesktopMode String @default("name")
+  /// name | logo (mobile)
+  navBrandMobileMode  String @default("name")
+  /// Oculta texto do nome até carregar settings no cliente.
+  hideStoreNameUntilLoaded Boolean @default(true)
+  /// Links da navbar: [{ id, name, href, hasMegaMenu }]
+  navLinks    Json?
   whatsapp    String?  // Número WhatsApp com país
+  facebook    String?  // URL da página no Facebook
+  instagram   String?  // URL do perfil no Instagram
+  x           String?  // URL do perfil no X/Twitter
+  pinterest   String?  // URL do perfil no Pinterest
+  youtube     String?  // URL do canal no YouTube
+  linkedin    String?  // URL da página no LinkedIn
+  tiktok      String?  // URL do perfil no TikTok
+  /// delivery_and_pickup | delivery_only | pickup_only
+  checkoutMode String  @default("delivery_and_pickup")
   address     String?  // Endereço físico
   email       String?  // Email de contato
   phone       String?  // Telefone
   pickupAddresses Json? // [{ id, name, address }] pontos de retirada
   /// false = só retirada no checkout; true = entrega e retirada
   deliveryEnabled Boolean @default(true)
+  /// Próximos eventos (home, acima do rodapé): { enabled, line1, line2, arrowHref, events }
+  upcomingEvents Json?
   updatedAt   DateTime @updatedAt
   
   @@unique([id]) // Sempre apenas um registro

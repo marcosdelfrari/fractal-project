@@ -10,16 +10,16 @@ const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 200, // Limit each IP per windowMs (produção)
   message: {
-    error: 'Too many requests from this IP, please try again later.',
-    retryAfter: '15 minutes'
+    error: 'Muitas requisições deste IP. Tente novamente mais tarde.',
+    retryAfter: '15 minutos'
   },
   standardHeaders: true,
   legacyHeaders: false,
   skip: skipGeneralRateLimit,
   handler: (req, res) => {
     res.status(429).json({
-      error: 'Too many requests from this IP, please try again later.',
-      retryAfter: '15 minutes'
+      error: 'Muitas requisições deste IP. Tente novamente mais tarde.',
+      retryAfter: '15 minutos'
     });
   }
 });
@@ -29,16 +29,16 @@ const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // Limit each IP to 5 login attempts per windowMs
   message: {
-    error: 'Too many authentication attempts, please try again later.',
-    retryAfter: '15 minutes'
+    error: 'Muitas tentativas de autenticação. Tente novamente mais tarde.',
+    retryAfter: '15 minutos'
   },
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true, // Don't count successful requests
   handler: (req, res) => {
     res.status(429).json({
-      error: 'Too many authentication attempts, please try again later.',
-      retryAfter: '15 minutes'
+      error: 'Muitas tentativas de autenticação. Tente novamente mais tarde.',
+      retryAfter: '15 minutos'
     });
   }
 });
@@ -48,15 +48,15 @@ const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 6, // Limit each IP to 3 registration attempts per hour
   message: {
-    error: 'Too many registration attempts, please try again later.',
-    retryAfter: '1 hour'
+    error: 'Muitas tentativas de cadastro. Tente novamente mais tarde.',
+    retryAfter: '1 hora'
   },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     res.status(429).json({
-      error: 'Too many registration attempts, please try again later.',
-      retryAfter: '1 hour'
+      error: 'Muitas tentativas de cadastro. Tente novamente mais tarde.',
+      retryAfter: '1 hora'
     });
   }
 });
@@ -66,15 +66,15 @@ const userManagementLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 40, // Limit each IP to 20 requests per windowMs
   message: {
-    error: 'Too many user management requests, please try again later.',
-    retryAfter: '15 minutes'
+    error: 'Muitas operações de gestão de usuários. Tente novamente mais tarde.',
+    retryAfter: '15 minutos'
   },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     res.status(429).json({
-      error: 'Too many user management requests, please try again later.',
-      retryAfter: '15 minutes'
+      error: 'Muitas operações de gestão de usuários. Tente novamente mais tarde.',
+      retryAfter: '15 minutos'
     });
   }
 });
@@ -84,15 +84,15 @@ const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 20, // Limit each IP to 10 uploads per windowMs
   message: {
-    error: 'Too many file uploads, please try again later.',
-    retryAfter: '15 minutes'
+    error: 'Muitos envios de arquivo. Tente novamente mais tarde.',
+    retryAfter: '15 minutos'
   },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     res.status(429).json({
-      error: 'Too many file uploads, please try again later.',
-      retryAfter: '15 minutes'
+      error: 'Muitos envios de arquivo. Tente novamente mais tarde.',
+      retryAfter: '15 minutos'
     });
   }
 });
@@ -102,15 +102,15 @@ const searchLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
   max: 60, // Limit each IP to 30 search requests per minute
   message: {
-    error: 'Too many search requests, please try again later.',
-    retryAfter: '1 minute'
+    error: 'Muitas buscas. Tente novamente mais tarde.',
+    retryAfter: '1 minuto'
   },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     res.status(429).json({
-      error: 'Too many search requests, please try again later.',
-      retryAfter: '1 minute'
+      error: 'Muitas buscas. Tente novamente mais tarde.',
+      retryAfter: '1 minuto'
     });
   }
 });
@@ -120,15 +120,15 @@ const orderLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 20, // Limit each IP to 15 order operations per windowMs
   message: {
-    error: 'Too many order operations, please try again later.',
-    retryAfter: '15 minutes'
+    error: 'Muitas operações de pedido. Tente novamente mais tarde.',
+    retryAfter: '15 minutos'
   },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     res.status(429).json({
-      error: 'Too many order operations, please try again later.',
-      retryAfter: '15 minutes'
+      error: 'Muitas operações de pedido. Tente novamente mais tarde.',
+      retryAfter: '15 minutos'
     });
   }
 });

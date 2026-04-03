@@ -10,7 +10,7 @@ export const registrationSchema = z.object({
 // Login schema (for future use)
 export const loginSchema = z.object({
   email: commonValidations.email,
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(1, "Senha é obrigatória"),
 });
 
 // Generic validation schema (keeping existing for backward compatibility)

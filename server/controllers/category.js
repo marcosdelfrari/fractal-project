@@ -71,15 +71,18 @@ const deleteCategory = asyncHandler(async (request, response) => {
     throw new AppError("Category not found", 404);
   }
 
-  // Check if category has products
-  const productsWithCategory = await prisma.product.findFirst({
+  // Categorias só podem ser removidas quando estiverem vazias.
+  const productsCount = await prisma.product.count({
     where: {
       categoryId: id,
     },
   });
 
-  if (productsWithCategory) {
-    throw new AppError("Cannot delete category that has products", 400);
+  if (productsCount > 0) {
+    throw new AppError(
+      `Não é possível excluir a categoria: existem ${productsCount} produto(s) vinculado(s).`,
+      400
+    );
   }
 
   await prisma.category.delete({

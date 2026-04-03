@@ -13,16 +13,16 @@ export const CartModule = () => {
   const { products, removeFromCart, calculateTotals, total } =
     useProductStore();
 
-  const handleRemoveItem = (id: string) => {
-    removeFromCart(id);
+  const handleRemoveItem = (cartItemKey: string) => {
+    removeFromCart(cartItemKey);
     calculateTotals();
-    toast.success("Product removed from the cart");
+    toast.success("Produto removido do carrinho");
   };
 
   if (products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-400">
+        <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#E3E1D6] text-gray-400">
           <svg
             className="h-8 w-8"
             viewBox="0 0 24 24"
@@ -63,7 +63,7 @@ export const CartModule = () => {
           className="divide-y divide-gray-100 border-y border-gray-100"
         >
           {products.map((product) => (
-            <li key={product.id} className="flex py-6 sm:py-10">
+            <li key={product.cartItemKey || product.id} className="flex py-6 sm:py-10">
               <div className="flex-shrink-0">
                 <Image
                   width={192}
@@ -87,12 +87,16 @@ export const CartModule = () => {
                         </Link>
                       </h3>
                     </div>
-                    {/* <div className="mt-1 flex text-sm">
-                        <p className="text-gray-500">{product.color}</p>
-                        {product.size ? (
-                          <p className="ml-4 border-l border-gray-200 pl-4 text-gray-500">{product.size}</p>
+                    {(product.selectedColor || product.selectedSize) && (
+                      <div className="mt-1 flex text-sm gap-4">
+                        {product.selectedColor ? (
+                          <p className="text-gray-500">Cor: {product.selectedColor}</p>
                         ) : null}
-                      </div> */}
+                        {product.selectedSize ? (
+                          <p className="text-gray-500">Tamanho: {product.selectedSize}</p>
+                        ) : null}
+                      </div>
+                    )}
                     <p className="mt-1 text-sm font-medium text-gray-900">
                       ${product.price}
                     </p>
@@ -102,7 +106,7 @@ export const CartModule = () => {
                     <QuantityInputCart product={product} />
                     <div className="absolute right-0 top-0">
                       <button
-                        onClick={() => handleRemoveItem(product.id)}
+                        onClick={() => handleRemoveItem(product.cartItemKey || `${product.id}____`)}
                         type="button"
                         className="-m-2 inline-flex p-2 text-gray-400 hover:text-gray-500"
                       >
@@ -203,7 +207,7 @@ export const CartModule = () => {
         {products.length > 0 && (
           <div className="mt-6">
             <Link
-              href="/checkout"
+              href="/compra"
               className="flex w-full items-center justify-center rounded-full border border-transparent bg-black px-6 py-3 text-sm font-medium uppercase tracking-wider text-white shadow-lg hover:bg-zinc-800 transition-all duration-300"
             >
               <span>Ir para o Checkout</span>

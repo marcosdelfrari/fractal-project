@@ -20,7 +20,7 @@ const ColorInput = () => {
         <div className="bg-gray-400 w-10 h-10 rounded-full cursor-pointer flex justify-center items-center">
           <FaCheck className="text-black" />
         </div>
-        <div className="bg-gray-500 w-10 h-10 rounded-full cursor-pointer"></div>
+        <div className="bg-[#E3E1D6]0 w-10 h-10 rounded-full cursor-pointer"></div>
         <div className="bg-zinc-900 w-10 h-10 rounded-full cursor-pointer"></div>
       </div>
     </div>

@@ -40,7 +40,7 @@ const IntroducingSection = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Link href="/shop" className="block text-blue-600 bg-white font-bold px-12 py-3 text-xl hover:bg-gray-100 w-96 mt-6 max-md:text-lg max-md:w-72 max-[480px]:w-60 mx-auto rounded-sm">
+            <Link href="/loja" className="block text-blue-600 bg-white font-bold px-12 py-3 text-xl hover:bg-gray-100 w-96 mt-6 max-md:text-lg max-md:w-72 max-[480px]:w-60 mx-auto rounded-sm">
               SHOP NOW
             </Link>
           </motion.div>

@@ -14,9 +14,9 @@ import { useCallback } from "react";
 
 // Routes configuration
 const ROUTES = {
-  PUBLIC: ["/", "/promo", "/shop", "/product", "/login", "/register"],
-  AUTHENTICATED: ["/cart", "/checkout", "/wishlist", "/profile"],
-  USER: ["/user"],
+  PUBLIC: ["/", "/promo", "/loja", "/produto", "/login", "/register"],
+  AUTHENTICATED: ["/carrinho", "/compra", "/wishlist", "/profile"],
+  USER: ["/usuario"],
   ADMIN: ["/admin"],
 } as const;
 
@@ -73,7 +73,7 @@ export const useRedirectManager = () => {
     }
 
     if (userRole === "user") {
-      return "/user";
+      return "/usuario";
     }
 
     return "/";
@@ -89,7 +89,7 @@ export const useRedirectManager = () => {
   }, [router]);
 
   const redirectToShop = useCallback(() => {
-    router.push("/shop");
+    router.push("/loja");
   }, [router]);
 
   const redirectToLogin = useCallback(
@@ -106,7 +106,7 @@ export const useRedirectManager = () => {
     if (userRole === "admin") {
       router.push("/admin");
     } else if (userRole === "user") {
-      router.push("/user");
+      router.push("/usuario");
     } else {
       router.push("/login");
     }

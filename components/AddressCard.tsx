@@ -94,14 +94,14 @@ const AddressCard = ({
       <div className="p-6 border-b border-gray-100">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 text-gray-700">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E3E1D6] text-gray-700">
               {getLabelIcon(address.label)}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-medium text-gray-900">{address.label}</h3>
                 {address.isDefault && (
-                  <span className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                  <span className="rounded-full border border-gray-200 bg-[#E3E1D6] px-2.5 py-0.5 text-xs font-medium text-gray-700">
                     Padrão
                   </span>
                 )}
@@ -169,7 +169,7 @@ const AddressCard = ({
             {onEdit && (
               <button
                 onClick={() => onEdit(address.id)}
-                className="flex items-center gap-2 rounded-full border border-gray-200 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all duration-300"
+                className="flex items-center gap-2 rounded-full border border-gray-200 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-[#E3E1D6] transition-all duration-300"
               >
                 <FaEdit />
                 Editar

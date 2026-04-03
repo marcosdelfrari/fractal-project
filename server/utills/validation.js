@@ -11,12 +11,30 @@ class ValidationError extends Error {
   }
 }
 
+const orderFieldLabel = (field) => {
+  const map = {
+    name: "Nome",
+    lastname: "Sobrenome",
+    email: "E-mail",
+    phone: "Telefone",
+    company: "Empresa",
+    address: "Endereço",
+    apartment: "Complemento",
+    city: "Cidade",
+    country: "País",
+    postalCode: "CEP",
+    total: "Total",
+    status: "Status",
+  };
+  return map[field] || field;
+};
+
 // Payment validation utilities
 const paymentValidation = {
   // Validate credit card number using Luhn algorithm
   validateCardNumber: (cardNumber) => {
     if (!cardNumber || typeof cardNumber !== "string") {
-      throw new ValidationError("Card number is required", "cardNumber");
+      throw new ValidationError("Número do cartão é obrigatório", "cardNumber");
     }
 
     // Remove all non-digit characters
@@ -25,7 +43,7 @@ const paymentValidation = {
     // Check length (13-19 digits)
     if (cleanedNumber.length < 13 || cleanedNumber.length > 19) {
       throw new ValidationError(
-        "Card number must be between 13 and 19 digits",
+        "O número do cartão deve ter entre 13 e 19 dígitos",
         "cardNumber",
       );
     }
@@ -49,7 +67,7 @@ const paymentValidation = {
     }
 
     if (sum % 10 !== 0) {
-      throw new ValidationError("Invalid card number", "cardNumber");
+      throw new ValidationError("Número do cartão inválido", "cardNumber");
     }
 
     return cleanedNumber;
@@ -58,7 +76,7 @@ const paymentValidation = {
   // Validate CVV/CVC
   validateCVV: (cvv, cardNumber) => {
     if (!cvv || typeof cvv !== "string") {
-      throw new ValidationError("CVV is required", "cvv");
+      throw new ValidationError("CVV é obrigatório", "cvv");
     }
 
     const cleanedCVV = cvv.replace(/[^0-9]/g, "");
@@ -72,11 +90,14 @@ const paymentValidation = {
     const expectedLength = isAmex ? 4 : 3;
 
     if (cleanedCVV.length !== expectedLength) {
-      throw new ValidationError(`CVV must be ${expectedLength} digits`, "cvv");
+      throw new ValidationError(
+        `O CVV deve ter ${expectedLength} dígitos`,
+        "cvv",
+      );
     }
 
     if (!/^[0-9]+$/.test(cleanedCVV)) {
-      throw new ValidationError("CVV must contain only numbers", "cvv");
+      throw new ValidationError("O CVV deve conter apenas números", "cvv");
     }
 
     return cleanedCVV;
@@ -85,7 +106,7 @@ const paymentValidation = {
   // Validate expiration date
   validateExpirationDate: (expDate) => {
     if (!expDate || typeof expDate !== "string") {
-      throw new ValidationError("Expiration date is required", "expDate");
+      throw new ValidationError("Data de validade é obrigatória", "expDate");
     }
 
     // Accept MM/YY, MM/YYYY, MM-YY, MM-YYYY formats
@@ -93,7 +114,7 @@ const paymentValidation = {
 
     if (cleanedDate.length !== 4 && cleanedDate.length !== 6) {
       throw new ValidationError(
-        "Expiration date must be in MM/YY or MM/YYYY format",
+        "A data de validade deve estar no formato MM/AA ou MM/AAAA",
         "expDate",
       );
     }
@@ -106,14 +127,14 @@ const paymentValidation = {
     const currentMonth = currentDate.getMonth() + 1;
 
     if (month < 1 || month > 12) {
-      throw new ValidationError("Invalid month in expiration date", "expDate");
+      throw new ValidationError("Mês inválido na data de validade", "expDate");
     }
 
     if (
       fullYear < currentYear ||
       (fullYear === currentYear && month < currentMonth)
     ) {
-      throw new ValidationError("Card has expired", "expDate");
+      throw new ValidationError("Cartão vencido", "expDate");
     }
 
     return { month, year: fullYear };
@@ -123,7 +144,7 @@ const paymentValidation = {
   validateCardholderName: (name) => {
     if (!name || typeof name !== "string") {
       throw new ValidationError(
-        "Cardholder name is required",
+        "Nome do titular do cartão é obrigatório",
         "cardholderName",
       );
     }
@@ -132,14 +153,14 @@ const paymentValidation = {
 
     if (trimmedName.length < 2) {
       throw new ValidationError(
-        "Cardholder name must be at least 2 characters",
+        "O nome do titular deve ter pelo menos 2 caracteres",
         "cardholderName",
       );
     }
 
     if (trimmedName.length > 50) {
       throw new ValidationError(
-        "Cardholder name must be less than 50 characters",
+        "O nome do titular deve ter menos de 50 caracteres",
         "cardholderName",
       );
     }
@@ -147,7 +168,7 @@ const paymentValidation = {
     // Allow letters, spaces, hyphens, and apostrophes
     if (!/^[a-zA-Z\s\-']+$/.test(trimmedName)) {
       throw new ValidationError(
-        "Cardholder name contains invalid characters",
+        "O nome do titular contém caracteres inválidos",
         "cardholderName",
       );
     }
@@ -161,7 +182,7 @@ const orderValidation = {
   // Validate email format - FIXED: Check XSS patterns first
   validateEmail: (email) => {
     if (!email || typeof email !== "string") {
-      throw new ValidationError("Email is required", "email");
+      throw new ValidationError("E-mail é obrigatório", "email");
     }
 
     const trimmedEmail = email.trim().toLowerCase();
@@ -175,12 +196,12 @@ const orderValidation = {
     ];
 
     if (suspiciousPatterns.some((pattern) => pattern.test(trimmedEmail))) {
-      throw new ValidationError("Email contains invalid characters", "email");
+      throw new ValidationError("E-mail contém caracteres inválidos", "email");
     }
 
     if (trimmedEmail.length > 254) {
       throw new ValidationError(
-        "Email must be less than 254 characters",
+        "O e-mail deve ter menos de 254 caracteres",
         "email",
       );
     }
@@ -189,7 +210,7 @@ const orderValidation = {
       /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 
     if (!emailRegex.test(trimmedEmail)) {
-      throw new ValidationError("Invalid email format", "email");
+      throw new ValidationError("Formato de e-mail inválido", "email");
     }
 
     return trimmedEmail;
@@ -197,22 +218,23 @@ const orderValidation = {
 
   // Validate name format
   validateName: (name, fieldName = "name") => {
+    const label = orderFieldLabel(fieldName);
     if (!name || typeof name !== "string") {
-      throw new ValidationError(`${fieldName} is required`, fieldName);
+      throw new ValidationError(`${label} é obrigatório`, fieldName);
     }
 
     const trimmedName = name.trim();
 
     if (trimmedName.length < 2) {
       throw new ValidationError(
-        `${fieldName} must be at least 2 characters`,
+        `${label} deve ter pelo menos 2 caracteres`,
         fieldName,
       );
     }
 
     if (trimmedName.length > 50) {
       throw new ValidationError(
-        `${fieldName} must be less than 50 characters`,
+        `${label} deve ter menos de 50 caracteres`,
         fieldName,
       );
     }
@@ -220,7 +242,7 @@ const orderValidation = {
     // Allow letters, spaces, hyphens, and apostrophes
     if (!/^[a-zA-Z\s\-']+$/.test(trimmedName)) {
       throw new ValidationError(
-        `${fieldName} contains invalid characters`,
+        `${label} contém caracteres inválidos`,
         fieldName,
       );
     }
@@ -231,21 +253,21 @@ const orderValidation = {
   // Validate phone number
   validatePhone: (phone) => {
     if (!phone || typeof phone !== "string") {
-      throw new ValidationError("Phone number is required", "phone");
+      throw new ValidationError("Telefone é obrigatório", "phone");
     }
 
     const cleanedPhone = phone.replace(/[^0-9+\-\(\)\s]/g, "");
 
     if (cleanedPhone.length < 10) {
       throw new ValidationError(
-        "Phone number must be at least 10 digits",
+        "O telefone deve ter pelo menos 10 dígitos",
         "phone",
       );
     }
 
     if (cleanedPhone.length > 20) {
       throw new ValidationError(
-        "Phone number must be less than 20 characters",
+        "O telefone deve ter menos de 20 caracteres",
         "phone",
       );
     }
@@ -255,8 +277,9 @@ const orderValidation = {
 
   // Validate address fields - UPDATED for apartment (1 character minimum)
   validateAddress: (address, fieldName = "address") => {
+    const label = orderFieldLabel(fieldName);
     if (!address || typeof address !== "string") {
-      throw new ValidationError(`${fieldName} is required`, fieldName);
+      throw new ValidationError(`${label} é obrigatório`, fieldName);
     }
 
     const trimmedAddress = address.trim();
@@ -266,14 +289,14 @@ const orderValidation = {
 
     if (trimmedAddress.length < minLength) {
       throw new ValidationError(
-        `${fieldName} must be at least ${minLength} characters`,
+        `${label} deve ter pelo menos ${minLength} caracteres`,
         fieldName,
       );
     }
 
     if (trimmedAddress.length > 200) {
       throw new ValidationError(
-        `${fieldName} must be less than 200 characters`,
+        `${label} deve ter menos de 200 caracteres`,
         fieldName,
       );
     }
@@ -288,7 +311,7 @@ const orderValidation = {
 
     if (suspiciousPatterns.some((pattern) => pattern.test(trimmedAddress))) {
       throw new ValidationError(
-        `${fieldName} contains invalid characters`,
+        `${label} contém caracteres inválidos`,
         fieldName,
       );
     }
@@ -299,21 +322,21 @@ const orderValidation = {
   // Validate postal code
   validatePostalCode: (postalCode) => {
     if (!postalCode || typeof postalCode !== "string") {
-      throw new ValidationError("Postal code is required", "postalCode");
+      throw new ValidationError("CEP é obrigatório", "postalCode");
     }
 
     const trimmedCode = postalCode.trim();
 
     if (trimmedCode.length < 3) {
       throw new ValidationError(
-        "Postal code must be at least 3 characters",
+        "O CEP deve ter pelo menos 3 caracteres",
         "postalCode",
       );
     }
 
     if (trimmedCode.length > 20) {
       throw new ValidationError(
-        "Postal code must be less than 20 characters",
+        "O CEP deve ter menos de 20 caracteres",
         "postalCode",
       );
     }
@@ -324,21 +347,21 @@ const orderValidation = {
   // Validate total amount
   validateTotal: (total) => {
     if (total === null || total === undefined) {
-      throw new ValidationError("Total amount is required", "total");
+      throw new ValidationError("Valor total é obrigatório", "total");
     }
 
     const numTotal = parseFloat(total);
 
     if (isNaN(numTotal)) {
-      throw new ValidationError("Total must be a valid number", "total");
+      throw new ValidationError("O total deve ser um número válido", "total");
     }
 
     if (numTotal <= 0) {
-      throw new ValidationError("Total must be greater than 0", "total");
+      throw new ValidationError("O total deve ser maior que zero", "total");
     }
 
     if (numTotal > 999999.99) {
-      throw new ValidationError("Total amount is too large", "total");
+      throw new ValidationError("Valor total muito alto", "total");
     }
 
     return Math.round(numTotal * 100) / 100; // Round to 2 decimal places
@@ -355,12 +378,12 @@ const orderValidation = {
     ];
 
     if (!status || typeof status !== "string") {
-      throw new ValidationError("Order status is required", "status");
+      throw new ValidationError("Status do pedido é obrigatório", "status");
     }
 
     if (!validStatuses.includes(status.toLowerCase())) {
       throw new ValidationError(
-        `Invalid order status. Must be one of: ${validStatuses.join(", ")}`,
+        `Status do pedido inválido. Valores permitidos: ${validStatuses.join(", ")}`,
         "status",
       );
     }
@@ -373,6 +396,7 @@ const orderValidation = {
 const validateOrderData = (orderData) => {
   const errors = [];
   const validatedData = {};
+  const isPickup = orderData?.deliveryOption === "retirada";
 
   // Helper function to safely validate a field
   const safeValidate = (validationFn, value, fieldName) => {
@@ -388,7 +412,7 @@ const validateOrderData = (orderData) => {
       } else {
         errors.push({
           field: fieldName,
-          message: "Validation error occurred",
+          message: "Ocorreu um erro de validação",
         });
         return null;
       }
@@ -418,32 +442,32 @@ const validateOrderData = (orderData) => {
   );
   validatedData.company = safeValidate(
     orderValidation.validateAddress,
-    orderData.company,
+    isPickup ? orderData.company || "Retirada" : orderData.company,
     "company",
   );
   validatedData.adress = safeValidate(
     orderValidation.validateAddress,
-    orderData.adress,
+    isPickup ? orderData.adress || "Retirada no balcão" : orderData.adress,
     "address",
   );
   validatedData.apartment = safeValidate(
     orderValidation.validateAddress,
-    orderData.apartment,
+    isPickup ? orderData.apartment || "Retirada" : orderData.apartment,
     "apartment",
   );
   validatedData.city = safeValidate(
     orderValidation.validateAddress,
-    orderData.city,
+    isPickup ? orderData.city || "Retirada" : orderData.city,
     "city",
   );
   validatedData.country = safeValidate(
     orderValidation.validateAddress,
-    orderData.country,
+    isPickup ? orderData.country || "Brasil" : orderData.country,
     "country",
   );
   validatedData.postalCode = safeValidate(
     orderValidation.validatePostalCode,
-    orderData.postalCode,
+    isPickup ? orderData.postalCode || "00000-000" : orderData.postalCode,
     "postalCode",
   );
   validatedData.total = safeValidate(
@@ -488,7 +512,7 @@ const validatePaymentData = (paymentData) => {
       } else {
         errors.push({
           field: fieldName,
-          message: "Payment validation error occurred",
+          message: "Ocorreu um erro na validação do pagamento",
         });
         return null;
       }

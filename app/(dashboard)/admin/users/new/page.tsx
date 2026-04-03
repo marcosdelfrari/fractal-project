@@ -64,18 +64,18 @@ const DashboardCreateNewUser = () => {
   };
 
   return (
-    <div className="bg-gray-50 flex min-h-screen max-w-screen-2xl mx-auto max-xl:flex-col animate-fade-in-up">
+    <div className="bg-[#E3E1D6] flex min-h-screen max-w-screen-2xl mx-auto max-lg:flex-col animate-fade-in-up">
       <DashboardSidebar />
       <div className="flex-1 p-10 max-md:p-4">
         {/* Header Section */}
         <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-10">
-          <button 
+          <button
             onClick={() => router.push("/admin/users")}
-            className="p-3 bg-gray-50 rounded-full text-gray-400 hover:text-gray-900 transition-colors"
+            className="p-3 bg-[#E3E1D6] rounded-full text-gray-400 hover:text-gray-900 transition-colors"
           >
             <FaChevronLeft size={14} />
           </button>
-          <div className="p-3 bg-gray-50 rounded-full text-gray-900">
+          <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
             <FaUserPlus size={16} />
           </div>
           <h1 className="text-lg font-light tracking-widest text-gray-900 uppercase">
@@ -86,30 +86,40 @@ const DashboardCreateNewUser = () => {
         <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 space-y-12 transition-all duration-300">
           <section>
             <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+              <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                 <FaShieldAlt size={12} />
               </div>
-              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Dados de Acesso</h2>
+              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">
+                Dados de Acesso
+              </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2">
-                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Email *</label>
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                  Email *
+                </label>
                 <input
                   type="email"
                   placeholder="email@exemplo.com"
-                  className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                  className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                   value={userInput.email}
-                  onChange={(e) => setUserInput({ ...userInput, email: e.target.value })}
+                  onChange={(e) =>
+                    setUserInput({ ...userInput, email: e.target.value })
+                  }
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Cargo</label>
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                  Cargo
+                </label>
                 <select
-                  className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 appearance-none cursor-pointer"
+                  className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 appearance-none cursor-pointer"
                   value={userInput.role}
-                  onChange={(e) => setUserInput({ ...userInput, role: e.target.value })}
+                  onChange={(e) =>
+                    setUserInput({ ...userInput, role: e.target.value })
+                  }
                 >
                   <option value="user">Usuário Padrão</option>
                   <option value="admin">Administrador</option>
@@ -123,19 +133,21 @@ const DashboardCreateNewUser = () => {
                 <input
                   type="password"
                   placeholder="Mínimo 8 caracteres"
-                  className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                  className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                   value={userInput.password}
-                  onChange={(e) => setUserInput({ ...userInput, password: e.target.value })}
+                  onChange={(e) =>
+                    setUserInput({ ...userInput, password: e.target.value })
+                  }
                 />
               </div>
             </div>
           </section>
-          
+
           <div className="flex justify-end gap-x-4 pt-10 border-t border-gray-50">
             <button
-               type="button"
-               onClick={() => router.push("/admin/users")}
-               className="px-8 py-3.5 rounded-full border border-gray-200 text-[11px] uppercase tracking-widest font-medium text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all duration-300"
+              type="button"
+              onClick={() => router.push("/admin/users")}
+              className="px-8 py-3.5 rounded-full border border-gray-200 text-[11px] uppercase tracking-widest font-medium text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all duration-300"
             >
               Cancelar
             </button>

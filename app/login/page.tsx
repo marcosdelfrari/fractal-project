@@ -73,14 +73,14 @@ const LoginPage = () => {
 
   if (sessionStatus === "loading") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-[#E3E1D6]">
         <h1>Carregando...</h1>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#E3E1D6] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-3xl shadow-md border border-gray-100 px-8 py-10">
           {/* Header */}
@@ -147,7 +147,7 @@ const LoginPage = () => {
             <div className="mt-6">
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-3 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-sm hover:bg-gray-50 transition-all duration-300"
+                className="flex w-full items-center justify-center gap-3 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-sm hover:bg-[#E3E1D6] transition-all duration-300"
                 onClick={() => {
                   signIn("google");
                 }}
@@ -160,7 +160,7 @@ const LoginPage = () => {
 
           {/* Error message */}
           {error && (
-            <p className="mt-6 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 text-center text-sm font-medium text-gray-900">
+            <p className="mt-6 rounded-2xl border border-gray-100 bg-[#E3E1D6] px-4 py-3 text-center text-sm font-medium text-gray-900">
               {error}
             </p>
           )}

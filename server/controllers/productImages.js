@@ -7,7 +7,7 @@ async function getSingleProductImages(request, response) {
     where: { productID: id },
   });
   if (!images) {
-    return response.json({ error: "Images not found" }, { status: 404 });
+    return response.json({ error: "Imagens não encontradas" }, { status: 404 });
   }
   return response.json(images);
 }
@@ -24,7 +24,7 @@ async function createImage(request, response) {
     return response.status(201).json(createImage);
   } catch (error) {
     console.error("Error creating image:", error);
-    return response.status(500).json({ error: "Error creating image" });
+    return response.status(500).json({ error: "Erro ao criar imagem" });
   }
 }
 
@@ -44,7 +44,7 @@ async function updateImage(request, response) {
     if (!existingImage) {
       return response
         .status(404)
-        .json({ error: "Image not found for the provided productID" });
+        .json({ error: "Imagem não encontrada para o produto informado" });
     }
 
     // Updating photo using coresponding imageID
@@ -61,22 +61,25 @@ async function updateImage(request, response) {
     return response.json(updatedImage);
   } catch (error) {
     console.error("Error updating image:", error);
-    return response.status(500).json({ error: "Error updating image" });
+    return response.status(500).json({ error: "Erro ao atualizar imagem" });
   }
 }
 
 async function deleteImage(request, response) {
   try {
     const { id } = request.params;
-    await prisma.image.deleteMany({
+    await prisma.image.delete({
       where: {
-        productID: String(id), // Converting id to string
+        imageID: String(id),
       },
     });
     return response.status(204).send();
   } catch (error) {
     console.error("Error deleting image:", error);
-    return response.status(500).json({ error: "Error deleting image" });
+    if (error?.code === "P2025") {
+      return response.status(404).json({ error: "Imagem não encontrada" });
+    }
+    return response.status(500).json({ error: "Erro ao excluir imagem" });
   }
 }
 

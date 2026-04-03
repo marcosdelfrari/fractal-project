@@ -5,62 +5,69 @@ const { validateOrderData, ValidationError } = require("../utills/validation");
 async function createCustomerOrder(request, response) {
   try {
     console.log("=== ORDER CREATION REQUEST ===");
-    console.log("Request body:", JSON.stringify(request.body, null, 2));
 
     // Validate request body
     if (!request.body || typeof request.body !== "object") {
       console.log("❌ Invalid request body");
       return response.status(400).json({
-        error: "Invalid request body",
-        details: "Request body must be a valid JSON object",
+        error: "Corpo da requisição inválido",
+        details: "O corpo da requisição deve ser um objeto JSON válido",
       });
     }
 
     // Server-side validation
     const validation = validateOrderData(request.body);
-    console.log("Validation result:", validation);
 
     if (!validation.isValid) {
       console.log("❌ Validation failed:", validation.errors);
       return response.status(400).json({
-        error: "Validation failed",
+        error: "Falha na validação",
         details: validation.errors,
       });
     }
 
     const validatedData = validation.validatedData;
-    console.log("✅ Validation passed, validated data:", validatedData);
+
+    const confirmDuplicateOrder =
+      request.body?.confirmDuplicateOrder === true ||
+      request.body?.confirmDuplicateOrder === "true";
 
     // Additional business logic validation
     if (validatedData.total < 0.01) {
       console.log("❌ Invalid total amount");
       return response.status(400).json({
-        error: "Invalid order total",
+        error: "Total do pedido inválido",
         details: [
-          { field: "total", message: "Order total must be at least $0.01" },
+          {
+            field: "total",
+            message: "O total do pedido deve ser de pelo menos R$ 0,01",
+          },
         ],
       });
     }
 
     // Check for duplicate orders (same email and total within last 5 minutes)
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    const duplicateOrder = await prisma.customer_order.findFirst({
-      where: {
-        email: validatedData.email,
-        total: validatedData.total,
-        dateTime: {
-          gte: fiveMinutesAgo,
+    if (!confirmDuplicateOrder) {
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const duplicateOrder = await prisma.customer_order.findFirst({
+        where: {
+          email: validatedData.email,
+          total: validatedData.total,
+          dateTime: {
+            gte: fiveMinutesAgo,
+          },
         },
-      },
-    });
-
-    if (duplicateOrder) {
-      console.log("❌ Duplicate order detected");
-      return response.status(409).json({
-        error: "Duplicate order detected",
-        details:
-          "An order with the same email and total was created recently. Please wait before creating another order.",
       });
+
+      if (duplicateOrder) {
+        console.log("❌ Duplicate order detected");
+        return response.status(409).json({
+          error: "Pedido duplicado detectado",
+          code: "DUPLICATE_ORDER",
+          details:
+            "Um pedido com o mesmo e-mail e total foi criado recentemente. Aguarde antes de criar outro pedido.",
+        });
+      }
     }
 
     console.log("Creating order in database...");
@@ -84,7 +91,7 @@ async function createCustomerOrder(request, response) {
       },
     });
 
-    console.log("✅ Order created successfully:", corder);
+    console.log("✅ Order created successfully");
     console.log("Order ID:", corder.id);
 
     // Log successful order creation (for monitoring)
@@ -94,7 +101,7 @@ async function createCustomerOrder(request, response) {
 
     const responseData = {
       id: corder.id,
-      message: "Order created successfully",
+      message: "Pedido criado com sucesso",
       orderNumber: corder.id,
     };
 
@@ -106,23 +113,23 @@ async function createCustomerOrder(request, response) {
     // Handle specific Prisma errors
     if (error.code === "P2002") {
       return response.status(409).json({
-        error: "Order conflict",
-        details: "An order with this information already exists",
+        error: "Conflito ao criar pedido",
+        details: "Já existe um pedido com essas informações",
       });
     }
 
     // Handle validation errors
     if (error instanceof ValidationError) {
       return response.status(400).json({
-        error: "Validation failed",
+        error: "Falha na validação",
         details: [{ field: error.field, message: error.message }],
       });
     }
 
     // Generic error response
     return response.status(500).json({
-      error: "Internal server error",
-      details: "Failed to create order. Please try again later.",
+      error: "Erro interno do servidor",
+      details: "Não foi possível criar o pedido. Tente novamente mais tarde.",
     });
   }
 }
@@ -134,16 +141,16 @@ async function updateCustomerOrder(request, response) {
     // Validate ID format
     if (!id || typeof id !== "string") {
       return response.status(400).json({
-        error: "Invalid order ID",
-        details: "Order ID must be provided",
+        error: "ID do pedido inválido",
+        details: "É necessário informar o ID do pedido",
       });
     }
 
     // Validate request body
     if (!request.body || typeof request.body !== "object") {
       return response.status(400).json({
-        error: "Invalid request body",
-        details: "Request body must be a valid JSON object",
+        error: "Corpo da requisição inválido",
+        details: "O corpo da requisição deve ser um objeto JSON válido",
       });
     }
 
@@ -152,7 +159,7 @@ async function updateCustomerOrder(request, response) {
 
     if (!validation.isValid) {
       return response.status(400).json({
-        error: "Validation failed",
+        error: "Falha na validação",
         details: validation.errors,
       });
     }
@@ -167,8 +174,8 @@ async function updateCustomerOrder(request, response) {
 
     if (!existingOrder) {
       return response.status(404).json({
-        error: "Order not found",
-        details: "The specified order does not exist",
+        error: "Pedido não encontrado",
+        details: "O pedido informado não existe",
       });
     }
 
@@ -201,21 +208,21 @@ async function updateCustomerOrder(request, response) {
 
     if (error.code === "P2025") {
       return response.status(404).json({
-        error: "Order not found",
-        details: "The specified order does not exist",
+        error: "Pedido não encontrado",
+        details: "O pedido informado não existe",
       });
     }
 
     if (error instanceof ValidationError) {
       return response.status(400).json({
-        error: "Validation failed",
+        error: "Falha na validação",
         details: [{ field: error.field, message: error.message }],
       });
     }
 
     return response.status(500).json({
-      error: "Internal server error",
-      details: "Failed to update order. Please try again later.",
+      error: "Erro interno do servidor",
+      details: "Não foi possível atualizar o pedido. Tente novamente mais tarde.",
     });
   }
 }
@@ -226,8 +233,8 @@ async function deleteCustomerOrder(request, response) {
 
     if (!id || typeof id !== "string") {
       return response.status(400).json({
-        error: "Invalid order ID",
-        details: "Order ID must be provided",
+        error: "ID do pedido inválido",
+        details: "É necessário informar o ID do pedido",
       });
     }
 
@@ -237,8 +244,8 @@ async function deleteCustomerOrder(request, response) {
 
     if (!existingOrder) {
       return response.status(404).json({
-        error: "Order not found",
-        details: "The specified order does not exist",
+        error: "Pedido não encontrado",
+        details: "O pedido informado não existe",
       });
     }
 
@@ -255,14 +262,14 @@ async function deleteCustomerOrder(request, response) {
 
     if (error.code === "P2025") {
       return response.status(404).json({
-        error: "Order not found",
-        details: "The specified order does not exist",
+        error: "Pedido não encontrado",
+        details: "O pedido informado não existe",
       });
     }
 
     return response.status(500).json({
-      error: "Internal server error",
-      details: "Failed to delete order. Please try again later.",
+      error: "Erro interno do servidor",
+      details: "Não foi possível excluir o pedido. Tente novamente mais tarde.",
     });
   }
 }
@@ -273,8 +280,8 @@ async function getCustomerOrder(request, response) {
 
     if (!id || typeof id !== "string") {
       return response.status(400).json({
-        error: "Invalid order ID",
-        details: "Order ID must be provided",
+        error: "ID do pedido inválido",
+        details: "É necessário informar o ID do pedido",
       });
     }
 
@@ -286,8 +293,8 @@ async function getCustomerOrder(request, response) {
 
     if (!order) {
       return response.status(404).json({
-        error: "Order not found",
-        details: "The specified order does not exist",
+        error: "Pedido não encontrado",
+        details: "O pedido informado não existe",
       });
     }
 
@@ -295,8 +302,8 @@ async function getCustomerOrder(request, response) {
   } catch (error) {
     console.error("Error fetching order:", error);
     return response.status(500).json({
-      error: "Internal server error",
-      details: "Failed to fetch order. Please try again later.",
+      error: "Erro interno do servidor",
+      details: "Não foi possível carregar o pedido. Tente novamente mais tarde.",
     });
   }
 }
@@ -311,8 +318,8 @@ async function getAllOrders(request, response) {
     // Validate pagination parameters
     if (page < 1 || limit < 1 || limit > 100) {
       return response.status(400).json({
-        error: "Invalid pagination parameters",
-        details: "Page must be >= 1, limit must be between 1 and 100",
+        error: "Parâmetros de paginação inválidos",
+        details: "A página deve ser >= 1 e o limite entre 1 e 100",
       });
     }
 
@@ -339,8 +346,8 @@ async function getAllOrders(request, response) {
   } catch (error) {
     console.error("Error fetching orders:", error);
     return response.status(500).json({
-      error: "Internal server error",
-      details: "Failed to fetch orders. Please try again later.",
+      error: "Erro interno do servidor",
+      details: "Não foi possível listar os pedidos. Tente novamente mais tarde.",
     });
   }
 }

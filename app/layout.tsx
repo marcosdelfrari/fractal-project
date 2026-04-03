@@ -1,17 +1,14 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { getServerSession } from "next-auth/next";
 import "svgmap/style.min";
 import SessionProvider from "@/utils/SessionProvider";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import AppShell from "@/components/AppShell";
 import Providers from "@/Providers";
 import SessionTimeoutWrapper from "@/components/SessionTimeoutWrapper";
 import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
 import { getSiteSettings } from "@/lib/getSiteSettings";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSiteSettings();
@@ -32,14 +29,27 @@ export default async function RootLayout({
 }>) {
   const session = await getServerSession();
   return (
-    <html lang="en" data-theme="light">
-      <body className={inter.className}>
+    <html lang="pt-BR" data-theme="light">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Economica:ital,wght@0,400;0,700;1,400;1,700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playball&family=Sour+Gummy:ital,wght@0,100..900;1,100..900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="font-sans antialiased">
         <SessionProvider session={session}>
           <SiteSettingsProvider>
             <SessionTimeoutWrapper />
-            <Header />
-            <Providers>{children}</Providers>
-            <Footer />
+            <AppShell>
+              <Header />
+              <Providers>{children}</Providers>
+            </AppShell>
           </SiteSettingsProvider>
         </SessionProvider>
       </body>

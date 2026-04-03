@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { DashboardSidebar } from "@/components";
 import { FaFloppyDisk } from "react-icons/fa6";
-import { getExpressApiBase, uploadSectionImage } from "@/lib/expressApi";
+import { getAdminSettingsApiBase, uploadSectionImage } from "@/lib/adminSettingsApi";
 import { getHeroConfig, type HeroSectionContent } from "@/lib/sectionContent";
 import type { HomeSection } from "../types";
 import { SettingsBackHeader } from "../SettingsBackHeader";
@@ -36,7 +36,7 @@ export default function AdminSettingsHeroPage() {
   const fetchSections = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${getExpressApiBase()}/settings/home-sections`);
+      const res = await fetch(`${getAdminSettingsApiBase()}/home-sections`);
       if (res.ok) {
         setSections(await res.json());
       }
@@ -78,7 +78,7 @@ export default function AdminSettingsHeroPage() {
 
     try {
       setSaving(true);
-      const res = await fetch(`${getExpressApiBase()}/settings/home-sections`, {
+      const res = await fetch(`${getAdminSettingsApiBase()}/home-sections`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -106,7 +106,7 @@ export default function AdminSettingsHeroPage() {
 
   if (loading) {
     return (
-      <div className="bg-gray-50 min-h-screen flex justify-start max-w-screen-2xl mx-auto max-xl:flex-col">
+      <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
         <DashboardSidebar />
         <div className="flex-1 p-10 flex items-center justify-center">
           <p className="text-gray-500">Carregando...</p>
@@ -116,7 +116,7 @@ export default function AdminSettingsHeroPage() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen flex justify-start max-w-screen-2xl mx-auto max-xl:flex-col">
+    <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
       <DashboardSidebar />
       <div className="flex-1 p-10 max-md:p-4 animate-fade-in-up">
         <SettingsBackHeader
@@ -171,7 +171,7 @@ export default function AdminSettingsHeroPage() {
                   type="button"
                   disabled={uploadingBg}
                   onClick={() => bgFileRef.current?.click()}
-                  className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                  className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#E3E1D6] disabled:opacity-50"
                 >
                   {uploadingBg ? "Enviando…" : "Enviar imagem"}
                 </button>

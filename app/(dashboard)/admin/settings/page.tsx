@@ -11,13 +11,21 @@ import {
   FaTableList,
   FaStar,
   FaPanorama,
+  FaTruckFast,
+  FaBars,
+  FaImages,
+  FaCalendarDays,
 } from "react-icons/fa6";
 
 type AreaItem = {
   href: string;
   title: string;
   description: string;
-  icon: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }>;
+  icon: ComponentType<{
+    size?: number;
+    className?: string;
+    "aria-hidden"?: boolean;
+  }>;
 };
 
 type SettingsGroup = {
@@ -37,8 +45,22 @@ const GROUPS: SettingsGroup[] = [
         href: "/admin/settings/loja",
         title: "Informações da loja",
         description:
-          "Nome, contatos, endereço, ícone e logo. Dados sensíveis e identidade visual.",
+          "Nome, contatos, endereço, redes sociais, ícone e logo da loja.",
         icon: FaStore,
+      },
+      {
+        href: "/admin/settings/checkout-retirada",
+        title: "Checkout e retirada",
+        description:
+          "Define se há entrega, e gerencia os pontos de retirada exibidos no checkout.",
+        icon: FaTruckFast,
+      },
+      {
+        href: "/admin/settings/nav",
+        title: "Navegação (Nav)",
+        description:
+          "Edita links da navbar, visibilidade do nome ao carregar e exibição de nome/logo por dispositivo.",
+        icon: FaBars,
       },
     ],
   },
@@ -55,11 +77,25 @@ const GROUPS: SettingsGroup[] = [
         icon: FaPanorama,
       },
       {
+        href: "/admin/settings/promo-slider",
+        title: "Slide promocional",
+        description:
+          "Faixa vinho e amarelo abaixo do hero: textos por slide, botão, link e imagem central.",
+        icon: FaImages,
+      },
+      {
         href: "/admin/settings/menu-categorias",
         title: "Menu de categorias",
         description:
           "Cards próprios da home (título, link e imagem), independentes do cadastro de categorias de produto.",
         icon: FaTableList,
+      },
+      {
+        href: "/admin/settings/proximos-eventos",
+        title: "Próximos eventos",
+        description:
+          "Faixa amarela com título, lista (nome, data, local) e botão de seta — tipografia Playball e Economica.",
+        icon: FaCalendarDays,
       },
       {
         href: "/admin/settings/produtos-destaque",
@@ -81,7 +117,7 @@ const GROUPS: SettingsGroup[] = [
 
 const AdminSettingsPage = () => {
   return (
-    <div className="bg-gray-50 min-h-screen flex justify-start max-w-screen-2xl mx-auto max-xl:flex-col">
+    <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
       <DashboardSidebar />
       <div className="flex-1 p-10 max-md:p-4 animate-fade-in-up">
         <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-10">
@@ -93,15 +129,18 @@ const AdminSettingsPage = () => {
               Configurações do site
             </h1>
             <p className="text-xs text-gray-500 mt-1 max-w-xl leading-relaxed">
-              Organizado por tópico. Cada opção abre uma tela própria para reduzir alterações
-              acidentais.
+              Organizado por tópico. Cada opção abre uma tela própria para
+              reduzir alterações acidentais.
             </p>
           </div>
         </div>
 
         <div className="max-w-2xl space-y-10">
           {GROUPS.map((group) => (
-            <section key={group.id} aria-labelledby={`settings-group-${group.id}`}>
+            <section
+              key={group.id}
+              aria-labelledby={`settings-group-${group.id}`}
+            >
               <div className="mb-4">
                 <h2
                   id={`settings-group-${group.id}`}
@@ -119,13 +158,15 @@ const AdminSettingsPage = () => {
                   <li key={href}>
                     <Link
                       href={href}
-                      className="group flex items-center gap-4 px-4 py-4 sm:px-5 sm:py-[1.125rem] hover:bg-gray-50/90 transition-colors"
+                      className="group flex items-center gap-4 px-4 py-4 sm:px-5 sm:py-[1.125rem] hover:bg-[#E3E1D6]/90 transition-colors"
                     >
-                      <div className="p-2.5 rounded-xl bg-gray-50 text-gray-700 border border-gray-100/80 group-hover:bg-white group-hover:border-gray-200 transition-colors">
+                      <div className="p-2.5 rounded-xl bg-[#E3E1D6] text-gray-700 border border-gray-100/80 group-hover:bg-white group-hover:border-gray-200 transition-colors">
                         <Icon size={18} aria-hidden />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{title}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {title}
+                        </p>
                         <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
                           {description}
                         </p>

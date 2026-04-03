@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import { nanoid } from "nanoid";
 import { Resend } from "resend";
+import { sanitizeInput, commonValidations } from "@/utils/validation";
+
+/** Janela alinhada ao `authLimiter` do Express (15 min). IP: anti-abuso em massa; e-mail: anti-spam por destino. */
+const PIN_WINDOW_MS = 15 * 60 * 1000;
+const PIN_MAX_PER_IP = 10;
+const PIN_MAX_PER_EMAIL = 5;
 
 // Inicialização lazy do Resend para evitar erro durante build
 const getResend = () => {
@@ -17,12 +23,51 @@ const getResend = () => {
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const clientIP =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
 
-    if (!email) {
+    if (
+      !commonValidations.checkRateLimit(
+        `send-pin:ip:${clientIP}`,
+        PIN_MAX_PER_IP,
+        PIN_WINDOW_MS,
+      )
+    ) {
       return NextResponse.json(
-        { error: "Email é obrigatório" },
-        { status: 400 }
+        { error: "Muitas solicitações. Tente novamente em alguns minutos." },
+        { status: 429, headers: { "Retry-After": "900" } },
+      );
+    }
+
+    const body = await sanitizeInput.validateJsonInput(request);
+    const emailRaw = body && typeof body === "object" ? (body as { email?: unknown }).email : undefined;
+
+    const emailParsed = commonValidations.email.safeParse(
+      typeof emailRaw === "string" ? emailRaw : "",
+    );
+    if (!emailParsed.success) {
+      return NextResponse.json(
+        { error: "Informe um e-mail válido." },
+        { status: 400 },
+      );
+    }
+    const email = emailParsed.data;
+
+    if (
+      !commonValidations.checkRateLimit(
+        `send-pin:email:${email}`,
+        PIN_MAX_PER_EMAIL,
+        PIN_WINDOW_MS,
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Muitas solicitações de PIN para este e-mail. Tente novamente mais tarde.",
+        },
+        { status: 429, headers: { "Retry-After": "900" } },
       );
     }
 
@@ -59,11 +104,10 @@ export async function POST(request: NextRequest) {
     try {
       const resend = getResend();
       if (!resend) {
-        console.log("📧 Resend não configurado - PIN apenas no console");
-        console.log(`🔐 PIN para ${email}: ${pin}`);
+        console.warn("⚠️ Resend não configurado para envio de PIN");
         return NextResponse.json(
-          { message: "PIN enviado com sucesso" },
-          { status: 200 }
+          { error: "Serviço de email indisponível" },
+          { status: 503 }
         );
       }
       const emailResult = await resend.emails.send({
@@ -130,9 +174,6 @@ Este é um email automático, não responda a esta mensagem.
     } catch (emailError) {
       console.error("⚠️ Erro ao enviar email:", emailError);
     }
-
-    // Sempre mostrar o PIN no console para desenvolvimento
-    console.log(`🔐 PIN para ${email}: ${pin}`);
 
     return NextResponse.json(
       { message: "PIN enviado com sucesso" },

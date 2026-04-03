@@ -5,9 +5,9 @@ export const commonValidations = {
   // Email validation with comprehensive checks
   email: z
     .string()
-    .min(1, "Email is required")
-    .max(254, "Email must be no more than 254 characters")
-    .email("Please provide a valid email address")
+    .min(1, "E-mail é obrigatório")
+    .max(254, "O e-mail deve ter no máximo 254 caracteres")
+    .email("Informe um endereço de e-mail válido")
     .toLowerCase()
     .trim()
     .refine(
@@ -21,17 +21,17 @@ export const commonValidations = {
         ];
         return !suspiciousPatterns.some(pattern => pattern.test(email));
       },
-      "Email contains invalid characters"
+      "O e-mail contém caracteres inválidos"
     ),
 
   // Strong password validation
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters long")
-    .max(128, "Password must be no more than 128 characters")
+    .min(8, "A senha deve ter pelo menos 8 caracteres")
+    .max(128, "A senha deve ter no máximo 128 caracteres")
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-      "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
+      "A senha deve ter pelo menos uma letra maiúscula, uma minúscula, um número e um caractere especial"
     )
     .refine(
       (password) => {
@@ -42,14 +42,14 @@ export const commonValidations = {
         ];
         return !commonPasswords.includes(password.toLowerCase());
       },
-      "Password is too common, please choose a stronger password"
+      "Esta senha é muito comum; escolha uma senha mais forte"
     ),
 
   // Request size validation
   validateRequestSize: (contentLength: number | null) => {
     const MAX_REQUEST_SIZE = 1024 * 1024; // 1MB limit
     if (contentLength && contentLength > MAX_REQUEST_SIZE) {
-      throw new Error("Request payload too large");
+      throw new Error("Corpo da requisição muito grande");
     }
   },
 
@@ -93,7 +93,7 @@ export const sanitizeInput = {
     try {
       return await request.json();
     } catch (error) {
-      throw new Error("Invalid JSON format");
+      throw new Error("Formato JSON inválido");
     }
   }
 };

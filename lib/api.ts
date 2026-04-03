@@ -4,6 +4,8 @@ export const apiClient = {
   baseUrl: config.apiBaseUrl,
 
   async request(endpoint: string, options: RequestInit = {}) {
+    const isServer = typeof window === "undefined";
+
     // Normalizar a URL base removendo barra final se existir
     const baseUrl = this.baseUrl.replace(/\/+$/, "");
     // Garantir que o endpoint comece com barra
@@ -29,7 +31,11 @@ export const apiClient = {
     };
 
     try {
-      const response = await fetch(url, { ...defaultOptions, ...options });
+      const response = await fetch(url, {
+        ...(isServer ? { cache: "no-store" as RequestCache } : {}),
+        ...defaultOptions,
+        ...options,
+      });
 
       // Log para debug em produção (apenas no servidor)
       if (

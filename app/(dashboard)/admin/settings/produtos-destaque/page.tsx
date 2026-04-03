@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { DashboardSidebar } from "@/components";
 import { FaFloppyDisk, FaPlus, FaTrash } from "react-icons/fa6";
-import { getExpressApiBase, uploadSectionImage } from "@/lib/expressApi";
+import { getAdminSettingsApiBase, uploadSectionImage } from "@/lib/adminSettingsApi";
 import {
   getFeaturedProductsFromContent,
   type FeaturedProductSlide,
@@ -40,7 +40,7 @@ export default function AdminSettingsProdutosDestaquePage() {
   const fetchSections = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${getExpressApiBase()}/settings/home-sections`);
+      const res = await fetch(`${getAdminSettingsApiBase()}/home-sections`);
       if (res.ok) {
         setSections(await res.json());
       }
@@ -68,7 +68,7 @@ export default function AdminSettingsProdutosDestaquePage() {
     }
     try {
       setSaving(true);
-      const res = await fetch(`${getExpressApiBase()}/settings/home-sections`, {
+      const res = await fetch(`${getAdminSettingsApiBase()}/home-sections`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -167,7 +167,7 @@ export default function AdminSettingsProdutosDestaquePage() {
 
   if (loading) {
     return (
-      <div className="bg-gray-50 min-h-screen flex justify-start max-w-screen-2xl mx-auto max-xl:flex-col">
+      <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
         <DashboardSidebar />
         <div className="flex-1 p-10 flex items-center justify-center">
           <p className="text-gray-500">Carregando...</p>
@@ -177,7 +177,7 @@ export default function AdminSettingsProdutosDestaquePage() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen flex justify-start max-w-screen-2xl mx-auto max-xl:flex-col">
+    <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
       <DashboardSidebar />
       <div className="flex-1 p-10 max-md:p-4 animate-fade-in-up">
         <SettingsBackHeader
@@ -206,7 +206,7 @@ export default function AdminSettingsProdutosDestaquePage() {
             {featuredItems.map((item, index) => (
               <div
                 key={`${item.id}-${index}`}
-                className="p-4 border border-gray-200 rounded-xl bg-gray-50/50 space-y-3"
+                className="p-4 border border-gray-200 rounded-xl bg-[#E3E1D6]/50 space-y-3"
               >
                 <div className="flex justify-between items-center gap-2">
                   <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">
@@ -361,7 +361,7 @@ export default function AdminSettingsProdutosDestaquePage() {
           <button
             type="button"
             onClick={addFeaturedItem}
-            className="mt-4 px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-800 hover:bg-gray-50 flex items-center gap-2"
+            className="mt-4 px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-800 hover:bg-[#E3E1D6] flex items-center gap-2"
           >
             <FaPlus size={14} />
             Adicionar slide

@@ -5,6 +5,17 @@ const apiOrigin = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:300
 );
 
 const nextConfig = {
+    async redirects() {
+      return [
+        { source: "/shop", destination: "/loja", permanent: true },
+        { source: "/shop/:path*", destination: "/loja/:path*", permanent: true },
+        { source: "/product/:path*", destination: "/produto/:path*", permanent: true },
+        { source: "/cart", destination: "/carrinho", permanent: true },
+        { source: "/checkout", destination: "/compra", permanent: true },
+        { source: "/user", destination: "/usuario", permanent: true },
+        { source: "/user/:path*", destination: "/usuario/:path*", permanent: true },
+      ];
+    },
     images: {
         remotePatterns: [
           {

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { DashboardSidebar } from "@/components";
 import { FaFloppyDisk, FaPlus, FaTrash } from "react-icons/fa6";
-import { getExpressApiBase, uploadSectionImage } from "@/lib/expressApi";
+import { getAdminSettingsApiBase, uploadSectionImage } from "@/lib/adminSettingsApi";
 import {
   getCategoryMenuFullConfig,
   type CategoryMenuItem,
@@ -29,7 +29,7 @@ export default function AdminSettingsMenuCategoriasPage() {
   const load = async () => {
     try {
       setLoading(true);
-      const secRes = await fetch(`${getExpressApiBase()}/settings/home-sections`);
+      const secRes = await fetch(`${getAdminSettingsApiBase()}/home-sections`);
       const sectionsData: { name: string; content?: unknown }[] = secRes.ok
         ? await secRes.json()
         : [];
@@ -81,7 +81,7 @@ export default function AdminSettingsMenuCategoriasPage() {
       {
         id,
         label: "",
-        href: "/shop/",
+        href: "/loja/",
         enabled: true,
         image: "",
       },
@@ -110,7 +110,7 @@ export default function AdminSettingsMenuCategoriasPage() {
   const saveCategoryMenuContent = async () => {
     try {
       setSaving(true);
-      const res = await fetch(`${getExpressApiBase()}/settings/home-sections`, {
+      const res = await fetch(`${getAdminSettingsApiBase()}/home-sections`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -146,7 +146,7 @@ export default function AdminSettingsMenuCategoriasPage() {
 
   if (loading) {
     return (
-      <div className="bg-gray-50 min-h-screen flex justify-start max-w-screen-2xl mx-auto max-xl:flex-col">
+      <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
         <DashboardSidebar />
         <div className="flex-1 p-10 flex items-center justify-center">
           <p className="text-gray-500">Carregando...</p>
@@ -156,12 +156,12 @@ export default function AdminSettingsMenuCategoriasPage() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen flex justify-start max-w-screen-2xl mx-auto max-xl:flex-col">
+    <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
       <DashboardSidebar />
       <div className="flex-1 p-10 max-md:p-4 animate-fade-in-up">
         <SettingsBackHeader
           title="Menu de categorias (home)"
-          description="Cards independentes do cadastro de categorias de produto. Cada linha: título no card, link (ex.: /shop/smart-phones ou só smart-phones), imagem e se aparece na home."
+          description="Cards independentes do cadastro de categorias de produto. Cada linha: título no card, link (ex.: /loja/smart-phones ou só smart-phones), imagem e se aparece na home."
         />
 
         {message && (
@@ -194,7 +194,7 @@ export default function AdminSettingsMenuCategoriasPage() {
             <button
               type="button"
               onClick={addRow}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#E3E1D6]"
             >
               <FaPlus size={14} />
               Adicionar card
@@ -210,7 +210,7 @@ export default function AdminSettingsMenuCategoriasPage() {
               {rows.map((row, index) => (
                 <div
                   key={row.id}
-                  className="p-4 border border-gray-200 rounded-xl bg-gray-50/50 space-y-3"
+                  className="p-4 border border-gray-200 rounded-xl bg-[#E3E1D6]/50 space-y-3"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -282,11 +282,11 @@ export default function AdminSettingsMenuCategoriasPage() {
                         onChange={(e) =>
                           updateRow(row.id, { href: e.target.value })
                         }
-                        placeholder="/shop/smart-phones ou smart-phones"
+                        placeholder="/loja/smart-phones ou smart-phones"
                         className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white font-mono"
                       />
                       <p className="text-[10px] text-gray-500 mt-1">
-                        Caminho completo ou slug (vira /shop/slug). URLs http(s) abrem em nova aba.
+                        Caminho completo ou slug (vira /loja/slug). URLs http(s) abrem em nova aba.
                       </p>
                     </div>
                   </div>

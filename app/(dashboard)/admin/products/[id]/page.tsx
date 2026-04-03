@@ -1,5 +1,6 @@
 "use client";
 import { DashboardSidebar } from "@/components";
+import config from "@/lib/config";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState, use } from "react";
@@ -8,9 +9,11 @@ import {
   convertCategoryNameToURLFriendly as convertSlugToURLFriendly,
   formatCategoryName,
 } from "../../../../../utils/categoryFormating";
-import { nanoid } from "nanoid";
 import apiClient from "@/lib/api";
-import { FaEdit, FaTrash, FaImage, FaTag, FaBox, FaInfoCircle, FaChevronLeft } from "react-icons/fa";
+import { sanitizeFormData } from "@/lib/form-sanitize";
+import { FaEdit, FaTrash, FaImage, FaTag, FaBox, FaInfoCircle, FaChevronLeft, FaPlus } from "react-icons/fa";
+import { ConfirmModal } from "@/components/ConfirmModal";
+import MultiValueInput from "@/components/MultiValueInput";
 
 interface DashboardProductDetailsProps {
   params: Promise<{ id: string }>;
@@ -25,11 +28,19 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
   const [otherImages, setOtherImages] = useState<OtherImages[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
+  const [stockEnabled, setStockEnabled] = useState(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const router = useRouter();
+  const getImageSrc = (imageName?: string) =>
+    imageName ? `/${imageName}` : "/product_placeholder.jpg";
+  const getImageBaseName = (index: number) =>
+    convertSlugToURLFriendly(product?.slug || product?.title || "produto") +
+    `-${index}`;
 
   const deleteProduct = async () => {
-    if (!window.confirm("Tem certeza que deseja excluir este produto?")) return;
-    
     setIsDeleting(true);
     apiClient
       .delete(`/api/products/${id}`)
@@ -46,7 +57,10 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
         }
       })
       .catch(() => toast.error("Erro ao excluir produto"))
-      .finally(() => setIsDeleting(false));
+      .finally(() => {
+        setIsDeleting(false);
+        setIsProductModalOpen(false);
+      });
   };
 
   const updateProduct = async () => {
@@ -62,12 +76,9 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
     }
 
     setIsUpdating(true);
+    const sanitizedProduct = sanitizeFormData(product);
     apiClient
-      .put(`/api/products/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(product),
-      })
+      .put(`/api/products/${id}`, sanitizedProduct)
       .then((response) => {
         if (response.status === 200) {
           toast.success("Produto atualizado com sucesso");
@@ -80,24 +91,71 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
       .finally(() => setIsUpdating(false));
   };
 
-  const uploadFile = async (file: any) => {
+  const uploadFile = async (file: File, desiredFileName?: string) => {
     const formData = new FormData();
     formData.append("uploadedFile", file);
+    if (desiredFileName) {
+      formData.append("desiredFileName", desiredFileName);
+    }
 
     try {
-      const response = await apiClient.post("/api/main-image", {
+      const response = await fetch(`${config.apiBaseUrl}/api/main-image`, {
         method: "POST",
         body: formData,
       });
 
       if (response.ok) {
-        toast.success("Imagem atualizada!");
+        const data = await response.json();
+        return data.fileName || file.name;
       } else {
-        toast.error("Erro no upload da imagem.");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData?.message || `Erro no upload (${response.status})`);
       }
-    } catch (error) {
-      toast.error("Erro ao enviar imagem");
+    } catch (error: any) {
+      throw new Error(error?.message || "Falha ao enviar arquivo");
     }
+  };
+
+  const handleGalleryImagesChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const uploadedImages: OtherImages[] = [];
+
+    const startIndex = otherImages.length + 1;
+    for (const [offset, file] of Array.from(files).entries()) {
+      try {
+        const uploadedFileName = await uploadFile(
+          file,
+          getImageBaseName(startIndex + offset)
+        );
+
+        const response = await apiClient.post("/api/images", {
+          productID: id,
+          image: uploadedFileName,
+        });
+
+        if (!response.ok) {
+          throw new Error("Erro ao salvar imagem no produto");
+        }
+
+        const createdImage = await response.json();
+        uploadedImages.push(createdImage);
+      } catch (error: any) {
+        toast.error(error?.message || `Erro ao enviar ${file.name}`);
+      }
+    }
+
+    if (uploadedImages.length > 0) {
+      setOtherImages((prev) => [...prev, ...uploadedImages]);
+      toast.success(
+        `${uploadedImages.length} imagem(ns) adicionada(s) na galeria`
+      );
+    }
+
+    e.target.value = "";
   };
 
   const fetchProductData = async () => {
@@ -109,6 +167,29 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
     apiClient.get(`/api/images/${id}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((images) => setOtherImages(images));
+  };
+
+  const handleDeleteGalleryImage = async () => {
+    if (!imageToDelete) return;
+
+    setDeletingImageId(imageToDelete);
+    try {
+      const response = await apiClient.delete(`/api/images/${imageToDelete}`);
+      if (!response.ok) {
+        throw new Error("Erro ao excluir imagem");
+      }
+
+      setOtherImages((prev) =>
+        prev.filter((img) => String(img.imageID) !== imageToDelete)
+      );
+      toast.success("Imagem removida da galeria");
+    } catch (_) {
+      toast.error("Não foi possível excluir a imagem");
+    } finally {
+      setDeletingImageId(null);
+      setIsImageModalOpen(false);
+      setImageToDelete(null);
+    }
   };
 
   const fetchCategories = async () => {
@@ -123,8 +204,12 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
     fetchProductData();
   }, [id]);
 
+  useEffect(() => {
+    setStockEnabled((product?.inStock || 0) > 0);
+  }, [product?.inStock]);
+
   return (
-    <div className="bg-gray-50 flex min-h-screen max-w-screen-2xl mx-auto max-xl:flex-col animate-fade-in-up">
+    <div className="bg-[#E3E1D6] flex min-h-screen max-w-screen-2xl mx-auto max-lg:flex-col animate-fade-in-up">
       <DashboardSidebar />
       <div className="flex-1 p-10 max-md:p-4">
         {/* Header Section */}
@@ -132,11 +217,11 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
           <div className="flex items-center gap-3">
             <button 
               onClick={() => router.push("/admin/products")}
-              className="p-3 bg-gray-50 rounded-full text-gray-400 hover:text-gray-900 transition-colors"
+              className="p-3 bg-[#E3E1D6] rounded-full text-gray-400 hover:text-gray-900 transition-colors"
             >
               <FaChevronLeft size={14} />
             </button>
-            <div className="p-3 bg-gray-50 rounded-full text-gray-900">
+            <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
               <FaEdit size={16} />
             </div>
             <h1 className="text-lg font-light tracking-widest text-gray-900 uppercase">
@@ -145,7 +230,7 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
           </div>
           
           <button
-            onClick={deleteProduct}
+            onClick={() => setIsProductModalOpen(true)}
             disabled={isDeleting}
             className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-red-100 text-[10px] uppercase tracking-widest font-medium text-red-400 hover:bg-red-50 hover:text-red-600 transition-all duration-300 disabled:opacity-50"
           >
@@ -158,7 +243,7 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
           {/* Informações Básicas */}
           <section>
             <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+              <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                 <FaTag size={12} />
               </div>
               <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Informações Básicas</h2>
@@ -169,7 +254,7 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
                 <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Nome do Produto</label>
                 <input
                   type="text"
-                  className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                  className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                   value={product?.title || ""}
                   onChange={(e) => setProduct({ ...product!, title: e.target.value })}
                 />
@@ -179,7 +264,7 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
                 <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Slug</label>
                 <input
                   type="text"
-                  className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                  className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                   value={product?.slug ? convertSlugToURLFriendly(product?.slug) : ""}
                   onChange={(e) => setProduct({ ...product!, slug: convertSlugToURLFriendly(e.target.value) })}
                 />
@@ -189,7 +274,7 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
                 <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Fabricante</label>
                 <input
                   type="text"
-                  className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                  className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                   value={product?.manufacturer || ""}
                   onChange={(e) => setProduct({ ...product!, manufacturer: e.target.value })}
                 />
@@ -198,7 +283,7 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
               <div className="space-y-2">
                 <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Categoria</label>
                 <select
-                  className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 appearance-none cursor-pointer"
+                  className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 appearance-none cursor-pointer"
                   value={product?.categoryId || ""}
                   onChange={(e) => setProduct({ ...product!, categoryId: e.target.value })}
                 >
@@ -215,55 +300,62 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
           {/* Preço e Estoque */}
           <section>
             <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+              <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                 <FaBox size={12} />
               </div>
               <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Preço e Estoque</h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="space-y-2">
                 <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Preço (R$)</label>
                 <input
                   type="number"
-                  className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                  className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                   value={product?.price || 0}
                   onChange={(e) => setProduct({ ...product!, price: Number(e.target.value) })}
                 />
               </div>
 
-              <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[11px] font-medium text-gray-400 uppercase tracking-widest">Em estoque?</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between px-1">
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest">Em estoque?</label>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input 
                       type="checkbox" 
                       className="sr-only peer" 
-                      checked={(product?.inStock || 0) > 0} 
+                      checked={stockEnabled}
                       onChange={(e) => {
                         const hasStock = e.target.checked;
-                        setProduct({ ...product!, inStock: hasStock ? ((product?.inStock || 0) > 0 ? product!.inStock : 1) : 0 });
+                        setStockEnabled(hasStock);
+                        if (!hasStock) {
+                          setProduct({ ...product!, inStock: 0 });
+                        } else if ((product?.inStock || 0) <= 0) {
+                          setProduct({ ...product!, inStock: 1 });
+                        }
                       }}
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
                   </label>
                 </div>
-                
-                {(product?.inStock || 0) > 0 && (
-                  <div className="space-y-2 animate-fade-in">
-                    <label className="text-[10px] text-gray-400 uppercase tracking-tighter italic">Quantidade disponível</label>
-                    <input
-                      type="number"
-                      min="1"
-                      className="w-full bg-white border-transparent focus:border-gray-100 focus:ring-0 rounded-xl py-2 px-4 text-sm transition-all duration-300 text-gray-900"
-                      value={product?.inStock}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        setProduct({ ...product!, inStock: isNaN(val) ? 0 : val });
-                      }}
-                    />
-                  </div>
-                )}
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    className={`w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!stockEnabled ? 'opacity-50 grayscale' : ''}`}
+                    value={product?.inStock || 0}
+                    onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10);
+                      const finalVal = isNaN(val) ? 0 : val;
+                      setProduct({ ...product!, inStock: finalVal });
+                      setStockEnabled(finalVal > 0);
+                    }}
+                    placeholder="0"
+                  />
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 uppercase font-medium tracking-widest pointer-events-none">Unidades</span>
+                </div>
               </div>
             </div>
           </section>
@@ -271,7 +363,7 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
           {/* Imagens */}
           <section>
             <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+              <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                 <FaImage size={12} />
               </div>
               <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Imagens</h2>
@@ -280,15 +372,23 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="space-y-4">
                 <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Imagem Principal</label>
-                <div className="relative group border-2 border-dashed border-gray-100 rounded-[2rem] p-4 transition-all duration-300 hover:border-gray-200 hover:bg-gray-50/50">
+                <div className="relative group border-2 border-dashed border-gray-100 rounded-[2rem] p-4 transition-all duration-300 hover:border-gray-200 hover:bg-[#E3E1D6]/50">
                   <input
                     type="file"
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const selectedFile = e.target.files?.[0];
                       if (selectedFile) {
-                        uploadFile(selectedFile);
-                        setProduct({ ...product!, mainImage: selectedFile.name });
+                        const uploadedFileName = await uploadFile(
+                          selectedFile,
+                          getImageBaseName(1)
+                        );
+                        if (!uploadedFileName) {
+                          toast.error("Erro ao enviar imagem");
+                          return;
+                        }
+                        toast.success("Imagem atualizada!");
+                        setProduct({ ...product!, mainImage: uploadedFileName });
                       }
                     }}
                   />
@@ -296,7 +396,7 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
                     {product?.mainImage ? (
                       <div className="relative w-40 h-40">
                         <Image
-                          src={`/` + product?.mainImage}
+                          src={getImageSrc(product?.mainImage)}
                           alt={product?.title}
                           fill
                           className="rounded-2xl object-cover border border-gray-100"
@@ -316,17 +416,37 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
                 <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Galeria</label>
                 <div className="border-2 border-dashed border-gray-100 rounded-[2rem] p-4 min-h-[148px] flex flex-wrap gap-3">
                   {otherImages?.map((image) => (
-                    <div key={nanoid()} className="relative w-20 h-20">
+                    <button
+                      key={image.imageID}
+                      type="button"
+                      onClick={() => {
+                        setImageToDelete(String(image.imageID));
+                        setIsImageModalOpen(true);
+                      }}
+                      disabled={deletingImageId === String(image.imageID)}
+                      className="relative w-20 h-20 group cursor-pointer disabled:opacity-60"
+                      title="Excluir imagem"
+                    >
                       <Image
-                        src={`/${image.image}`}
+                        src={getImageSrc(image.image)}
                         alt="Product image"
                         fill
                         className="rounded-xl object-cover border border-gray-100 shadow-none"
                       />
-                    </div>
+                      <div className="absolute inset-0 rounded-xl bg-red-600/45 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+                        <FaTrash size={14} className="text-white" />
+                      </div>
+                    </button>
                   ))}
-                  <div className="w-20 h-20 flex items-center justify-center bg-gray-50 rounded-xl border border-gray-100">
-                    <span className="text-gray-300 text-xs">...</span>
+                  <div className="relative w-20 h-20 flex items-center justify-center bg-[#E3E1D6] rounded-xl border border-gray-100 hover:bg-gray-100 transition-all duration-300">
+                    <input
+                      type="file"
+                      accept="image/png, image/jpeg, image/jpg, image/webp"
+                      multiple
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      onChange={handleGalleryImagesChange}
+                    />
+                    <FaPlus size={16} className="text-gray-300" />
                   </div>
                 </div>
               </div>
@@ -336,7 +456,7 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
           {/* Descrição */}
           <section>
             <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+              <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                 <FaInfoCircle size={12} />
               </div>
               <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Descrição</h2>
@@ -345,10 +465,72 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
             <div className="space-y-2">
               <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Descrição do Produto</label>
               <textarea
-                className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-3xl py-6 px-8 transition-all duration-300 text-gray-900 h-48 leading-relaxed resize-none"
+                className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-3xl py-6 px-8 transition-all duration-300 text-gray-900 h-48 leading-relaxed resize-none"
                 value={product?.description || ""}
                 onChange={(e) => setProduct({ ...product!, description: e.target.value })}
               ></textarea>
+            </div>
+
+            <div className="space-y-2 mt-6">
+              <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                Informações Adicionais (Opcional)
+              </label>
+              <textarea
+                className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-3xl py-6 px-8 transition-all duration-300 text-gray-900 h-32 leading-relaxed resize-none"
+                value={product?.additionalInfo || ""}
+                onChange={(e) =>
+                  setProduct({ ...product!, additionalInfo: e.target.value })
+                }
+              ></textarea>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+              <div className="space-y-2">
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                  Material (Opcional)
+                </label>
+                <input
+                  type="text"
+                  className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                  placeholder="Ex: Alumínio"
+                  value={product?.material || ""}
+                  onChange={(e) =>
+                    setProduct({ ...product!, material: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <MultiValueInput
+                  label="Cores (Opcional)"
+                  placeholder="Ex: Preto, Prata"
+                  values={
+                    Array.isArray(product?.colors)
+                      ? product.colors.map((color) => color.name)
+                      : []
+                  }
+                  onChange={(nextColors) =>
+                    setProduct({
+                      ...product!,
+                      colors: nextColors.map((name) => ({ name })),
+                    })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <MultiValueInput
+                  label="Tamanhos (Opcional)"
+                  placeholder="Ex: P, M, G"
+                  values={Array.isArray(product?.sizes) ? product.sizes : []}
+                  onChange={(nextSizes) =>
+                    setProduct({
+                      ...product!,
+                      sizes: nextSizes,
+                    })
+                  }
+                />
+              </div>
             </div>
           </section>
           
@@ -380,6 +562,26 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isProductModalOpen}
+        onClose={() => setIsProductModalOpen(false)}
+        onConfirm={deleteProduct}
+        title="Confirmar Exclusão"
+        message="Tem certeza que deseja excluir este produto? Esta ação é irreversível."
+        confirmText="Excluir"
+        isLoading={isDeleting}
+      />
+
+      <ConfirmModal
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+        onConfirm={handleDeleteGalleryImage}
+        title="Excluir Imagem"
+        message="Tem certeza que deseja excluir esta imagem da galeria?"
+        confirmText="Excluir"
+        isLoading={deletingImageId !== null}
+      />
     </div>
   );
 };

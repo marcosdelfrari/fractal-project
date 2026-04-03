@@ -1,6 +1,7 @@
 "use client";
 import { DashboardSidebar } from "@/components";
 import apiClient from "@/lib/api";
+import { fetchNextApi } from "@/lib/nextApiOrigin";
 import { isValidEmailAddressFormat, isValidNameOrLastname } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
@@ -27,6 +28,8 @@ interface OrderProduct {
   customerOrderId: string;
   productId: string;
   quantity: number;
+  selectedColor?: string | null;
+  selectedSize?: string | null;
   product: {
     id: string;
     slug: string;
@@ -68,7 +71,7 @@ const AdminSingleOrder = () => {
 
   useEffect(() => {
     const fetchOrderData = async () => {
-      const response = await apiClient.get(`/api/orders/${params?.id}`);
+      const response = await fetchNextApi(`/api/orders/${params?.id}`);
       const data: Order = await response.json();
       setOrder(data);
     };
@@ -112,7 +115,11 @@ const AdminSingleOrder = () => {
 
     setIsUpdating(true);
     try {
-      const response = await apiClient.put(`/api/orders/${order?.id}`, order);
+      const response = await fetchNextApi(`/api/orders/${order?.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(order),
+      });
       if (response.status === 200) {
         toast.success("Pedido atualizado com sucesso");
       } else {
@@ -132,7 +139,7 @@ const AdminSingleOrder = () => {
     setIsDeleting(true);
     try {
       await apiClient.delete(`/api/order-product/${order?.id}`);
-      await apiClient.delete(`/api/orders/${order?.id}`);
+      await fetchNextApi(`/api/orders/${order?.id}`, { method: "DELETE" });
       toast.success("Pedido excluído com sucesso");
       router.push("/admin/orders");
     } catch (error) {
@@ -157,12 +164,12 @@ const AdminSingleOrder = () => {
       case "cancelled": return "bg-red-50 text-red-600 border-red-100";
       case "shipped": return "bg-orange-50 text-orange-600 border-orange-100";
       case "processing": return "bg-blue-50 text-blue-600 border-blue-100";
-      default: return "bg-gray-50 text-gray-600 border-gray-100";
+      default: return "bg-[#E3E1D6] text-gray-600 border-gray-100";
     }
   };
 
   return (
-    <div className="bg-gray-50 flex min-h-screen max-w-screen-2xl mx-auto max-xl:flex-col animate-fade-in-up">
+    <div className="bg-[#E3E1D6] flex min-h-screen max-w-screen-2xl mx-auto max-lg:flex-col animate-fade-in-up">
       <DashboardSidebar />
       <div className="flex-1 p-10 max-md:p-4">
         {/* Header Section */}
@@ -170,11 +177,11 @@ const AdminSingleOrder = () => {
           <div className="flex items-center gap-3">
             <button 
               onClick={() => router.push("/admin/orders")}
-              className="p-3 bg-gray-50 rounded-full text-gray-400 hover:text-gray-900 transition-colors"
+              className="p-3 bg-[#E3E1D6] rounded-full text-gray-400 hover:text-gray-900 transition-colors"
             >
               <FaChevronLeft size={14} />
             </button>
-            <div className="p-3 bg-gray-50 rounded-full text-gray-900">
+            <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
               <FaBagShopping size={16} />
             </div>
             <h1 className="text-lg font-light tracking-widest text-gray-900 uppercase">
@@ -198,7 +205,7 @@ const AdminSingleOrder = () => {
             {/* Order Items */}
             <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 transition-all duration-300">
               <div className="flex items-center gap-3 mb-8">
-                <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+                <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                   <FaReceipt size={12} />
                 </div>
                 <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Itens do Pedido</h2>
@@ -217,7 +224,7 @@ const AdminSingleOrder = () => {
                     </div>
                     <div className="ml-6 flex-1">
                       <Link 
-                        href={`/product/${item?.product?.slug}`}
+                        href={`/produto/${item?.product?.slug}`}
                         className="text-sm font-medium text-gray-900 hover:underline transition-all"
                       >
                         {item?.product?.title}
@@ -230,6 +237,20 @@ const AdminSingleOrder = () => {
                           R$ {item?.product?.price * item?.quantity}
                         </p>
                       </div>
+                      {(item?.selectedColor || item?.selectedSize) && (
+                        <div className="flex items-center gap-4 mt-2">
+                          {item?.selectedColor ? (
+                            <p className="text-[10px] text-gray-500 uppercase tracking-widest">
+                              Cor: {item.selectedColor}
+                            </p>
+                          ) : null}
+                          {item?.selectedSize ? (
+                            <p className="text-[10px] text-gray-500 uppercase tracking-widest">
+                              Tamanho: {item.selectedSize}
+                            </p>
+                          ) : null}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -260,7 +281,7 @@ const AdminSingleOrder = () => {
             {/* Customer Information Form */}
             <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 transition-all duration-300">
               <div className="flex items-center gap-3 mb-10">
-                <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+                <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                   <FaUser size={12} />
                 </div>
                 <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Informações do Cliente</h2>
@@ -271,7 +292,7 @@ const AdminSingleOrder = () => {
                   <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Nome</label>
                   <input
                     type="text"
-                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.name}
                     onChange={(e) => setOrder({ ...order, name: e.target.value })}
                   />
@@ -280,7 +301,7 @@ const AdminSingleOrder = () => {
                   <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Sobrenome</label>
                   <input
                     type="text"
-                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.lastname}
                     onChange={(e) => setOrder({ ...order, lastname: e.target.value })}
                   />
@@ -291,7 +312,7 @@ const AdminSingleOrder = () => {
                   </label>
                   <input
                     type="email"
-                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.email}
                     onChange={(e) => setOrder({ ...order, email: e.target.value })}
                   />
@@ -302,7 +323,7 @@ const AdminSingleOrder = () => {
                   </label>
                   <input
                     type="text"
-                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.phone}
                     onChange={(e) => setOrder({ ...order, phone: e.target.value })}
                   />
@@ -313,7 +334,7 @@ const AdminSingleOrder = () => {
             {/* Delivery Details */}
             <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 transition-all duration-300">
               <div className="flex items-center gap-3 mb-10">
-                <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+                <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                   <FaMapMarkerAlt size={12} />
                 </div>
                 <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Endereço de Entrega</h2>
@@ -324,7 +345,7 @@ const AdminSingleOrder = () => {
                   <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Empresa (Opcional)</label>
                   <input
                     type="text"
-                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.company}
                     onChange={(e) => setOrder({ ...order, company: e.target.value })}
                   />
@@ -333,7 +354,7 @@ const AdminSingleOrder = () => {
                   <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Endereço</label>
                   <input
                     type="text"
-                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.adress}
                     onChange={(e) => setOrder({ ...order, adress: e.target.value })}
                   />
@@ -342,7 +363,7 @@ const AdminSingleOrder = () => {
                   <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Complemento</label>
                   <input
                     type="text"
-                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.apartment}
                     onChange={(e) => setOrder({ ...order, apartment: e.target.value })}
                   />
@@ -351,7 +372,7 @@ const AdminSingleOrder = () => {
                   <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Cidade</label>
                   <input
                     type="text"
-                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.city}
                     onChange={(e) => setOrder({ ...order, city: e.target.value })}
                   />
@@ -360,7 +381,7 @@ const AdminSingleOrder = () => {
                   <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">CEP</label>
                   <input
                     type="text"
-                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.postalCode}
                     onChange={(e) => setOrder({ ...order, postalCode: e.target.value })}
                   />
@@ -369,7 +390,7 @@ const AdminSingleOrder = () => {
                   <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">País</label>
                   <input
                     type="text"
-                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
+                    className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.country}
                     onChange={(e) => setOrder({ ...order, country: e.target.value })}
                   />
@@ -380,13 +401,13 @@ const AdminSingleOrder = () => {
             {/* Order Notice */}
             <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 transition-all duration-300">
               <div className="flex items-center gap-3 mb-10">
-                <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+                <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                   <FaCommentAlt size={12} />
                 </div>
                 <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Observações do Pedido</h2>
               </div>
               <textarea
-                className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-3xl py-6 px-8 transition-all duration-300 text-gray-900 h-32 leading-relaxed resize-none"
+                className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-3xl py-6 px-8 transition-all duration-300 text-gray-900 h-32 leading-relaxed resize-none"
                 value={order?.orderNotice || ""}
                 onChange={(e) => setOrder({ ...order, orderNotice: e.target.value })}
                 placeholder="Nenhuma observação informada."
@@ -399,7 +420,7 @@ const AdminSingleOrder = () => {
             {/* Status Card */}
             <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 transition-all duration-300">
               <div className="flex items-center gap-3 mb-8">
-                <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+                <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                   <FaTruck size={12} />
                 </div>
                 <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Status</h2>
@@ -414,7 +435,7 @@ const AdminSingleOrder = () => {
                 <div className="space-y-2">
                   <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Alterar Status</label>
                   <select
-                    className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 appearance-none cursor-pointer text-sm"
+                    className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 appearance-none cursor-pointer text-sm"
                     value={order?.status}
                     onChange={(e) => setOrder({ ...order, status: e.target.value as "pending" | "processing" | "shipped" | "delivered" | "cancelled" })}
                   >
@@ -446,7 +467,7 @@ const AdminSingleOrder = () => {
             </div>
 
             {/* Order Summary ID */}
-            <div className="p-8 bg-gray-50 rounded-[2rem] border border-gray-100">
+            <div className="p-8 bg-[#E3E1D6] rounded-[2rem] border border-gray-100">
               <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-2 font-light italic">Identificação Única</p>
               <p className="text-[10px] font-mono text-gray-900 break-all">{order?.id}</p>
             </div>

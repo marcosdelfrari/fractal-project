@@ -2,21 +2,15 @@ const { PrismaClient } = require("@prisma/client");
 const { execSync } = require("child_process");
 const path = require("path");
 const fs = require("fs");
+const dotenv = require("dotenv");
 
-// Carregar variáveis de ambiente do config.env
-const configPath = path.join(__dirname, "../config.env");
-if (fs.existsSync(configPath)) {
-  const configContent = fs.readFileSync(configPath, "utf8");
-  configContent.split("\n").forEach((line) => {
-    const trimmedLine = line.trim();
-    if (trimmedLine && !trimmedLine.startsWith("#")) {
-      const [key, ...valueParts] = trimmedLine.split("=");
-      if (key && valueParts.length > 0) {
-        const value = valueParts.join("=").replace(/^["']|["']$/g, "");
-        process.env[key.trim()] = value.trim();
-      }
-    }
-  });
+// Prioriza .env da raiz e mantém compatibilidade com server/config.env legado.
+const rootEnvPath = path.join(__dirname, "../../.env");
+dotenv.config({ path: rootEnvPath });
+
+const legacyConfigPath = path.join(__dirname, "../config.env");
+if (fs.existsSync(legacyConfigPath)) {
+  dotenv.config({ path: legacyConfigPath, override: false });
 }
 
 const prisma = new PrismaClient();
@@ -77,7 +71,7 @@ async function checkMigrationsTable() {
       error.message.includes("credentials")
     ) {
       console.log("   ⚠️  Erro de autenticação detectado");
-      console.log("   💡 Verifique suas credenciais no config.env");
+      console.log("   💡 Verifique suas credenciais no .env");
       throw error;
     }
     throw error;

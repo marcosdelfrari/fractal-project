@@ -111,7 +111,7 @@ const UserProfileForm = ({
     } else {
       return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(
         7,
-        11
+        11,
       )}`;
     }
   };
@@ -130,7 +130,7 @@ const UserProfileForm = ({
     } else {
       return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(
         6,
-        9
+        9,
       )}-${digits.slice(9, 11)}`;
     }
   };
@@ -190,7 +190,7 @@ const UserProfileForm = ({
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    field: keyof FormData
+    field: keyof FormData,
   ) => {
     let value = e.target.value;
 
@@ -237,7 +237,7 @@ const UserProfileForm = ({
       {/* Header */}
       <div className="p-8 border-b border-gray-100">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-gray-50 rounded-full text-gray-900">
+          <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
             <FaUser className="text-lg" />
           </div>
           <div>

@@ -25,12 +25,12 @@ const ProductListContent = ({ products }: ProductListContentProps) => {
   };
 
   return (
-    <motion.div 
+    <motion.div
       variants={container}
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, margin: "-100px" }}
-      className="grid grid-cols-4 justify-items-center max-w-screen-2xl mx-auto gap-x-4 gap-y-12 px-4 max-xl:grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-2 max-sm:grid-cols-2"
+      className="grid grid-cols-5 justify-items-center max-w-screen-2xl mx-auto gap-x-4 gap-y-4 md:gap-y-8 px-6 sm:px-8 md:px-12 lg:px-14 max-xl:grid-cols-4 max-lg:grid-cols-2 max-md:grid-cols-2 max-sm:grid-cols-2"
     >
       {products.map((product) => (
         <motion.div key={product.id} variants={item} className="w-full">

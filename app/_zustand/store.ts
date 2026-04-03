@@ -2,11 +2,14 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 export type ProductInCart = {
+  cartItemKey: string;
   id: string;
   title: string;
   price: number;
   image: string;
   amount: number;
+  selectedColor?: string;
+  selectedSize?: string;
 };
 
 export type State = {
@@ -17,8 +20,8 @@ export type State = {
 
 export type Actions = {
   addToCart: (newProduct: ProductInCart) => void;
-  removeFromCart: (id: string) => void;
-  updateCartAmount: (id: string, quantity: number) => void;
+  removeFromCart: (cartItemKey: string) => void;
+  updateCartAmount: (cartItemKey: string, quantity: number) => void;
   calculateTotals: () => void;
   clearCart: () => void;
 };
@@ -31,15 +34,21 @@ export const useProductStore = create<State & Actions>()(
       total: 0,
       addToCart: (newProduct) => {
         set((state) => {
+          const normalizedProduct = {
+            ...newProduct,
+            cartItemKey:
+              newProduct.cartItemKey ||
+              `${newProduct.id}__${newProduct.selectedColor || ""}__${newProduct.selectedSize || ""}`,
+          };
           const cartItem = state.products.find(
-            (item) => item.id === newProduct.id
+            (item) => item.cartItemKey === normalizedProduct.cartItemKey
           );
           if (!cartItem) {
-            return { products: [...state.products, newProduct] };
+            return { products: [...state.products, normalizedProduct] };
           } else {
             state.products.map((product) => {
-              if (product.id === cartItem.id) {
-                product.amount += newProduct.amount;
+              if (product.cartItemKey === cartItem.cartItemKey) {
+                product.amount += normalizedProduct.amount;
               }
             });
           }
@@ -56,10 +65,10 @@ export const useProductStore = create<State & Actions>()(
           };
         });
       },
-      removeFromCart: (id) => {
+      removeFromCart: (cartItemKey) => {
         set((state) => {
           state.products = state.products.filter(
-            (product: ProductInCart) => product.id !== id
+            (product: ProductInCart) => product.cartItemKey !== cartItemKey
           );
           return { products: state.products };
         });
@@ -81,15 +90,15 @@ export const useProductStore = create<State & Actions>()(
           };
         });
       },
-      updateCartAmount: (id, amount) => {
+      updateCartAmount: (cartItemKey, amount) => {
         set((state) => {
-          const cartItem = state.products.find((item) => item.id === id);
+          const cartItem = state.products.find((item) => item.cartItemKey === cartItemKey);
 
           if (!cartItem) {
             return { products: [...state.products] };
           } else {
             state.products.map((product) => {
-              if (product.id === cartItem.id) {
+              if (product.cartItemKey === cartItem.cartItemKey) {
                 product.amount = amount;
               }
             });

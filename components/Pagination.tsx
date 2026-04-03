@@ -54,24 +54,28 @@ const Pagination = ({
   };
 
   return (
-    <div className="join flex justify-center py-16">
+    <div className="flex justify-center items-center gap-2 py-8">
       <button
-        className="join-item btn btn-lg bg-zinc-900 text-white hover:bg-white hover:text-blue-500 disabled:opacity-50"
+        className="flex items-center justify-center w-10 h-10 rounded-full border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 hover:border-zinc-300 disabled:opacity-30 disabled:hover:bg-white disabled:hover:border-zinc-200 disabled:cursor-not-allowed transition-all"
         onClick={handlePrevious}
         disabled={page <= 1}
+        aria-label="Página anterior"
       >
-        «
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
       </button>
-      <button className="join-item btn btn-lg bg-zinc-900 text-white hover:bg-white hover:text-blue-500">
-        Página {page}
+      
+      <span className="text-sm font-medium text-zinc-600 px-4">
+        Página <span className="text-zinc-900">{page}</span>
         {totalPages ? ` de ${totalPages}` : ""}
-      </button>
+      </span>
+
       <button
-        className="join-item btn btn-lg bg-zinc-900 text-white hover:bg-white hover:text-blue-500 disabled:opacity-50"
+        className="flex items-center justify-center w-10 h-10 rounded-full border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 hover:border-zinc-300 disabled:opacity-30 disabled:hover:bg-white disabled:hover:border-zinc-200 disabled:cursor-not-allowed transition-all"
         onClick={handleNext}
         disabled={totalPages !== undefined && page >= totalPages}
+        aria-label="Próxima página"
       >
-        »
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
       </button>
     </div>
   );

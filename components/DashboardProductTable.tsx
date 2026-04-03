@@ -8,16 +8,16 @@
 // *********************
 
 "use client";
-import { nanoid } from "nanoid";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
-import CustomButton from "./CustomButton";
+import React, { useEffect, useMemo, useState } from "react";
 import apiClient from "@/lib/api";
 import { sanitize } from "@/lib/sanitize";
+import { FaSearch } from "react-icons/fa";
 
 const DashboardProductTable = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     apiClient
@@ -30,11 +30,41 @@ const DashboardProductTable = () => {
       });
   }, []);
 
+  const filteredProducts = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return products;
+    return products.filter((p) => {
+      const title = (p.title || "").toLowerCase();
+      const slug = (p.slug || "").toLowerCase();
+      const manufacturer = (p.manufacturer || "").toLowerCase();
+      return (
+        title.includes(q) || slug.includes(q) || manufacturer.includes(q)
+      );
+    });
+  }, [products, searchQuery]);
+
   return (
     <div className="w-full">
-      <div className="flex justify-end mb-8">
-        <Link href="/admin/products/new">
-          <button className="flex items-center justify-center rounded-full bg-black px-6 py-3 text-[11px] uppercase tracking-widest font-medium text-white hover:bg-zinc-800 transition-all duration-300">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-8">
+        <div className="relative w-full sm:flex-1 sm:min-w-0 sm:max-w-lg">
+          <FaSearch
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"
+            aria-hidden
+          />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar por nome, fabricante ou slug..."
+            className="w-full bg-[#E3E1D6] border border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-full py-3 pl-10 pr-5 text-sm text-gray-900 placeholder:text-gray-400"
+            autoComplete="off"
+          />
+        </div>
+        <Link href="/admin/products/new" className="shrink-0 self-end sm:self-auto">
+          <button
+            type="button"
+            className="flex items-center justify-center rounded-full bg-black px-6 py-3 text-[11px] uppercase tracking-widest font-medium text-white hover:bg-zinc-800 transition-all duration-300"
+          >
             Adicionar Produto
           </button>
         </Link>
@@ -43,7 +73,7 @@ const DashboardProductTable = () => {
       <div className="w-full overflow-auto h-[70vh] bg-white rounded-3xl border border-gray-100">
         <table className="table table-md table-pin-cols">
           {/* head */}
-          <thead className="bg-gray-50/50">
+          <thead className="bg-[#E3E1D6]/50">
             <tr>
               <th className="py-4 px-6 text-[11px] font-light tracking-widest text-gray-500 uppercase">
                 <label>
@@ -66,12 +96,22 @@ const DashboardProductTable = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {/* row 1 */}
-            {products &&
-              products.map((product) => (
+            {products.length > 0 &&
+            searchQuery.trim() &&
+            filteredProducts.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="py-12 text-center text-sm text-gray-400"
+                >
+                  Nenhum produto encontrado para essa busca.
+                </td>
+              </tr>
+            ) : (
+              filteredProducts.map((product) => (
                 <tr
-                  key={nanoid()}
-                  className="hover:bg-gray-50/50 transition-colors"
+                  key={product.id}
+                  className="hover:bg-[#E3E1D6]/50 transition-colors"
                 >
                   <th className="px-6">
                     <label>
@@ -133,7 +173,8 @@ const DashboardProductTable = () => {
                     </Link>
                   </th>
                 </tr>
-              ))}
+              ))
+            )}
           </tbody>
         </table>
       </div>

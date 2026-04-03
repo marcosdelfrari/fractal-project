@@ -11,7 +11,7 @@ export default withAuth(
     }
 
     // Check for user routes
-    if (req.nextUrl.pathname.startsWith("/user")) {
+    if (req.nextUrl.pathname.startsWith("/usuario")) {
       const userRole = req.nextauth.token?.role;
       if (!userRole || (userRole !== "user" && userRole !== "admin")) {
         return NextResponse.redirect(
@@ -33,7 +33,7 @@ export default withAuth(
         }
 
         // User routes require user or admin token
-        if (req.nextUrl.pathname.startsWith("/user")) {
+        if (req.nextUrl.pathname.startsWith("/usuario")) {
           return !!token && (token.role === "user" || token.role === "admin");
         }
 
@@ -44,5 +44,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/admin/:path*", "/user/:path*"],
+  matcher: ["/admin/:path*", "/usuario/:path*"],
 };

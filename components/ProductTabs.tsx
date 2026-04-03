@@ -17,6 +17,12 @@ import { sanitize, sanitizeHtml } from "@/lib/sanitize";
 
 const ProductTabs = ({ product }: { product: Product }) => {
   const [currentProductTab, setCurrentProductTab] = useState<number>(0);
+  const hasColors = Boolean(product?.colors && product.colors.length > 0);
+  const hasSizes = Boolean(product?.sizes && product.sizes.length > 0);
+  const hasMaterial = Boolean(product?.material && product.material.trim());
+  const hasAdditionalInfo = Boolean(
+    product?.additionalInfo && product.additionalInfo.trim(),
+  );
 
   return (
     <div className="px-5 text-black">
@@ -44,15 +50,16 @@ const ProductTabs = ({ product }: { product: Product }) => {
           }`}
           onClick={() => setCurrentProductTab(1)}
         >
-          Informações adicionais
+          <span className="sm:hidden">Informações</span>
+          <span className="hidden sm:inline">Informações adicionais</span>
         </button>
       </div>
       <div className="pt-5">
         {currentProductTab === 0 && (
-          <div 
+          <div
             className="text-base lg:text-lg font-light leading-relaxed text-gray-600 space-y-4 whitespace-pre-line"
-            dangerouslySetInnerHTML={{ 
-              __html: sanitizeHtml(product?.description) 
+            dangerouslySetInnerHTML={{
+              __html: sanitizeHtml(product?.description),
             }}
           />
         )}
@@ -62,12 +69,12 @@ const ProductTabs = ({ product }: { product: Product }) => {
             <table className="table text-base lg:text-lg text-left w-full">
               <tbody className="divide-y divide-gray-100">
                 {/* row 1 */}
-                <tr className="hover:bg-gray-50">
+                <tr className="hover:bg-[#E3E1D6]">
                   <th className="font-medium p-4 w-1/3">Fabricante:</th>
                   <td className="p-4">{sanitize(product?.manufacturer)}</td>
                 </tr>
                 {/* row 2 */}
-                <tr className="hover:bg-gray-50">
+                <tr className="hover:bg-[#E3E1D6]">
                   <th className="font-medium p-4">Categoria:</th>
                   <td className="p-4">
                     {product?.category?.name
@@ -75,15 +82,34 @@ const ProductTabs = ({ product }: { product: Product }) => {
                       : "Sem categoria"}
                   </td>
                 </tr>
-                {/* row 3 */}
-                <tr className="hover:bg-gray-50">
-                  <th className="font-medium p-4">Cor:</th>
-                  <td className="p-4">
-                     {product?.colors && product.colors.length > 0 
-                        ? product.colors.map(c => c.name).join(", ") 
-                        : "N/A"}
-                  </td>
-                </tr>
+                {hasMaterial && (
+                  <tr className="hover:bg-[#E3E1D6]">
+                    <th className="font-medium p-4">Material:</th>
+                    <td className="p-4">{sanitize(product.material!)}</td>
+                  </tr>
+                )}
+                {hasAdditionalInfo && (
+                  <tr className="hover:bg-[#E3E1D6]">
+                    <th className="font-medium p-4">Adicionais:</th>
+                    <td className="p-4 whitespace-pre-line">
+                      {sanitize(product.additionalInfo)}
+                    </td>
+                  </tr>
+                )}
+                {hasColors && (
+                  <tr className="hover:bg-[#E3E1D6]">
+                    <th className="font-medium p-4">Cor:</th>
+                    <td className="p-4">
+                      {product.colors!.map((c) => c.name).join(", ")}
+                    </td>
+                  </tr>
+                )}
+                {hasSizes && (
+                  <tr className="hover:bg-[#E3E1D6]">
+                    <th className="font-medium p-4">Tamanho:</th>
+                    <td className="p-4">{product.sizes!.join(", ")}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

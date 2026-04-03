@@ -24,20 +24,25 @@ const DashboardSingleCategory = ({ params }: DashboardSingleCategoryProps) => {
   const router = useRouter();
 
   const deleteCategory = async () => {
-    if (!window.confirm("Atenção: excluir esta categoria removerá todos os produtos associados. Continuar?")) return;
+    if (!window.confirm("Excluir esta categoria? Apenas categorias sem produtos vinculados podem ser removidas.")) return;
     
     setIsDeleting(true);
     apiClient
       .delete(`/api/categories/${id}`)
-      .then((response) => {
+      .then(async (response) => {
         if (response.status === 204) {
           toast.success("Categoria excluída com sucesso");
           router.push("/admin/categories");
-        } else {
-          throw Error("Erro ao excluir categoria");
+          return;
         }
+
+        const errorPayload = await response.json().catch(() => null);
+        throw new Error(errorPayload?.error || "Erro ao excluir categoria");
       })
-      .catch(() => toast.error("Erro ao excluir categoria"))
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : "Erro ao excluir categoria";
+        toast.error(message);
+      })
       .finally(() => setIsDeleting(false));
   };
 
@@ -72,7 +77,7 @@ const DashboardSingleCategory = ({ params }: DashboardSingleCategoryProps) => {
   }, [id]);
 
   return (
-    <div className="bg-gray-50 flex min-h-screen max-w-screen-2xl mx-auto max-xl:flex-col animate-fade-in-up">
+    <div className="bg-[#E3E1D6] flex min-h-screen max-w-screen-2xl mx-auto max-lg:flex-col animate-fade-in-up">
       <DashboardSidebar />
       <div className="flex-1 p-10 max-md:p-4">
         {/* Header Section */}
@@ -80,11 +85,11 @@ const DashboardSingleCategory = ({ params }: DashboardSingleCategoryProps) => {
           <div className="flex items-center gap-3">
             <button 
               onClick={() => router.push("/admin/categories")}
-              className="p-3 bg-gray-50 rounded-full text-gray-400 hover:text-gray-900 transition-colors"
+              className="p-3 bg-[#E3E1D6] rounded-full text-gray-400 hover:text-gray-900 transition-colors"
             >
               <MdChevronLeft size={16} />
             </button>
-            <div className="p-3 bg-gray-50 rounded-full text-gray-900">
+            <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
               <MdEdit size={16} />
             </div>
             <h1 className="text-lg font-light tracking-widest text-gray-900 uppercase">
@@ -105,7 +110,7 @@ const DashboardSingleCategory = ({ params }: DashboardSingleCategoryProps) => {
         <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 space-y-12 transition-all duration-300">
           <section>
             <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+              <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                 <MdLabel size={12} />
               </div>
               <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Nome e Identificação</h2>
@@ -116,7 +121,7 @@ const DashboardSingleCategory = ({ params }: DashboardSingleCategoryProps) => {
                 <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Nome da Categoria</label>
                 <input
                   type="text"
-                  className="w-full bg-gray-50 border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 font-medium"
+                  className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 font-medium"
                   value={formatCategoryName(categoryInput.name)}
                   onChange={(e) => setCategoryInput({ name: e.target.value })}
                 />
@@ -148,7 +153,7 @@ const DashboardSingleCategory = ({ params }: DashboardSingleCategoryProps) => {
         <div className="mt-8 p-6 bg-red-50/50 border border-red-100 rounded-3xl">
           <p className="text-[10px] text-red-400 uppercase tracking-widest font-medium mb-1">Atenção</p>
           <p className="text-xs text-red-500 font-light leading-relaxed">
-            Excluir esta categoria resultará na exclusão permanente de todos os produtos vinculados a ela. Certifique-se de mover os produtos para outra categoria antes de prosseguir com a exclusão.
+            Categorias com produtos vinculados não podem ser excluídas. Mova os produtos para outra categoria antes de prosseguir.
           </p>
         </div>
       </div>

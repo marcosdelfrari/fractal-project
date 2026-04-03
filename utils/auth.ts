@@ -9,7 +9,7 @@ export async function isAdmin(): Promise<boolean> {
 export async function requireAdmin() {
   const admin = await isAdmin();
   if (!admin) {
-    throw new Error("Admin access required");
+    throw new Error("Acesso de administrador necessário");
   }
 }
 
@@ -27,12 +27,12 @@ export async function requireUser() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    throw new Error("Authentication required");
+    throw new Error("Autenticação necessária");
   }
 
   const userRole = (session as any)?.user?.role;
   if (userRole !== "user" && userRole !== "admin") {
-    throw new Error("User access required");
+    throw new Error("Acesso de usuário necessário");
   }
 }
 
@@ -40,7 +40,7 @@ export async function requireAuthenticatedUser() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    throw new Error("Authentication required");
+    throw new Error("Autenticação necessária");
   }
 
   return session.user;

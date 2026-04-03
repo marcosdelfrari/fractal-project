@@ -31,7 +31,7 @@ const RedirectExample = () => {
 
   const handleProtectedAction = () => {
     // Example: Try to access cart
-    redirectWithAuthCheck("/cart");
+    redirectWithAuthCheck("/carrinho");
   };
 
   const handleAdminAction = () => {
@@ -41,7 +41,7 @@ const RedirectExample = () => {
 
   const handleUserAction = () => {
     // Example: Try to access user dashboard
-    redirectWithAuthCheck("/user");
+    redirectWithAuthCheck("/usuario");
   };
 
   return (
@@ -51,7 +51,7 @@ const RedirectExample = () => {
       </h2>
 
       {/* Current Status */}
-      <div className="bg-gray-50 rounded-lg p-4 mb-6">
+      <div className="bg-[#E3E1D6] rounded-lg p-4 mb-6">
         <h3 className="font-semibold text-gray-700 mb-3">Status Atual:</h3>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
@@ -71,8 +71,8 @@ const RedirectExample = () => {
                 userRole === "admin"
                   ? "text-purple-600"
                   : userRole === "user"
-                  ? "text-blue-600"
-                  : "text-gray-600"
+                    ? "text-blue-600"
+                    : "text-gray-600"
               }`}
             >
               {userRole}
@@ -160,8 +160,8 @@ const RedirectExample = () => {
           </button>
 
           <button
-            onClick={() => redirectToLogin("/cart")}
-            className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            onClick={() => redirectToLogin("/carrinho")}
+            className="w-full px-4 py-2 bg-[#E3E1D6]0 text-white rounded-lg hover:bg-gray-600 transition-colors"
           >
             🔐 Fazer Login (com retorno)
           </button>
@@ -169,7 +169,7 @@ const RedirectExample = () => {
       </div>
 
       {/* Route Access Matrix */}
-      <div className="bg-gray-50 rounded-lg p-4">
+      <div className="bg-[#E3E1D6] rounded-lg p-4">
         <h3 className="font-semibold text-gray-700 mb-3">
           Matriz de Acesso às Rotas:
         </h3>
@@ -187,12 +187,12 @@ const RedirectExample = () => {
               {[
                 { route: "/", name: "Home" },
                 { route: "/promo", name: "Promo" },
-                { route: "/shop", name: "Loja" },
-                { route: "/cart", name: "Carrinho" },
-                { route: "/checkout", name: "Checkout" },
+                { route: "/loja", name: "Loja" },
+                { route: "/carrinho", name: "Carrinho" },
+                { route: "/compra", name: "Compra" },
                 { route: "/wishlist", name: "Lista de Desejos" },
                 { route: "/profile", name: "Perfil" },
-                { route: "/user", name: "Área do Usuário" },
+                { route: "/usuario", name: "Área do Usuário" },
                 { route: "/admin", name: "Admin" },
                 { route: "/login", name: "Login" },
                 { route: "/register", name: "Registro" },

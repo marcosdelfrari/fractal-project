@@ -9,29 +9,69 @@
 // Output: Table with all orders
 // *********************
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import apiClient from "@/lib/api";
+import { fetchNextApi } from "@/lib/nextApiOrigin";
+import { FaSearch } from "react-icons/fa";
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchOrders = async () => {
-      const response = await apiClient.get("/api/orders");
+      const response = await fetchNextApi("/api/orders");
       const data = await response.json();
 
-      setOrders(data?.orders);
+      setOrders(Array.isArray(data?.orders) ? data.orders : []);
     };
     fetchOrders();
   }, []);
 
+  const filteredOrders = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return orders;
+    return orders.filter((o) => {
+      const id = (o.id || "").toLowerCase();
+      const shortId = id.slice(0, 8);
+      const name = `${o.name || ""} ${o.lastname || ""}`.toLowerCase().trim();
+      const email = (o.email || "").toLowerCase();
+      const country = (o.country || "").toLowerCase();
+      const status = String(o.status || "").toLowerCase();
+      const total = String(o.total ?? "");
+      return (
+        id.includes(q) ||
+        shortId.includes(q) ||
+        name.includes(q) ||
+        email.includes(q) ||
+        country.includes(q) ||
+        status.includes(q) ||
+        total.includes(q)
+      );
+    });
+  }, [orders, searchQuery]);
+
   return (
     <div className="w-full">
+      <div className="relative w-full max-w-lg mb-8">
+        <FaSearch
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"
+          aria-hidden
+        />
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Buscar por ID, cliente, e-mail, país, status ou total..."
+          className="w-full bg-[#E3E1D6] border border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-full py-3 pl-10 pr-5 text-sm text-gray-900 placeholder:text-gray-400"
+          autoComplete="off"
+        />
+      </div>
+
       <div className="overflow-x-auto bg-white rounded-3xl border border-gray-100">
         <table className="table table-md table-pin-cols">
           {/* head */}
-          <thead className="bg-gray-50/50">
+          <thead className="bg-[#E3E1D6]/50">
             <tr>
               <th className="py-4 px-6 text-[11px] font-light tracking-widest text-gray-500 uppercase">
                 <label>
@@ -60,13 +100,22 @@ const AdminOrders = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {/* row 1 */}
-            {orders &&
-              orders.length > 0 &&
-              orders.map((order) => (
+            {orders.length > 0 &&
+            searchQuery.trim() &&
+            filteredOrders.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="py-12 text-center text-sm text-gray-400"
+                >
+                  Nenhum pedido encontrado para essa busca.
+                </td>
+              </tr>
+            ) : (
+              filteredOrders.map((order) => (
                 <tr
                   key={order?.id}
-                  className="hover:bg-gray-50/50 transition-colors"
+                  className="hover:bg-[#E3E1D6]/50 transition-colors"
                 >
                   <th className="px-6">
                     <label>
@@ -122,7 +171,8 @@ const AdminOrders = () => {
                     </Link>
                   </th>
                 </tr>
-              ))}
+              ))
+            )}
           </tbody>
         </table>
       </div>

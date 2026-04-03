@@ -1,11 +1,9 @@
 import React from "react";
-import {
-  Hero,
-  CategoryMenu,
-  ProductsSection,
-  FeaturedProductSection,
-} from "@/components";
-
+import Hero from "@/components/Hero";
+import HomePromoSlider from "@/components/HomePromoSlider";
+import CategoryMenu from "@/components/CategoryMenu";
+import ProductsSection from "@/components/ProductsSection";
+import FeaturedProductSection from "@/components/FeaturedProductSection";
 interface HomeSection {
   id: string;
   name: string;
@@ -16,14 +14,16 @@ interface HomeSection {
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<any>> = {
   hero: Hero,
+  promoSlider: HomePromoSlider,
   categoryMenu: CategoryMenu,
   productsSection: ProductsSection,
   featuredProducts: FeaturedProductSection,
 };
 
 async function getHomeSections(): Promise<HomeSection[]> {
-  const apiBase =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+  const apiBase = (
+    process.env.NEXTAUTH_URL || "http://localhost:3000"
+  ).replace(/\/$/, "");
   try {
     const response = await fetch(`${apiBase}/api/settings/home-sections`, {
       cache: "no-store",
@@ -31,19 +31,15 @@ async function getHomeSections(): Promise<HomeSection[]> {
     if (response.ok) {
       const data = (await response.json()) as HomeSection[];
       return data
-        .filter((s) => s.enabled)
+        .filter((s) => s.enabled && s.name !== "upcomingEvents")
         .sort((a, b) => a.order - b.order);
     }
   } catch (error) {
     console.error("Erro ao carregar seções:", error);
   }
 
-  return [
-    { id: "1", name: "hero", enabled: true, order: 0 },
-    { id: "2", name: "categoryMenu", enabled: true, order: 1 },
-    { id: "3", name: "productsSection", enabled: true, order: 2 },
-    { id: "4", name: "featuredProducts", enabled: true, order: 3 },
-  ];
+  // Sem fallback “tudo ativo”: evita mostrar blocos que o admin desativou se a API falhar.
+  return [];
 }
 
 export default async function HomeSectionRenderer() {
@@ -60,7 +56,8 @@ export default async function HomeSectionRenderer() {
         const sectionContentProps =
           section.name === "featuredProducts" ||
           section.name === "categoryMenu" ||
-          section.name === "hero"
+          section.name === "hero" ||
+          section.name === "promoSlider"
             ? { sectionContent: section.content }
             : {};
         return <Component key={section.id} {...sectionContentProps} />;

@@ -25,6 +25,15 @@ const DEMO_SITE_SETTINGS = {
   storeName: "Fractal Store",
   storeIcon: null,
   storeLogo: null,
+  navBrandDesktopMode: "name",
+  navBrandMobileMode: "name",
+  hideStoreNameUntilLoaded: true,
+  navLinks: [
+    { id: "woodcut", name: "Woodcut", href: "/woodcut", hasMegaMenu: false },
+    { id: "linocut", name: "Linocut", href: "/linocut", hasMegaMenu: false },
+    { id: "paintings", name: "Paintings", href: "/paintings", hasMegaMenu: false },
+    { id: "about", name: "About", href: "/about", hasMegaMenu: false },
+  ],
   email: "contato@fractalstore.com.br",
   phone: "+55 (11) 3456-7890",
   whatsapp: "+55 11 99999-9999",
@@ -45,6 +54,10 @@ const DEMO_SITE_SETTINGS = {
     },
   ],
   deliveryEnabled: true,
+  upcomingEvents: {
+    enabled: true,
+    ...JSON.parse(JSON.stringify(HOME_SECTION_DEFAULTS.upcomingEvents)),
+  },
 };
 
 const demoProducts = [
@@ -270,6 +283,11 @@ async function insertDemoData() {
         address: DEMO_SITE_SETTINGS.address,
         pickupAddresses: DEMO_SITE_SETTINGS.pickupAddresses,
         deliveryEnabled: DEMO_SITE_SETTINGS.deliveryEnabled,
+        navBrandDesktopMode: DEMO_SITE_SETTINGS.navBrandDesktopMode,
+        navBrandMobileMode: DEMO_SITE_SETTINGS.navBrandMobileMode,
+        hideStoreNameUntilLoaded: DEMO_SITE_SETTINGS.hideStoreNameUntilLoaded,
+        navLinks: DEMO_SITE_SETTINGS.navLinks,
+        upcomingEvents: DEMO_SITE_SETTINGS.upcomingEvents,
       },
     });
     console.log(
@@ -317,6 +335,10 @@ async function insertDemoData() {
     copyIntoSections("categ.webp", "categ.webp");
     copyIntoSections("bertp.webp", "bertp.webp");
     copyIntoSections("bag.webp", "bag.webp");
+    copyIntoSections("product2.webp", "promo-slide-1.webp");
+    copyIntoSections("product3.webp", "promo-slide-2.webp");
+    copyIntoSections("product4.webp", "promo-slide-3.webp");
+    copyIntoSections("product5.webp", "promo-slide-4.webp");
     const bagPath = path.join(publicDir, "bag.webp");
     if (fs.existsSync(bagPath)) {
       fs.copyFileSync(bagPath, path.join(sectionsDir, "racket.webp"));
@@ -331,6 +353,12 @@ async function insertDemoData() {
     const categoryMenuDemoContent = JSON.parse(
       JSON.stringify(HOME_SECTION_DEFAULTS.categoryMenu),
     );
+    const promoSliderDemoContent = JSON.parse(
+      JSON.stringify(HOME_SECTION_DEFAULTS.promoSlider),
+    );
+    await prisma.homeSection.deleteMany({
+      where: { name: "upcomingEvents" },
+    });
 
     for (const s of [
       {
@@ -339,13 +367,23 @@ async function insertDemoData() {
         content: HOME_SECTION_DEFAULTS.hero,
       },
       {
-        name: "categoryMenu",
+        name: "promoSlider",
         order: 1,
+        content: promoSliderDemoContent,
+      },
+      {
+        name: "categoryMenu",
+        order: 2,
         content: categoryMenuDemoContent,
       },
       {
-        name: "featuredProducts",
+        name: "productsSection",
         order: 3,
+        content: null,
+      },
+      {
+        name: "featuredProducts",
+        order: 4,
         content: HOME_SECTION_DEFAULTS.featuredProducts,
       },
     ]) {
@@ -358,11 +396,14 @@ async function insertDemoData() {
           order: s.order,
           content: s.content,
         },
-        update: { content: s.content },
+        update: {
+          order: s.order,
+          content: s.content,
+        },
       });
     }
     console.log(
-      "✅ HomeSection hero + categoryMenu + featuredProducts (conteúdo demo) atualizado!",
+      "✅ HomeSection (hero, promo, categorias, produtos, destaque) + próximos eventos em SiteSettings atualizado!",
     );
 
     console.log("✅ All demo data has been inserted!");

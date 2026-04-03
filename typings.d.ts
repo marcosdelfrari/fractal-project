@@ -5,12 +5,14 @@ interface Product {
   price: number;
   rating: number;
   description: string;
+  additionalInfo?: string;
+  material?: string;
   mainImage: string;
   manufacturer: string;
   categoryId: string;
   category: { name: string }?;
   inStock: number;
-  colors?: { name: string; class: string }[];
+  colors?: { name: string; class?: string }[];
   sizes?: string[];
   measureTable?: boolean;
 }
@@ -70,6 +72,8 @@ interface Order {
 interface SingleProductBtnProps {
   product: Product;
   quantityCount: number;
+  selectedColor?: string;
+  selectedSize?: string;
 }
 
 interface WishListItem {

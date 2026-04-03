@@ -38,7 +38,7 @@ const WishItem = ({
   const [userId, setUserId] = useState<string>();
 
   const openProduct = (slug: string): void => {
-    router.push(`/product/${slug}`);
+    router.push(`/produto/${slug}`);
   };
 
   const getUserByEmail = async () => {
@@ -60,7 +60,7 @@ const WishItem = ({
         .delete(`/api/wishlist/${userId}/${productId}`, { method: "DELETE" })
         .then((response) => {
           removeFromWishlist(productId);
-          toast.success("Item removed from your wishlist");
+          toast.success("Item removido da sua lista de desejos");
         });
     }
   };
@@ -105,7 +105,7 @@ const WishItem = ({
         )}
       </td>
       <td>
-        <button className="btn btn-xs bg-zinc-900 text-white hover:text-blue-500 border border-blue-500 hover:bg-white hover:text-blue-500 text-sm">
+        <button className="btn btn-xs bg-[#861201] text-white hover:text-blue-500 border border-blue-500 hover:bg-white hover:text-blue-500 text-sm">
           <FaHeartCrack />
           <span
             className="max-sm:hidden"

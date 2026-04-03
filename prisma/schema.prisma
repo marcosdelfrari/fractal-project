@@ -57,6 +57,8 @@ model customer_order_product {
   customerOrderId String
   productId       String
   quantity        Int
+  selectedColor   String?
+  selectedSize    String?
   customer_order  customer_order @relation(fields: [customerOrderId], references: [id])
   product         product        @relation(fields: [productId], references: [id])
 
@@ -161,7 +163,24 @@ model SiteSettings {
   storeName        String  @default("Fractal Store")
   storeIcon        String? @db.LongText
   storeLogo        String? @db.LongText
+  /// name | logo (desktop)
+  navBrandDesktopMode     String   @default("name")
+  /// name | logo (mobile)
+  navBrandMobileMode      String   @default("name")
+  /// Oculta texto do nome até carregar settings no cliente.
+  hideStoreNameUntilLoaded Boolean @default(true)
+  /// Links da navbar: [{ id, name, href, hasMegaMenu }]
+  navLinks         Json?
   whatsapp         String?
+  facebook         String?
+  instagram        String?
+  x                String?
+  pinterest        String?
+  youtube          String?
+  linkedin         String?
+  tiktok           String?
+  /// delivery_and_pickup | delivery_only | pickup_only
+  checkoutMode     String   @default("delivery_and_pickup")
   address          String? @db.Text
   email            String?
   phone            String?
@@ -169,6 +188,8 @@ model SiteSettings {
   pickupAddresses  Json?
   /// Se false, o checkout oferece apenas retirada na loja (sem entrega).
   deliveryEnabled  Boolean  @default(true)
+  /// Próximos eventos (home, acima do rodapé): { enabled, line1, line2, arrowHref, events }
+  upcomingEvents   Json?
   updatedAt        DateTime @updatedAt
 
   @@map("SiteSettings")
