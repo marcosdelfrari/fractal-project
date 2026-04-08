@@ -22,7 +22,7 @@ const DEMO_SITE_SETTINGS_ID = "default-site-id";
  */
 const DEMO_SITE_SETTINGS = {
   id: DEMO_SITE_SETTINGS_ID,
-  storeName: "Fractal Store",
+  storeName: "Vagabundo Iluminado",
   storeIcon: null,
   storeLogo: null,
   navBrandDesktopMode: "name",
@@ -210,63 +210,63 @@ const demoProducts = [
 const demoCategories = [
   {
     id: "7a241318-624f-48f7-9921-1818f6c20d85",
-    name: "speakers",
+    name: "seda-e-filtros",
   },
   {
     id: "313eee86-bc11-4dc1-8cb0-6b2c2a2a1ccb",
-    name: "trimmers",
+    name: "dichavadores",
   },
   {
     id: "782e7829-806b-489f-8c3a-2689548d7153",
-    name: "laptops",
+    name: "piteiras",
   },
   {
     id: "a6896b67-197c-4b2a-b5e2-93954474d8b4",
-    name: "watches",
+    name: "isqueiros",
   },
   {
     id: "4c2cc9ec-7504-4b7c-8ecd-2379a854a423",
-    name: "headphones",
+    name: "cinzeiros",
   },
   {
     id: "8d2a091c-4b90-4d60-b191-114b895f3e54",
-    name: "juicers",
+    name: "narguile",
   },
   {
     id: "1cb9439a-ea47-4a33-913b-e9bf935bcc0b",
-    name: "earbuds",
+    name: "carvao-e-essencias",
   },
   {
     id: "ada699e5-e764-4da0-8d3e-18a8c8c5ed24",
-    name: "tablets",
+    name: "bongs-e-pipes",
   },
   {
     id: "d30b85e2-e544-4f48-8434-33fe0b591579",
-    name: "phone-gimbals",
+    name: "kits-smoke",
   },
   {
     id: "6c3b8591-b01e-4842-bce1-2f5585bf3a28",
-    name: "mixer-grinders",
+    name: "acessorios",
   },
   {
     id: "659a91b9-3ff6-47d5-9830-5e7ac905b961",
-    name: "cameras",
+    name: "headshop",
   },
   {
     id: "3117a1b0-6369-491e-8b8b-9fdd5ad9912e",
-    name: "smart-phones",
+    name: "tabaco-e-blends",
   },
   {
     id: "da6413b4-22fd-4fbb-9741-d77580dfdcd5",
-    name: "mouses",
+    name: "porta-seda",
   },
   {
     id: "ss6412b4-22fd-4fbb-9741-d77580dfdcd2",
-    name: "computers",
+    name: "limpeza-e-higiene",
   },
   {
     id: "fs6412b4-22fd-4fbb-9741-d77512dfdfa3",
-    name: "printers",
+    name: "incensos-e-ambiente",
   },
 ];
 

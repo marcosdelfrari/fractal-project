@@ -1,8 +1,13 @@
 /** @type {import('next').NextConfig} */
-const apiOrigin = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001").replace(
-  /\/$/,
-  "",
-);
+const rawApiBaseUrl = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.API_BASE_URL ||
+  "http://localhost:3001"
+).trim();
+const normalizedApiBaseUrl = /^https?:\/\//i.test(rawApiBaseUrl)
+  ? rawApiBaseUrl
+  : `http://${rawApiBaseUrl}`;
+const apiOrigin = normalizedApiBaseUrl.replace(/\/$/, "");
 
 const nextConfig = {
     async redirects() {
@@ -26,7 +31,8 @@ const nextConfig = {
         ],
       },
     env: {
-        NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+        NEXT_PUBLIC_API_BASE_URL:
+          process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL,
     },
     async rewrites() {
       return [

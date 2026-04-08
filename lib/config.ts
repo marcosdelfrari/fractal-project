@@ -1,3 +1,6 @@
+const apiBaseUrlEnv =
+  process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL;
+
 // Validate environment variables (only on server side)
 const validateConfig = () => {
   // Only validate on server side (not in browser)
@@ -9,8 +12,10 @@ const validateConfig = () => {
   const errors: string[] = [];
 
   if (isProduction) {
-    if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
-      errors.push("NEXT_PUBLIC_API_BASE_URL is required in production");
+    if (!apiBaseUrlEnv) {
+      errors.push(
+        "NEXT_PUBLIC_API_BASE_URL (or API_BASE_URL) is required in production",
+      );
     }
     if (!process.env.NEXTAUTH_URL) {
       errors.push("NEXTAUTH_URL is required in production");
@@ -37,7 +42,7 @@ if (typeof window === "undefined" && process.env.NODE_ENV === "production") {
 }
 
 const config = {
-  apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001",
+  apiBaseUrl: apiBaseUrlEnv || "http://localhost:3001",
   nextAuthUrl: process.env.NEXTAUTH_URL || "http://localhost:3000",
   isProduction: process.env.NODE_ENV === "production",
   isValid: typeof window === "undefined" ? validateConfig() : true, // Only validate on server
@@ -47,7 +52,14 @@ const config = {
 if (typeof window === "undefined" && process.env.NODE_ENV === "production") {
   console.log("[Config] API Base URL:", config.apiBaseUrl);
   console.log("[Config] NextAuth URL:", config.nextAuthUrl);
-  console.log("[Config] Environment variable NEXT_PUBLIC_API_BASE_URL:", process.env.NEXT_PUBLIC_API_BASE_URL || "NOT SET");
+  console.log(
+    "[Config] Environment variable NEXT_PUBLIC_API_BASE_URL:",
+    process.env.NEXT_PUBLIC_API_BASE_URL || "NOT SET",
+  );
+  console.log(
+    "[Config] Environment variable API_BASE_URL:",
+    process.env.API_BASE_URL || "NOT SET",
+  );
 }
 
 export default config;

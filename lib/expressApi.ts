@@ -6,9 +6,10 @@ export function getExpressApiBase(): string {
   if (typeof window !== "undefined") {
     return "/backend-api";
   }
-  const base = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001").replace(
-    /\/$/,
-    "",
-  );
+  const base = (
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.API_BASE_URL ||
+    "http://localhost:3001"
+  ).replace(/\/$/, "");
   return `${base}/api`;
 }
