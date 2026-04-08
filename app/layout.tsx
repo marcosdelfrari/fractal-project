@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { getServerSession } from "next-auth/next";
-import "svgmap/style.min";
+import "svgmap/dist/svgMap.min.css";
 import SessionProvider from "@/utils/SessionProvider";
 import Header from "@/components/Header";
 import AppShell from "@/components/AppShell";
