@@ -21,12 +21,21 @@ function expressSettingsPath(pathSegments: string[] | undefined): string {
   return suffix ? `/api/settings/${suffix}` : "/api/settings";
 }
 
-/** GET/HEAD: leitura pública (loja, home). Demais métodos: apenas admin. */
+/**
+ * GET/HEAD: leitura pública da vitrine em `/api/settings/public` (DTO + cache no Express).
+ * `GET/HEAD /api/settings/site` redireciona para `/api/settings/public` (legado).
+ * PUT/POST/…: admin no Next e no Express (`requireAdmin`).
+ */
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ path?: string[] }> },
 ) {
   const { path } = await context.params;
+  if (path?.length === 1 && path[0] === "site") {
+    const url = req.nextUrl.clone();
+    url.pathname = "/api/settings/public";
+    return NextResponse.redirect(url, 308);
+  }
   return proxyExpressRequest(req, expressSettingsPath(path));
 }
 
@@ -35,6 +44,11 @@ export async function HEAD(
   context: { params: Promise<{ path?: string[] }> },
 ) {
   const { path } = await context.params;
+  if (path?.length === 1 && path[0] === "site") {
+    const url = req.nextUrl.clone();
+    url.pathname = "/api/settings/public";
+    return NextResponse.redirect(url, 308);
+  }
   return proxyExpressRequest(req, expressSettingsPath(path));
 }
 

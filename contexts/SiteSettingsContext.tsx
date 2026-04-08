@@ -58,7 +58,7 @@ export function SiteSettingsProvider({
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(nextApiAbsolutePath("/api/settings/site"), {
+        const res = await fetch(nextApiAbsolutePath("/api/settings/public"), {
           cache: "no-store",
         });
         if (!res.ok) return;

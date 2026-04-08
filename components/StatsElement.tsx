@@ -19,23 +19,27 @@ const StatsElement = ({
   const trendIcon = isNegativeChange ? <FaArrowDown size={10} /> : <FaArrowUp size={10} />;
 
   return (
-    <div className="w-full bg-white border border-gray-100 flex flex-col p-6 rounded-3xl transition-all duration-300 hover:border-gray-200">
-      <div className="flex items-center justify-between mb-4">
-        <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
+    <div className="w-full bg-white border border-gray-100 flex flex-col p-4 rounded-2xl transition-colors hover:border-gray-200 sm:p-6 sm:rounded-3xl">
+      <div className="mb-3 flex items-center justify-between sm:mb-4">
+        <div className="rounded-full bg-zinc-100 p-2.5 text-zinc-800 sm:bg-[#E3E1D6] sm:p-3">
           {icon}
         </div>
-        <div className={`${trendClassName} px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1`}>
+        <div
+          className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium sm:px-3 sm:py-1 sm:text-xs ${trendClassName}`}
+        >
           {trendIcon}
           {change}
         </div>
       </div>
-      
-      <div className="space-y-1">
-        <h4 className="text-xs font-light tracking-widest text-gray-500 uppercase">
+
+      <div className="space-y-0.5 sm:space-y-1">
+        <h4 className="text-[11px] font-medium uppercase tracking-wide text-zinc-500 sm:text-xs sm:font-light sm:tracking-widest">
           {title}
         </h4>
-        <p className="text-3xl font-bold text-gray-900">{value}</p>
-        <p className="text-[10px] text-gray-400 font-light uppercase tracking-tighter italic">
+        <p className="text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl sm:font-bold">
+          {value}
+        </p>
+        <p className="text-[10px] leading-snug text-zinc-400 sm:tracking-tighter">
           {period}
         </p>
       </div>

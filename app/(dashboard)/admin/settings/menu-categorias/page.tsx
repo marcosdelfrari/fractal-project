@@ -3,7 +3,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { DashboardSidebar } from "@/components";
 import { FaFloppyDisk, FaPlus, FaTrash } from "react-icons/fa6";
-import { getAdminSettingsApiBase, uploadSectionImage } from "@/lib/adminSettingsApi";
+import {
+  getAdminSettingsApiBase,
+  uploadSectionImage,
+} from "@/lib/adminSettingsApi";
 import {
   getCategoryMenuFullConfig,
   type CategoryMenuItem,
@@ -14,7 +17,10 @@ type Row = CategoryMenuItem;
 
 export default function AdminSettingsMenuCategoriasPage() {
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [title, setTitle] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [saving, setSaving] = useState(false);
@@ -56,9 +62,7 @@ export default function AdminSettingsMenuCategoriasPage() {
   }, []);
 
   const updateRow = (id: string, patch: Partial<Row>) => {
-    setRows((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, ...patch } : r)),
-    );
+    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   };
 
   const moveRow = (index: number, delta: -1 | 1) => {
@@ -146,9 +150,9 @@ export default function AdminSettingsMenuCategoriasPage() {
 
   if (loading) {
     return (
-      <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+      <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
         <DashboardSidebar />
-        <div className="flex-1 p-10 flex items-center justify-center">
+        <div className="flex-1 p-10 pb-admin-mobile-nav flex items-center justify-center">
           <p className="text-gray-500">Carregando...</p>
         </div>
       </div>
@@ -156,9 +160,9 @@ export default function AdminSettingsMenuCategoriasPage() {
   }
 
   return (
-    <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+    <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
       <DashboardSidebar />
-      <div className="flex-1 p-10 max-md:p-4 animate-fade-in-up">
+      <div className="flex-1 p-10 max-md:p-4 pb-admin-mobile-nav animate-fade-in-up">
         <SettingsBackHeader
           title="Menu de categorias (home)"
           description="Cards independentes do cadastro de categorias de produto. Cada linha: título no card, link (ex.: /loja/smart-phones ou só smart-phones), imagem e se aparece na home."
@@ -190,7 +194,9 @@ export default function AdminSettingsMenuCategoriasPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h3 className="text-sm font-medium text-gray-900">Cards do carrossel</h3>
+            <h3 className="text-sm font-medium text-gray-900">
+              Cards do carrossel
+            </h3>
             <button
               type="button"
               onClick={addRow}
@@ -203,7 +209,8 @@ export default function AdminSettingsMenuCategoriasPage() {
 
           {rows.length === 0 ? (
             <p className="text-sm text-gray-600 border border-dashed border-gray-200 rounded-lg px-4 py-6 text-center">
-              Nenhum card ainda. Use &quot;Adicionar card&quot; para criar entradas só para esta seção.
+              Nenhum card ainda. Use &quot;Adicionar card&quot; para criar
+              entradas só para esta seção.
             </p>
           ) : (
             <div className="space-y-6">
@@ -214,7 +221,9 @@ export default function AdminSettingsMenuCategoriasPage() {
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs text-gray-400 w-6">{index + 1}.</span>
+                      <span className="text-xs text-gray-400 w-6">
+                        {index + 1}.
+                      </span>
                       <span className="flex gap-1">
                         <button
                           type="button"
@@ -286,7 +295,8 @@ export default function AdminSettingsMenuCategoriasPage() {
                         className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white font-mono"
                       />
                       <p className="text-[10px] text-gray-500 mt-1">
-                        Caminho completo ou slug (vira /loja/slug). URLs http(s) abrem em nova aba.
+                        Caminho completo ou slug (vira /loja/slug). URLs http(s)
+                        abrem em nova aba.
                       </p>
                     </div>
                   </div>

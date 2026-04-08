@@ -1,6 +1,5 @@
 "use client";
 import { DashboardSidebar } from "@/components";
-import apiClient from "@/lib/api";
 import { fetchNextApi } from "@/lib/nextApiOrigin";
 import { isValidEmailAddressFormat, isValidNameOrLastname } from "@/lib/utils";
 import Image from "next/image";
@@ -8,6 +7,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import {
   FaChevronLeft,
   FaTrash,
@@ -20,8 +20,15 @@ import {
   FaMapMarkerAlt,
   FaCommentAlt,
   FaReceipt,
+  FaStore,
 } from "react-icons/fa";
 import { FaBagShopping } from "react-icons/fa6";
+import {
+  getOrderStatusBadgeClasses,
+  getOrderStatusLabel,
+  normalizeOrderStatus,
+} from "@/lib/orderStatusDisplay";
+import { orderIsPickup } from "@/lib/orderFulfillment";
 
 interface OrderProduct {
   id: string;
@@ -62,29 +69,26 @@ const AdminSingleOrder = () => {
     orderNotice: "",
     status: "processing",
     total: 0,
+    deliveryOption: "entrega",
   });
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+  const [deleteOrderOpen, setDeleteOrderOpen] = useState(false);
+
   const params = useParams<{ id: string }>();
   const router = useRouter();
 
   useEffect(() => {
     const fetchOrderData = async () => {
       const response = await fetchNextApi(`/api/orders/${params?.id}`);
-      const data: Order = await response.json();
-      setOrder(data);
-    };
-
-    const fetchOrderProducts = async () => {
-      const response = await apiClient.get(`/api/order-product/${params?.id}`);
-      const data: OrderProduct[] = await response.json();
-      setOrderProducts(data);
+      const data = (await response.json()) as Order & { products?: OrderProduct[] };
+      const { products, ...orderFields } = data;
+      setOrder(orderFields);
+      setOrderProducts(Array.isArray(products) ? products : []);
     };
 
     if (params?.id) {
       fetchOrderData();
-      fetchOrderProducts();
     }
   }, [params?.id]);
 
@@ -103,7 +107,10 @@ const AdminSingleOrder = () => {
       return;
     }
 
-    if (!isValidNameOrLastname(order?.name) || !isValidNameOrLastname(order?.lastname)) {
+    if (
+      !isValidNameOrLastname(order?.name) ||
+      !isValidNameOrLastname(order?.lastname)
+    ) {
       toast.error("Formato de nome ou sobrenome inválido");
       return;
     }
@@ -134,11 +141,14 @@ const AdminSingleOrder = () => {
   };
 
   const deleteOrder = async () => {
-    if (!window.confirm("Tem certeza que deseja excluir este pedido?")) return;
-    
     setIsDeleting(true);
     try {
-      await apiClient.delete(`/api/order-product/${order?.id}`);
+      const itemsRes = await fetchNextApi(`/api/orders/${order?.id}/items`, {
+        method: "DELETE",
+      });
+      if (!itemsRes.ok) {
+        throw new Error("Erro ao remover itens do pedido");
+      }
       await fetchNextApi(`/api/orders/${order?.id}`, { method: "DELETE" });
       toast.success("Pedido excluído com sucesso");
       router.push("/admin/orders");
@@ -146,36 +156,42 @@ const AdminSingleOrder = () => {
       toast.error("Erro ao excluir pedido");
     } finally {
       setIsDeleting(false);
+      setDeleteOrderOpen(false);
     }
   };
+
+  const isPickupOrder = orderIsPickup({
+    deliveryOption: order?.deliveryOption,
+    orderNotice: order?.orderNotice ?? null,
+  });
 
   const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "delivered": return <FaCheck size={10} />;
-      case "cancelled": return <FaTrash size={10} />;
-      case "shipped": return <FaTruck size={10} />;
-      default: return <FaClock size={10} />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "delivered": return "bg-green-50 text-green-600 border-green-100";
-      case "cancelled": return "bg-red-50 text-red-600 border-red-100";
-      case "shipped": return "bg-orange-50 text-orange-600 border-orange-100";
-      case "processing": return "bg-blue-50 text-blue-600 border-blue-100";
-      default: return "bg-[#E3E1D6] text-gray-600 border-gray-100";
+    switch (normalizeOrderStatus(status)) {
+      case "delivered":
+        return <FaCheck size={10} />;
+      case "cancelled":
+        return <FaTrash size={10} />;
+      case "shipped":
+        return <FaTruck size={10} />;
+      case "ready_for_pickup":
+        return <FaStore size={10} />;
+      case "pending":
+        return <FaClock size={10} />;
+      case "processing":
+        return <FaClock size={10} />;
+      default:
+        return <FaClock size={10} />;
     }
   };
 
   return (
-    <div className="bg-[#E3E1D6] flex min-h-screen max-w-screen-2xl mx-auto max-lg:flex-col animate-fade-in-up">
+    <div className="bg-white flex min-h-screen max-w-screen-2xl mx-auto max-lg:flex-col animate-fade-in-up">
       <DashboardSidebar />
-      <div className="flex-1 p-10 max-md:p-4">
+      <div className="flex-1 p-10 max-md:p-4 pb-admin-mobile-nav">
         {/* Header Section */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-6 mb-10">
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={() => router.push("/admin/orders")}
               className="p-3 bg-[#E3E1D6] rounded-full text-gray-400 hover:text-gray-900 transition-colors"
             >
@@ -188,9 +204,10 @@ const AdminSingleOrder = () => {
               Detalhes do Pedido
             </h1>
           </div>
-          
+
           <button
-            onClick={deleteOrder}
+            type="button"
+            onClick={() => setDeleteOrderOpen(true)}
             disabled={isDeleting}
             className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-red-100 text-[10px] uppercase tracking-widest font-medium text-red-400 hover:bg-red-50 hover:text-red-600 transition-all duration-300 disabled:opacity-50"
           >
@@ -208,22 +225,31 @@ const AdminSingleOrder = () => {
                 <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                   <FaReceipt size={12} />
                 </div>
-                <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Itens do Pedido</h2>
+                <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">
+                  Itens do Pedido
+                </h2>
               </div>
 
               <div className="divide-y divide-gray-50">
                 {orderProducts?.map((item) => (
-                  <div className="flex items-center py-6 first:pt-0" key={item?.id}>
+                  <div
+                    className="flex items-center py-6 first:pt-0"
+                    key={item?.id}
+                  >
                     <div className="relative w-20 h-20 rounded-2xl overflow-hidden border border-gray-50 flex-shrink-0">
                       <Image
-                        src={item?.product?.mainImage ? `/${item?.product?.mainImage}` : "/product_placeholder.jpg"}
+                        src={
+                          item?.product?.mainImage
+                            ? `/${item?.product?.mainImage}`
+                            : "/product_placeholder.jpg"
+                        }
                         alt={item?.product?.title}
                         fill
                         className="object-cover"
                       />
                     </div>
                     <div className="ml-6 flex-1">
-                      <Link 
+                      <Link
                         href={`/produto/${item?.product?.slug}`}
                         className="text-sm font-medium text-gray-900 hover:underline transition-all"
                       >
@@ -270,7 +296,9 @@ const AdminSingleOrder = () => {
                   <span className="text-gray-900">R$ 5</span>
                 </div>
                 <div className="flex justify-between items-end pt-4">
-                  <span className="text-sm font-light uppercase tracking-[0.2em] text-gray-900">Total do Pedido</span>
+                  <span className="text-sm font-light uppercase tracking-[0.2em] text-gray-900">
+                    Total do Pedido
+                  </span>
                   <span className="text-3xl font-bold text-gray-900 tracking-tighter">
                     R$ {order?.total + order?.total / 5 + 5}
                   </span>
@@ -284,26 +312,36 @@ const AdminSingleOrder = () => {
                 <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                   <FaUser size={12} />
                 </div>
-                <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Informações do Cliente</h2>
+                <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">
+                  Informações do Cliente
+                </h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
-                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Nome</label>
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                    Nome
+                  </label>
                   <input
                     type="text"
                     className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.name}
-                    onChange={(e) => setOrder({ ...order, name: e.target.value })}
+                    onChange={(e) =>
+                      setOrder({ ...order, name: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Sobrenome</label>
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                    Sobrenome
+                  </label>
                   <input
                     type="text"
                     className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.lastname}
-                    onChange={(e) => setOrder({ ...order, lastname: e.target.value })}
+                    onChange={(e) =>
+                      setOrder({ ...order, lastname: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -314,7 +352,9 @@ const AdminSingleOrder = () => {
                     type="email"
                     className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.email}
-                    onChange={(e) => setOrder({ ...order, email: e.target.value })}
+                    onChange={(e) =>
+                      setOrder({ ...order, email: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -325,74 +365,115 @@ const AdminSingleOrder = () => {
                     type="text"
                     className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.phone}
-                    onChange={(e) => setOrder({ ...order, phone: e.target.value })}
+                    onChange={(e) =>
+                      setOrder({ ...order, phone: e.target.value })
+                    }
                   />
                 </div>
               </div>
             </div>
 
-            {/* Delivery Details */}
+            {/* Entrega ou retirada */}
             <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 transition-all duration-300">
               <div className="flex items-center gap-3 mb-10">
                 <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
-                  <FaMapMarkerAlt size={12} />
+                  {isPickupOrder ? (
+                    <FaStore size={12} />
+                  ) : (
+                    <FaMapMarkerAlt size={12} />
+                  )}
                 </div>
-                <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Endereço de Entrega</h2>
+                <div>
+                  <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">
+                    {isPickupOrder
+                      ? "Endereço da retirada"
+                      : "Endereço de entrega"}
+                  </h2>
+                  <p className="text-xs text-gray-400 font-light mt-1 normal-case tracking-normal">
+                    {isPickupOrder
+                      ? "Local onde o cliente retira o pedido"
+                      : "Dados para envio ao domicílio"}
+                  </p>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Empresa (Opcional)</label>
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                    Empresa (Opcional)
+                  </label>
                   <input
                     type="text"
                     className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.company}
-                    onChange={(e) => setOrder({ ...order, company: e.target.value })}
+                    onChange={(e) =>
+                      setOrder({ ...order, company: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Endereço</label>
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                    Endereço
+                  </label>
                   <input
                     type="text"
                     className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.adress}
-                    onChange={(e) => setOrder({ ...order, adress: e.target.value })}
+                    onChange={(e) =>
+                      setOrder({ ...order, adress: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Complemento</label>
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                    Complemento
+                  </label>
                   <input
                     type="text"
                     className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.apartment}
-                    onChange={(e) => setOrder({ ...order, apartment: e.target.value })}
+                    onChange={(e) =>
+                      setOrder({ ...order, apartment: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Cidade</label>
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                    Cidade
+                  </label>
                   <input
                     type="text"
                     className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.city}
-                    onChange={(e) => setOrder({ ...order, city: e.target.value })}
+                    onChange={(e) =>
+                      setOrder({ ...order, city: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">CEP</label>
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                    CEP
+                  </label>
                   <input
                     type="text"
                     className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.postalCode}
-                    onChange={(e) => setOrder({ ...order, postalCode: e.target.value })}
+                    onChange={(e) =>
+                      setOrder({ ...order, postalCode: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">País</label>
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                    País
+                  </label>
                   <input
                     type="text"
                     className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                     value={order?.country}
-                    onChange={(e) => setOrder({ ...order, country: e.target.value })}
+                    onChange={(e) =>
+                      setOrder({ ...order, country: e.target.value })
+                    }
                   />
                 </div>
               </div>
@@ -404,12 +485,16 @@ const AdminSingleOrder = () => {
                 <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                   <FaCommentAlt size={12} />
                 </div>
-                <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Observações do Pedido</h2>
+                <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">
+                  Observações do Pedido
+                </h2>
               </div>
               <textarea
                 className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-3xl py-6 px-8 transition-all duration-300 text-gray-900 h-32 leading-relaxed resize-none"
                 value={order?.orderNotice || ""}
-                onChange={(e) => setOrder({ ...order, orderNotice: e.target.value })}
+                onChange={(e) =>
+                  setOrder({ ...order, orderNotice: e.target.value })
+                }
                 placeholder="Nenhuma observação informada."
               ></textarea>
             </div>
@@ -423,37 +508,63 @@ const AdminSingleOrder = () => {
                 <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                   <FaTruck size={12} />
                 </div>
-                <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Status</h2>
+                <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">
+                  Status
+                </h2>
               </div>
 
               <div className="space-y-6">
-                <div className={`flex items-center gap-3 px-6 py-4 rounded-2xl border ${getStatusColor(order?.status)}`}>
-                  {getStatusIcon(order?.status)}
-                  <span className="text-[10px] uppercase font-bold tracking-[0.2em]">{order?.status}</span>
+                <div
+                  className={`flex items-center gap-3 px-6 py-4 rounded-2xl border ${getOrderStatusBadgeClasses(
+                    order?.status || "",
+                  )}`}
+                >
+                  {getStatusIcon(order?.status || "")}
+                  <span className="text-xs font-semibold tracking-wide normal-case">
+                    {getOrderStatusLabel(order?.status || "")}
+                  </span>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Alterar Status</label>
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                    Alterar Status
+                  </label>
                   <select
                     className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 appearance-none cursor-pointer text-sm"
                     value={order?.status}
-                    onChange={(e) => setOrder({ ...order, status: e.target.value as "pending" | "processing" | "shipped" | "delivered" | "cancelled" })}
+                    onChange={(e) =>
+                      setOrder({
+                        ...order,
+                        status: e.target.value as
+                          | "pending"
+                          | "processing"
+                          | "shipped"
+                          | "ready_for_pickup"
+                          | "delivered"
+                          | "cancelled",
+                      })
+                    }
                   >
                     <option value="pending">Pendente</option>
-                    <option value="processing">Em Processamento</option>
+                    <option value="processing">Em processamento</option>
                     <option value="shipped">Enviado</option>
+                    <option value="ready_for_pickup">Pronto para retirada</option>
                     <option value="delivered">Entregue</option>
                     <option value="cancelled">Cancelado</option>
                   </select>
                 </div>
 
                 <div className="pt-4 border-t border-gray-50">
-                  <p className="text-[10px] text-gray-300 uppercase tracking-widest mb-1">Data do Pedido</p>
+                  <p className="text-[10px] text-gray-300 uppercase tracking-widest mb-1">
+                    Data do Pedido
+                  </p>
                   <p className="text-sm font-medium text-gray-900">
-                    {order?.dateTime ? new Date(order.dateTime).toLocaleString('pt-BR') : "---"}
+                    {order?.dateTime
+                      ? new Date(order.dateTime).toLocaleString("pt-BR")
+                      : "---"}
                   </p>
                 </div>
-                
+
                 <div className="pt-6">
                   <button
                     onClick={updateOrder}
@@ -468,12 +579,28 @@ const AdminSingleOrder = () => {
 
             {/* Order Summary ID */}
             <div className="p-8 bg-[#E3E1D6] rounded-[2rem] border border-gray-100">
-              <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-2 font-light italic">Identificação Única</p>
-              <p className="text-[10px] font-mono text-gray-900 break-all">{order?.id}</p>
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-2 font-light italic">
+                Identificação Única
+              </p>
+              <p className="text-[10px] font-mono text-gray-900 break-all">
+                {order?.id}
+              </p>
             </div>
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteOrderOpen}
+        onClose={() => !isDeleting && setDeleteOrderOpen(false)}
+        title="Excluir pedido?"
+        description="Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        variant="danger"
+        isBusy={isDeleting}
+        onConfirm={deleteOrder}
+      />
     </div>
   );
 };

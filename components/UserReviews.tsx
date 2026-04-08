@@ -14,6 +14,7 @@ import {
 } from "react-icons/fa";
 import Link from "next/link";
 import Image from "next/image";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 interface Product {
   id: string;
@@ -69,6 +70,8 @@ export default function UserReviews() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [reviewDeleteId, setReviewDeleteId] = useState<string | null>(null);
+  const [isDeletingReview, setIsDeletingReview] = useState(false);
 
   const [filters, setFilters] = useState<Filters>({
     rating: "",
@@ -158,12 +161,15 @@ export default function UserReviews() {
     fetchReviews(1, clearedFilters);
   };
 
-  const handleDelete = async (reviewId: string) => {
-    if (!confirm("Tem certeza que deseja excluir esta avaliação?")) {
-      return;
-    }
+  const openDeleteReview = (reviewId: string) => {
+    setReviewDeleteId(reviewId);
+  };
 
+  const confirmDeleteReview = async () => {
+    if (!reviewDeleteId) return;
+    const reviewId = reviewDeleteId;
     try {
+      setIsDeletingReview(true);
       setError(null);
       setSuccessMessage(null);
 
@@ -175,19 +181,18 @@ export default function UserReviews() {
       }
 
       setSuccessMessage("Avaliação excluída com sucesso!");
-
-      // Refresh reviews
       await fetchReviews();
-
-      // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccessMessage(null);
       }, 3000);
+      setReviewDeleteId(null);
     } catch (err) {
       console.error("Erro ao excluir avaliação:", err);
       setError(
         err instanceof Error ? err.message : "Erro ao excluir avaliação",
       );
+    } finally {
+      setIsDeletingReview(false);
     }
   };
 
@@ -268,7 +273,7 @@ export default function UserReviews() {
 
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 px-5 py-3 bg-white border border-gray-200 rounded-2xl shadow-md hover:bg-[#E3E1D6] hover:border-gray-300 transition-all duration-300 w-fit font-light tracking-wide"
+          className="flex items-center gap-2 px-5 py-3 bg-white border-2 border-black rounded-2xl hover:bg-[#E3E1D6] transition-all duration-300 w-fit font-light tracking-wide"
         >
           <FaFilter />
           Filtros
@@ -327,7 +332,7 @@ export default function UserReviews() {
 
       {/* Filters */}
       {showFilters && (
-        <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="mb-8 bg-white rounded-lg border-2 border-black p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">
             Filtrar Avaliações
           </h3>
@@ -416,7 +421,7 @@ export default function UserReviews() {
 
       {/* Reviews List */}
       {reviews.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+        <div className="bg-white rounded-lg border-2 border-black p-8 text-center">
           <div className="text-gray-400 mb-4">
             <FaStar className="mx-auto h-12 w-12" />
           </div>
@@ -441,7 +446,7 @@ export default function UserReviews() {
             {reviews.map((review) => (
               <div
                 key={review.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-300"
+                className="bg-white rounded-lg border-2 border-black p-6 transition-colors duration-300"
               >
                 <div className="flex items-start gap-4">
                   {/* Product Image */}
@@ -485,7 +490,7 @@ export default function UserReviews() {
                           <FaEye />
                         </Link>
                         <button
-                          onClick={() => handleDelete(review.id)}
+                          onClick={() => openDeleteReview(review.id)}
                           className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                           title="Excluir avaliação"
                         >
@@ -520,7 +525,7 @@ export default function UserReviews() {
           )}
 
           {/* Reviews Summary */}
-          <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="mt-8 bg-white rounded-lg border-2 border-black p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               Resumo das Avaliações
             </h3>
@@ -553,6 +558,18 @@ export default function UserReviews() {
           </div>
         </>
       )}
+
+      <ConfirmDialog
+        open={reviewDeleteId !== null}
+        onClose={() => !isDeletingReview && setReviewDeleteId(null)}
+        title="Excluir avaliação?"
+        description="Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        variant="danger"
+        isBusy={isDeletingReview}
+        onConfirm={confirmDeleteReview}
+      />
     </div>
   );
 }

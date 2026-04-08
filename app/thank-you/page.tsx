@@ -19,7 +19,7 @@ export default function ThankYouPage() {
           </p>
         </div>
 
-        <div className="bg-[#E3E1D6] rounded-2xl p-8 border border-gray-100 shadow-sm">
+        <div className="bg-[#E3E1D6] rounded-2xl p-8 border-2 border-black">
           <p className="text-gray-600 mb-8 font-light leading-relaxed">
             Enviaremos uma confirmação para o seu e-mail e atualizações pelo
             WhatsApp. Você pode acompanhar o status do seu pedido na sua conta.
@@ -28,14 +28,14 @@ export default function ThankYouPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
             <Link
               href="/usuario/pedidos"
-              className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-sm uppercase tracking-wider font-medium rounded-full text-white bg-black hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1"
+              className="inline-flex items-center justify-center px-8 py-3 border-2 border-black text-sm uppercase tracking-wider font-medium rounded-full text-white bg-black hover:bg-gray-800 transition-all duration-300"
             >
               <FaShoppingBag className="mr-2" />
               Ver Meus Pedidos
             </Link>
             <Link
               href="/"
-              className="inline-flex items-center justify-center px-8 py-3 border border-gray-300 text-sm uppercase tracking-wider font-medium rounded-full text-gray-700 bg-white hover:bg-[#E3E1D6] hover:border-gray-400 transition-all duration-300 group"
+              className="inline-flex items-center justify-center px-8 py-3 border-2 border-black text-sm uppercase tracking-wider font-medium rounded-full text-gray-700 bg-white hover:bg-[#E3E1D6] transition-all duration-300 group"
             >
               Continuar Comprando
               <FaArrowRight className="ml-2 text-xs group-hover:translate-x-1 transition-transform" />

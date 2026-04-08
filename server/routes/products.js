@@ -6,17 +6,17 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
-  searchProducts,
   getProductById,
 } = require("../controllers/products");
 
-router.route("/").get(getAllProducts).post(createProduct);
+const { requireAdmin, requireAdminIfQueryAdmin } = require("../middleware/auth");
 
+router.route("/").get(requireAdminIfQueryAdmin, getAllProducts).post(requireAdmin, createProduct);
 
 router
   .route("/:id")
   .get(getProductById)
-  .put(updateProduct)
-  .delete(deleteProduct);
+  .put(requireAdmin, updateProduct)
+  .delete(requireAdmin, deleteProduct);
 
 module.exports = router;

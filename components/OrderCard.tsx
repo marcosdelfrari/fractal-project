@@ -18,7 +18,13 @@ import {
   FaClock,
   FaTruck,
   FaTimesCircle,
+  FaStore,
 } from "react-icons/fa";
+import {
+  getOrderStatusBadgeClasses,
+  getOrderStatusLabel,
+  normalizeOrderStatus,
+} from "@/lib/orderStatusDisplay";
 
 interface Product {
   id: string;
@@ -72,7 +78,7 @@ const OrderCard = ({
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(value / 100);
+    }).format(value);
   };
 
   const formatDate = (dateString: string) => {
@@ -86,47 +92,21 @@ const OrderCard = ({
   };
 
   const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (normalizeOrderStatus(status)) {
       case "delivered":
-        return <FaCheckCircle className="text-green-500" />;
+        return <FaCheckCircle className="text-emerald-600" />;
+      case "ready_for_pickup":
+        return <FaStore className="text-teal-600" />;
       case "shipped":
-        return <FaTruck className="text-blue-500" />;
+        return <FaTruck className="text-sky-600" />;
       case "processing":
-        return <FaClock className="text-yellow-500" />;
+        return <FaClock className="text-blue-600" />;
       case "cancelled":
-        return <FaTimesCircle className="text-red-500" />;
+        return <FaTimesCircle className="text-red-600" />;
+      case "pending":
+        return <FaClock className="text-amber-600" />;
       default:
-        return <FaClock className="text-gray-500" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "delivered":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "shipped":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "processing":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "cancelled":
-        return "bg-red-100 text-red-800 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "delivered":
-        return "Entregue";
-      case "shipped":
-        return "Enviado";
-      case "processing":
-        return "Processando";
-      case "cancelled":
-        return "Cancelado";
-      default:
-        return status;
+        return <FaClock className="text-gray-600" />;
     }
   };
 
@@ -137,7 +117,7 @@ const OrderCard = ({
 
   return (
     <div
-      className={`bg-white rounded-2xl shadow-md border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-300 ${className}`}
+      className={`bg-white rounded-2xl border-2 border-black transition-all duration-300 ${className}`}
     >
       {/* Header */}
       <div className="p-6 border-b border-gray-100">
@@ -157,13 +137,13 @@ const OrderCard = ({
           </div>
           <div className="flex items-center gap-2">
             <span
-              className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+              className={`px-3 py-1 rounded-full text-xs font-medium border ${getOrderStatusBadgeClasses(
                 order.status,
               )}`}
             >
               <span className="flex items-center gap-1">
                 {getStatusIcon(order.status)}
-                {getStatusText(order.status)}
+                {getOrderStatusLabel(order.status)}
               </span>
             </span>
           </div>
@@ -273,7 +253,7 @@ export const OrderCardExample = () => {
     },
     status: "delivered",
     orderNotice: "Entregar após 18h",
-    total: 9999,
+    total: 79.97,
     dateTime: "2024-01-15T10:30:00.000Z",
     products: [
       {
@@ -284,7 +264,7 @@ export const OrderCardExample = () => {
           title: "Smartphone Samsung Galaxy S23",
           mainImage:
             "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=100&h=100&fit=crop",
-          price: 2999,
+          price: 29.99,
           slug: "smartphone-samsung-galaxy-s23",
         },
       },
@@ -296,7 +276,7 @@ export const OrderCardExample = () => {
           title: "Fone de Ouvido Bluetooth",
           mainImage:
             "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&h=100&fit=crop",
-          price: 1999,
+          price: 19.99,
           slug: "fone-ouvido-bluetooth",
         },
       },

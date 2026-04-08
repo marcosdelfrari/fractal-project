@@ -30,3 +30,15 @@
   margin: 0 1px !important;
   bottom: -60px !important;
 }
+
+/*
+ * Admin mobile: espaço inferior para a nav flutuante.
+ * Fora do @layer e com !important para vencer o shorthand `padding` de p-10 / max-md:p-4.
+ */
+@media (max-width: 1023px) {
+  .pb-admin-mobile-nav {
+    padding-bottom: calc(
+      6.5rem + max(1.25rem, env(safe-area-inset-bottom, 0px))
+    ) !important;
+  }
+}

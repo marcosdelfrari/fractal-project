@@ -117,9 +117,9 @@ const GROUPS: SettingsGroup[] = [
 
 const AdminSettingsPage = () => {
   return (
-    <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+    <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
       <DashboardSidebar />
-      <div className="flex-1 p-10 max-md:p-4 animate-fade-in-up">
+      <div className="flex-1 p-10 max-md:p-4 pb-admin-mobile-nav animate-fade-in-up">
         <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-10">
           <div className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-900 shadow-sm">
             <FaGear size={16} aria-hidden />

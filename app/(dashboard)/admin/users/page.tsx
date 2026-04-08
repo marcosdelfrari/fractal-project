@@ -12,7 +12,8 @@ const DashboardUsers = () => {
 
   useEffect(() => {
     // sending API request for all users
-    apiClient.get("/api/users")
+    apiClient
+      .get("/api/users")
       .then((res) => {
         return res.json();
       })
@@ -33,9 +34,9 @@ const DashboardUsers = () => {
   }, [users, searchQuery]);
 
   return (
-    <div className="bg-[#E3E1D6] flex min-h-screen max-w-screen-2xl mx-auto max-lg:flex-col animate-fade-in-up">
+    <div className="bg-white flex min-h-screen max-w-screen-2xl mx-auto max-lg:flex-col animate-fade-in-up">
       <DashboardSidebar />
-      <div className="flex-1 p-10 max-md:p-4">
+      <div className="flex-1 p-10 max-md:p-4 pb-admin-mobile-nav">
         {/* Header Section */}
         <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-10">
           <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
@@ -61,7 +62,10 @@ const DashboardUsers = () => {
               autoComplete="off"
             />
           </div>
-          <Link href="/admin/users/new" className="shrink-0 self-end sm:self-auto">
+          <Link
+            href="/admin/users/new"
+            className="shrink-0 self-end sm:self-auto"
+          >
             <button
               type="button"
               className="flex items-center justify-center rounded-full bg-black px-6 py-3 text-[11px] uppercase tracking-widest font-medium text-white hover:bg-zinc-800 transition-all duration-300"
@@ -78,11 +82,18 @@ const DashboardUsers = () => {
               <tr>
                 <th className="py-4 px-6 text-[11px] font-light tracking-widest text-gray-500 uppercase">
                   <label>
-                    <input type="checkbox" className="checkbox checkbox-sm rounded-md" />
+                    <input
+                      type="checkbox"
+                      className="checkbox checkbox-sm rounded-md"
+                    />
                   </label>
                 </th>
-                <th className="py-4 text-[11px] font-light tracking-widest text-gray-500 uppercase">Email</th>
-                <th className="py-4 text-[11px] font-light tracking-widest text-gray-500 uppercase">Cargo</th>
+                <th className="py-4 text-[11px] font-light tracking-widest text-gray-500 uppercase">
+                  Email
+                </th>
+                <th className="py-4 text-[11px] font-light tracking-widest text-gray-500 uppercase">
+                  Cargo
+                </th>
                 <th className="py-4"></th>
               </tr>
             </thead>
@@ -100,24 +111,34 @@ const DashboardUsers = () => {
                 </tr>
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-[#E3E1D6]/50 transition-colors">
+                  <tr
+                    key={user.id}
+                    className="hover:bg-[#E3E1D6]/50 transition-colors"
+                  >
                     <th className="px-6">
                       <label>
-                        <input type="checkbox" className="checkbox checkbox-sm rounded-md" />
+                        <input
+                          type="checkbox"
+                          className="checkbox checkbox-sm rounded-md"
+                        />
                       </label>
                     </th>
 
                     <td className="py-4">
                       <div className="flex items-center gap-3">
-                        <p className="font-medium text-gray-900">{user?.email}</p>
+                        <p className="font-medium text-gray-900">
+                          {user?.email}
+                        </p>
                       </div>
                     </td>
                     <td className="py-4">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider ${
-                        user?.role === 'admin' 
-                          ? 'bg-blue-50 text-blue-600 border border-blue-100' 
-                          : 'bg-[#E3E1D6] text-gray-600 border border-gray-100'
-                      }`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider ${
+                          user?.role === "admin"
+                            ? "bg-blue-50 text-blue-600 border border-blue-100"
+                            : "bg-[#E3E1D6] text-gray-600 border border-gray-100"
+                        }`}
+                      >
                         {user?.role}
                       </span>
                     </td>

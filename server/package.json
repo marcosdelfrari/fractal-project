@@ -6,25 +6,21 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node app.js",
-    "build": "prisma generate --schema=./prisma/schema.prisma",
-    "postinstall": "prisma generate --schema=./prisma/schema.prisma",
     "logs": "node view-logs.js",
     "logs:access": "node view-logs.js access",
     "logs:error": "node view-logs.js error",
     "logs:security": "node view-logs.js security",
     "logs:analyze": "node view-logs.js analyze",
-    "prisma:generate": "prisma generate --schema=./prisma/schema.prisma",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:migrate:deploy": "prisma migrate deploy",
-    "prisma:studio": "prisma studio",
     "migrate:validate": "node scripts/migration-validator.js validate",
     "migrate:backup": "node scripts/migration-validator.js backup",
     "migrate:safe": "node scripts/migration-validator.js safe-migrate",
     "migrate:fix": "node scripts/fix-migrations.js",
+    "prisma:migrate:deploy": "npm --prefix .. run prisma:migrate:deploy",
+    "prisma:generate": "npm --prefix .. run prisma:generate",
     "db:backup": "node scripts/backup-database.js",
     "db:restore": "node scripts/restore-database.js",
     "db:seed": "node utills/insertDemoData.js",
-    "db:setup": "npm run prisma:migrate:deploy && npm run db:seed",
+    "db:setup": "npm --prefix .. run prisma:migrate:deploy && npm run db:seed",
     "install:prod": "npm install --omit=dev",
     "install:dev": "npm install"
   },
@@ -32,7 +28,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^5.12.1",
     "axios": "^1.12.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -42,7 +37,6 @@
     "morgan": "^1.10.1",
     "mysql": "^2.18.1",
     "nanoid": "^3.3.7",
-    "prisma": "^5.12.1",
     "resend": "^6.2.0"
   }
 }

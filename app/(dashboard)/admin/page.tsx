@@ -33,8 +33,16 @@ const formatIntegerBR = (value: number) =>
   new Intl.NumberFormat("pt-BR").format(value);
 
 const getMonthRange = (referenceDate: Date) => {
-  const start = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
-  const end = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 1);
+  const start = new Date(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth(),
+    1,
+  );
+  const end = new Date(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth() + 1,
+    1,
+  );
   return { start, end };
 };
 
@@ -125,9 +133,15 @@ const AdminDashboardPage = async () => {
   const currentMonthRevenue = currentMonthRevenueAggregate._sum.total ?? 0;
   const previousMonthRevenue = previousMonthRevenueAggregate._sum.total ?? 0;
 
-  const ordersChange = toPercentageChange(currentMonthOrders, previousMonthOrders);
+  const ordersChange = toPercentageChange(
+    currentMonthOrders,
+    previousMonthOrders,
+  );
   const usersChange = toPercentageChange(currentMonthUsers, previousMonthUsers);
-  const revenueChange = toPercentageChange(currentMonthRevenue, previousMonthRevenue);
+  const revenueChange = toPercentageChange(
+    currentMonthRevenue,
+    previousMonthRevenue,
+  );
   const averageTicket =
     totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
 
@@ -135,69 +149,68 @@ const AdminDashboardPage = async () => {
     totalOrders > 0 ? ((pendingOrders / totalOrders) * 100).toFixed(1) : "0.0";
 
   return (
-    <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+    <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
       <DashboardSidebar />
-      <div className="flex-1 p-10 max-md:p-4 animate-fade-in-up">
-        {/* Header Section */}
-        <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-10">
-          <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
+      <div className="flex-1 animate-fade-in-up px-4 pt-6 pb-admin-mobile-nav sm:px-6 lg:p-10 lg:pb-10">
+        <div className="mb-6 flex items-center gap-2 border-b border-zinc-100 pb-4 sm:mb-8 sm:gap-3 sm:pb-6 lg:mb-10">
+          <div className="rounded-full bg-zinc-100 p-2 text-zinc-800 sm:bg-[#E3E1D6] sm:p-3">
             <FaChartPie size={16} />
           </div>
-          <h1 className="text-lg font-light tracking-widest text-gray-900 uppercase">
-            Visão Geral do Painel
+          <h1 className="text-base font-medium tracking-wide text-zinc-900 sm:text-lg sm:font-light sm:tracking-widest sm:uppercase">
+            Visão geral
           </h1>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-10">
-          <StatsElement 
-            title="Total de Pedidos" 
-            value={formatIntegerBR(totalOrders)} 
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 xl:gap-8 lg:mb-10">
+          <StatsElement
+            title="Total de Pedidos"
+            value={formatIntegerBR(totalOrders)}
             change={ordersChange}
             period="Mês atual vs mês anterior"
-            icon={<FaBagShopping size={16} />} 
+            icon={<FaBagShopping size={16} />}
           />
-          <StatsElement 
-            title="Total de Usuários" 
-            value={formatIntegerBR(totalUsers)} 
+          <StatsElement
+            title="Total de Usuários"
+            value={formatIntegerBR(totalUsers)}
             change={usersChange}
             period="Cadastros no mês vs mês anterior"
-            icon={<FaUsers size={16} />} 
+            icon={<FaUsers size={16} />}
           />
-          <StatsElement 
-            title="Faturamento" 
-            value={formatCurrencyBRL(totalRevenue)} 
+          <StatsElement
+            title="Faturamento"
+            value={formatCurrencyBRL(totalRevenue)}
             change={revenueChange}
             period="Receita no mês vs mês anterior"
-            icon={<FaChartLine size={16} />} 
+            icon={<FaChartLine size={16} />}
           />
         </div>
 
-        {/* Large Card Section */}
-        <div className="w-full bg-white border border-gray-100 rounded-[2.5rem] p-12 flex flex-col justify-center items-center text-center">
-          <div className="mb-6 p-6 bg-[#E3E1D6] rounded-full text-gray-900">
-            <FaClockRotateLeft size={32} />
+        <div className="flex w-full flex-col items-center rounded-2xl border border-zinc-100 bg-zinc-50/50 px-5 py-8 text-center sm:rounded-3xl sm:bg-white sm:p-10 sm:py-12 lg:rounded-[2.5rem] lg:p-12">
+          <div className="mb-4 rounded-full bg-zinc-100 p-4 text-zinc-800 sm:mb-6 sm:bg-[#E3E1D6] sm:p-6">
+            <FaClockRotateLeft className="h-7 w-7 sm:h-8 sm:w-8" />
           </div>
-          <h2 className="text-sm font-light tracking-widest text-gray-500 uppercase mb-2">
-            Pedidos Pendentes
+          <h2 className="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 sm:mb-2 sm:text-sm sm:font-light sm:tracking-widest">
+            Pedidos pendentes
           </h2>
-          <p className="text-6xl font-bold text-gray-900 mb-4 tracking-tighter">
+          <p className="mb-3 text-4xl font-semibold tracking-tight text-zinc-900 sm:mb-4 sm:text-6xl sm:font-bold">
             {formatIntegerBR(pendingOrders)}
           </p>
           <div
-            className={`font-medium flex gap-x-1.5 items-center px-4 py-1.5 rounded-full text-sm ${
-              pendingOrders > 0 ? "text-amber-600 bg-amber-50" : "text-green-600 bg-green-50"
+            className={`flex items-center gap-x-1.5 rounded-full px-3 py-1 text-xs font-medium sm:text-sm ${
+              pendingOrders > 0
+                ? "bg-amber-50 text-amber-700"
+                : "bg-emerald-50 text-emerald-700"
             }`}
           >
             {pendingOrders > 0 ? (
-              <FaArrowUp className="text-xs" />
+              <FaArrowUp className="text-[10px]" />
             ) : (
-              <FaArrowDown className="text-xs" />
+              <FaArrowDown className="text-[10px]" />
             )}
-            <span>{pendingShare}% dos pedidos estão pendentes</span>
+            <span>{pendingShare}% do total em aberto</span>
           </div>
-          <p className="mt-8 text-xs text-gray-400 font-light max-w-sm">
-            Ticket médio geral: {formatCurrencyBRL(averageTicket)}. Dados consultados diretamente do banco em tempo real.
+          <p className="mt-5 max-w-sm text-xs leading-relaxed text-zinc-500 sm:mt-8">
+            Ticket médio: {formatCurrencyBRL(averageTicket)}
           </p>
         </div>
       </div>

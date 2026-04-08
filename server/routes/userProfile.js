@@ -2,6 +2,7 @@ const express = require("express");
 const rateLimit = require("express-rate-limit");
 const router = express.Router();
 const userProfileController = require("../controllers/userProfile");
+const { requireSelfOrAdmin } = require("../middleware/auth");
 
 /**
  * Rotas para gerenciamento de perfil do usuário
@@ -68,8 +69,9 @@ const updateRateLimit = rateLimit({
  */
 router.get(
   "/:id/profile",
+  requireSelfOrAdmin("id"),
   profileRateLimit,
-  userProfileController.getUserProfile
+  userProfileController.getUserProfile,
 );
 
 /**
@@ -128,8 +130,9 @@ router.get(
  */
 router.put(
   "/:id/profile",
+  requireSelfOrAdmin("id"),
   updateRateLimit,
-  userProfileController.updateUserProfile
+  userProfileController.updateUserProfile,
 );
 
 /**
@@ -165,7 +168,12 @@ router.put(
  *   }
  * }
  */
-router.get("/:id/stats", profileRateLimit, userProfileController.getUserStats);
+router.get(
+  "/:id/stats",
+  requireSelfOrAdmin("id"),
+  profileRateLimit,
+  userProfileController.getUserStats,
+);
 
 // Importar controller de pedidos do usuário
 const { getUserOrders } = require("../controllers/users");
@@ -174,6 +182,11 @@ const { getUserOrders } = require("../controllers/users");
  * GET /api/users/:id/orders
  * Busca pedidos do usuário
  */
-router.get("/:id/orders", profileRateLimit, getUserOrders);
+router.get(
+  "/:id/orders",
+  requireSelfOrAdmin("id"),
+  profileRateLimit,
+  getUserOrders,
+);
 
 module.exports = router;

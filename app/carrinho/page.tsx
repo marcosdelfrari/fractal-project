@@ -15,7 +15,7 @@ const CartPage = () => {
           </p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-md border border-gray-100 p-6 sm:p-8">
+        <div className="bg-white rounded-3xl border-2 border-black p-6 sm:p-8">
           <Suspense fallback={<Loader />}>
             <CartModule />
           </Suspense>

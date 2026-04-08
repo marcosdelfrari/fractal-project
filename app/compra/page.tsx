@@ -1,11 +1,10 @@
 "use client";
 import { useProductStore } from "../_zustand/store";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import apiClient from "@/lib/api";
 import { fetchNextApi } from "@/lib/nextApiOrigin";
 import {
   FaUser,
@@ -85,6 +84,8 @@ const CheckoutPage = () => {
   const [duplicateOrderModalOpen, setDuplicateOrderModalOpen] = useState(false);
   const [isConfirmingDuplicateOrder, setIsConfirmingDuplicateOrder] =
     useState(false);
+  /** Reutilizado em retries do mesmo submit; limpo após sucesso ou novo corpo (duplicata confirmada). */
+  const orderIdempotencyKeyRef = useRef<string | null>(null);
   const { products, total, clearCart } = useProductStore();
   const router = useRouter();
   const { data: session } = useSession();
@@ -280,6 +281,12 @@ const CheckoutPage = () => {
       status: "pending" as const,
       total,
       orderNotice: orderNotice || "",
+      items: products.map((p) => ({
+        productId: p.id,
+        quantity: p.amount,
+        selectedColor: p.selectedColor ?? null,
+        selectedSize: p.selectedSize ?? null,
+      })),
       ...(confirmDuplicateOrder ? { confirmDuplicateOrder: true } : {}),
     };
   };
@@ -290,12 +297,26 @@ const CheckoutPage = () => {
   }): Promise<boolean> => {
     console.log("🚀 Starting order creation...");
 
+    if (options?.confirmDuplicate) {
+      orderIdempotencyKeyRef.current = null;
+    }
+    if (!orderIdempotencyKeyRef.current) {
+      orderIdempotencyKeyRef.current =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+    }
+    const idempotencyKey = orderIdempotencyKeyRef.current;
+
     const orderData = buildOrderPayload(Boolean(options?.confirmDuplicate));
     console.log("📋 Order data being sent:", orderData);
 
     const response = await fetchNextApi("/api/orders", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": idempotencyKey,
+      },
       body: JSON.stringify(orderData),
     });
 
@@ -354,15 +375,7 @@ const CheckoutPage = () => {
       throw new Error("ID do pedido não recebido do servidor");
     }
 
-    for (let i = 0; i < products.length; i++) {
-      await addOrderProduct(
-        orderId,
-        products[i].id,
-        products[i].amount,
-        products[i].selectedColor,
-        products[i].selectedSize,
-      );
-    }
+    orderIdempotencyKeyRef.current = null;
 
     setCheckoutForm({
       name: "",
@@ -456,44 +469,6 @@ const CheckoutPage = () => {
     }
   };
 
-  const addOrderProduct = async (
-    orderId: string,
-    productId: string,
-    productQuantity: number,
-    selectedColor?: string,
-    selectedSize?: string,
-  ) => {
-    try {
-      console.log("️ Adding product to order:", {
-        customerOrderId: orderId,
-        productId,
-        quantity: productQuantity,
-      });
-
-      const response = await apiClient.post("/api/order-product", {
-        customerOrderId: orderId,
-        productId: productId,
-        quantity: productQuantity,
-        selectedColor: selectedColor || null,
-        selectedSize: selectedSize || null,
-      });
-
-      console.log("📡 Product order response:", response);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("❌ Product order failed:", response.status, errorText);
-        throw new Error(`Product order failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("✅ Product order successful:", data);
-    } catch (error) {
-      console.error("💥 Error creating product order:", error);
-      throw error;
-    }
-  };
-
   useEffect(() => {
     if (products.length === 0) {
       toast.error("Você não tem itens no carrinho");
@@ -519,7 +494,7 @@ const CheckoutPage = () => {
               {/* Contato: só Nome e WhatsApp */}
               <section
                 aria-labelledby="contact-heading"
-                className="bg-white px-8 py-8 shadow-md rounded-3xl border border-gray-100"
+                className="bg-white px-8 py-8 border-2 border-black rounded-3xl "
               >
                 <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-8">
                   <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
@@ -558,7 +533,7 @@ const CheckoutPage = () => {
                         required
                         placeholder="Seu nome completo"
                         disabled={isSubmitting}
-                        className="block w-full rounded-lg border-gray-300 pl-10 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 transition-colors"
+                        className="block w-full rounded-lg border border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 transition-colors"
                       />
                     </div>
                   </div>
@@ -587,7 +562,7 @@ const CheckoutPage = () => {
                         required
                         placeholder="(00) 00000-0000"
                         disabled={isSubmitting}
-                        className="block w-full rounded-lg border-gray-300 pl-10 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 transition-colors"
+                        className="block w-full rounded-lg border border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 transition-colors"
                       />
                     </div>
                   </div>
@@ -620,7 +595,7 @@ const CheckoutPage = () => {
                           required
                           placeholder="seu@email.com"
                           disabled={isSubmitting}
-                          className="block w-full rounded-lg border-gray-300 pl-10 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 transition-colors"
+                          className="block w-full rounded-lg border border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 transition-colors"
                         />
                       </div>
                     </div>
@@ -632,7 +607,7 @@ const CheckoutPage = () => {
               {allowDelivery && allowPickup ? (
                 <section
                   aria-labelledby="delivery-option-heading"
-                  className="bg-white px-8 py-8 shadow-md rounded-3xl border border-gray-100"
+                  className="bg-white px-8 py-8 border-2 border-black rounded-3xl "
                 >
                   <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-8">
                     <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
@@ -651,10 +626,10 @@ const CheckoutPage = () => {
                       type="button"
                       onClick={() => setDeliveryOption("entrega")}
                       disabled={isSubmitting}
-                      className={`flex items-center gap-4 p-6 rounded-2xl border transition-all duration-300 ${
+                      className={`flex items-center gap-4 p-6 rounded-2xl border-2 transition-all duration-300 ${
                         deliveryOption === "entrega"
-                          ? "border-black bg-[#E3E1D6] shadow-md ring-1 ring-black/5"
-                          : "border-gray-200 hover:border-gray-300 hover:shadow-md bg-white"
+                          ? "border-black bg-[#E3E1D6]"
+                          : "border-gray-200 hover:border-gray-400 bg-white"
                       }`}
                     >
                       <div
@@ -682,10 +657,10 @@ const CheckoutPage = () => {
                       type="button"
                       onClick={() => setDeliveryOption("retirada")}
                       disabled={isSubmitting}
-                      className={`flex items-center gap-4 p-6 rounded-2xl border transition-all duration-300 ${
+                      className={`flex items-center gap-4 p-6 rounded-2xl border-2 transition-all duration-300 ${
                         deliveryOption === "retirada"
-                          ? "border-black bg-[#E3E1D6] shadow-md ring-1 ring-black/5"
-                          : "border-gray-200 hover:border-gray-300 hover:shadow-md bg-white"
+                          ? "border-black bg-[#E3E1D6]"
+                          : "border-gray-200 hover:border-gray-400 bg-white"
                       }`}
                     >
                       <div
@@ -713,7 +688,7 @@ const CheckoutPage = () => {
               ) : allowDelivery ? (
                 <section
                   aria-labelledby="delivery-only-heading"
-                  className="bg-white px-8 py-8 shadow-md rounded-3xl border border-gray-100"
+                  className="bg-white px-8 py-8 border-2 border-black rounded-3xl "
                 >
                   <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-6">
                     <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
@@ -734,7 +709,7 @@ const CheckoutPage = () => {
               ) : (
                 <section
                   aria-labelledby="pickup-only-heading"
-                  className="bg-white px-8 py-8 shadow-md rounded-3xl border border-gray-100"
+                  className="bg-white px-8 py-8 border-2 border-black rounded-3xl "
                 >
                   <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-6">
                     <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
@@ -758,7 +733,7 @@ const CheckoutPage = () => {
               {deliveryOption === "entrega" ? (
                 <section
                   aria-labelledby="shipping-heading"
-                  className="bg-white px-8 py-8 shadow-md rounded-3xl border border-gray-100"
+                  className="bg-white px-8 py-8 border-2 border-black rounded-3xl "
                 >
                   <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-8">
                     <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
@@ -791,7 +766,7 @@ const CheckoutPage = () => {
                           placeholder="00000-000"
                           disabled={isSubmitting}
                           maxLength={9}
-                          className="block w-full rounded-xl border border-gray-300 bg-white pl-10 pr-28 shadow-sm focus:border-black focus:ring-2 focus:ring-black/10 sm:text-sm py-3 transition-colors"
+                          className="block w-full rounded-xl border border-gray-300 bg-white pl-10 pr-28 focus:border-black focus:ring-2 focus:ring-black/10 sm:text-sm py-3 transition-colors"
                           value={checkoutForm.postalCode}
                           onChange={(e) =>
                             setCheckoutForm({
@@ -816,7 +791,7 @@ const CheckoutPage = () => {
                         required
                         placeholder="Endereço"
                         disabled={isSubmitting}
-                        className="block w-full rounded-xl border border-gray-200 bg-[#E3E1D6] text-gray-700 shadow-sm sm:text-sm py-3 px-3"
+                        className="block w-full rounded-xl border border-gray-200 bg-[#E3E1D6] text-gray-700 sm:text-sm py-3 px-3"
                         value={checkoutForm.adress}
                         readOnly
                       />
@@ -835,7 +810,7 @@ const CheckoutPage = () => {
                         required
                         placeholder="Número da casa/apto"
                         disabled={isSubmitting}
-                        className="block w-full rounded-xl border border-gray-300 bg-white shadow-sm focus:border-black focus:ring-2 focus:ring-black/10 sm:text-sm py-3 px-3 transition-colors"
+                        className="block w-full rounded-xl border border-gray-300 bg-white focus:border-black focus:ring-2 focus:ring-black/10 sm:text-sm py-3 px-3 transition-colors"
                         value={checkoutForm.apartment}
                         onChange={(e) =>
                           setCheckoutForm({
@@ -859,7 +834,7 @@ const CheckoutPage = () => {
                         required
                         placeholder="Cidade"
                         disabled={isSubmitting}
-                        className="block w-full rounded-xl border border-gray-200 bg-[#E3E1D6] text-gray-700 shadow-sm sm:text-sm py-3 px-3"
+                        className="block w-full rounded-xl border border-gray-200 bg-[#E3E1D6] text-gray-700 sm:text-sm py-3 px-3"
                         value={checkoutForm.city}
                         readOnly
                       />
@@ -878,7 +853,7 @@ const CheckoutPage = () => {
                         required
                         placeholder="País"
                         disabled={isSubmitting}
-                        className="block w-full rounded-xl border border-gray-200 bg-[#E3E1D6] text-gray-700 shadow-sm sm:text-sm py-3 px-3"
+                        className="block w-full rounded-xl border border-gray-200 bg-[#E3E1D6] text-gray-700 sm:text-sm py-3 px-3"
                         value={checkoutForm.country}
                         readOnly
                       />
@@ -896,7 +871,7 @@ const CheckoutPage = () => {
                         id="reference-point"
                         placeholder="Ex: Casa azul na esquina, portão lateral..."
                         disabled={isSubmitting}
-                        className="block w-full rounded-xl border border-gray-300 bg-white shadow-sm focus:border-black focus:ring-2 focus:ring-black/10 sm:text-sm py-3 px-3 transition-colors"
+                        className="block w-full rounded-xl border border-gray-300 bg-white focus:border-black focus:ring-2 focus:ring-black/10 sm:text-sm py-3 px-3 transition-colors"
                         value={checkoutForm.referencePoint}
                         onChange={(e) =>
                           setCheckoutForm({
@@ -915,7 +890,7 @@ const CheckoutPage = () => {
                         Observações do Pedido (Opcional)
                       </label>
                       <textarea
-                        className="block w-full rounded-xl border border-gray-300 bg-white shadow-sm focus:border-black focus:ring-2 focus:ring-black/10 sm:text-sm py-3 px-3 transition-colors min-h-[100px]"
+                        className="block w-full rounded-xl border border-gray-300 bg-white focus:border-black focus:ring-2 focus:ring-black/10 sm:text-sm py-3 px-3 transition-colors min-h-[100px]"
                         id="order-notice"
                         placeholder="Ex: Tocar o interfone, deixar na portaria..."
                         disabled={isSubmitting}
@@ -933,7 +908,7 @@ const CheckoutPage = () => {
               ) : (
                 <section
                   aria-labelledby="pickup-heading"
-                  className="bg-white px-8 py-8 shadow-md rounded-3xl border border-gray-100"
+                  className="bg-white px-8 py-8 border-2 border-black rounded-3xl "
                 >
                   <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-8">
                     <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
@@ -946,7 +921,7 @@ const CheckoutPage = () => {
                       Endereço de Coleta
                     </h2>
                   </div>
-                  <div className="rounded-lg bg-[#E3E1D6] border border-gray-200 p-5 space-y-2">
+                  <div className="rounded-lg bg-[#E3E1D6] border-2 border-black p-5 space-y-2">
                     <p className="font-medium text-gray-900">
                       {pickupAddress.company}
                     </p>
@@ -965,7 +940,7 @@ const CheckoutPage = () => {
                       Observações do Pedido (Opcional)
                     </label>
                     <textarea
-                      className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 transition-colors min-h-[80px]"
+                      className="block w-full rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 transition-colors min-h-[80px]"
                       id="order-notice-pickup"
                       placeholder="Ex: Horário preferido para retirada..."
                       disabled={isSubmitting}
@@ -982,7 +957,7 @@ const CheckoutPage = () => {
               )}
 
               {/* Payment Info */}
-              <section className="bg-white px-8 py-8 shadow-md rounded-3xl border border-gray-100">
+              <section className="bg-white px-8 py-8 border-2 border-black rounded-3xl ">
                 <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-8">
                   <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
                     <FaCreditCard size={16} />
@@ -992,7 +967,7 @@ const CheckoutPage = () => {
                   </h2>
                 </div>
 
-                <div className="rounded-2xl bg-[#E3E1D6] p-6 border border-gray-100 flex items-start gap-4">
+                <div className="rounded-2xl bg-[#E3E1D6] p-6 border-2 border-black flex items-start gap-4">
                   <FaLock className="text-gray-400 mt-1 flex-shrink-0" />
                   <div className="text-sm text-gray-600 font-light">
                     <p className="font-medium text-gray-900 mb-1">
@@ -1012,7 +987,7 @@ const CheckoutPage = () => {
           {/* Order Summary Column */}
           <div className="lg:col-span-5 mt-10 lg:mt-0">
             <div className="lg:sticky lg:top-8">
-              <div className="bg-white shadow-md rounded-3xl border border-gray-100 overflow-hidden">
+              <div className="bg-white border-2 border-black rounded-3xl  overflow-hidden">
                 <div className="p-8 bg-[#E3E1D6] border-b border-gray-100">
                   <h2 className="text-lg font-light tracking-widest text-gray-900 uppercase">
                     Resumo do Pedido
@@ -1098,7 +1073,7 @@ const CheckoutPage = () => {
                       type="button"
                       onClick={makePurchase}
                       disabled={isSubmitting}
-                      className="w-full flex items-center justify-center rounded-full border border-transparent bg-black px-8 py-4 text-sm uppercase tracking-wider font-medium text-white shadow-lg hover:bg-zinc-800 hover:shadow-xl hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 transition-all duration-300 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none disabled:transform-none"
+                      className="w-full flex items-center justify-center rounded-full border-2 border-black bg-black px-8 py-4 text-sm uppercase tracking-wider font-medium text-white hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 transition-all duration-300 disabled:bg-gray-300 disabled:cursor-not-allowed"
                     >
                       {isSubmitting ? (
                         <>

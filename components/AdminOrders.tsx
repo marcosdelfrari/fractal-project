@@ -12,6 +12,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { fetchNextApi } from "@/lib/nextApiOrigin";
+import {
+  getOrderStatusBadgeClasses,
+  getOrderStatusLabel,
+} from "@/lib/orderStatusDisplay";
 import { FaSearch } from "react-icons/fa";
 
 const AdminOrders = () => {
@@ -146,8 +150,12 @@ const AdminOrders = () => {
                   </td>
 
                   <td className="py-4">
-                    <span className="px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider bg-green-50 text-green-600 border border-green-100">
-                      {order?.status}
+                    <span
+                      className={`px-3 py-1 rounded-full text-[10px] font-medium tracking-wide border ${getOrderStatusBadgeClasses(
+                        order?.status || "",
+                      )}`}
+                    >
+                      {getOrderStatusLabel(order?.status || "")}
                     </span>
                   </td>
 

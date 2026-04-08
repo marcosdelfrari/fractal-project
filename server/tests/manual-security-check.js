@@ -41,17 +41,20 @@ async function quickSecurityCheck() {
       console.log("   ✅ Password correctly excluded from get response");
     }
     
-    // 3. Get user by email
-    console.log("\n3. Getting user by email...");
-    const emailResponse = await axios.get(`${API_BASE_URL}/api/users/email/security-test@example.com`);
-    
-    console.log("   📋 Response data:", JSON.stringify(emailResponse.data, null, 2));
-    
-    if (emailResponse.data.password) {
-      console.log("   ❌ SECURITY ISSUE: Password found in email lookup response!");
+    // 3. Lookup por e-mail na URL removido (deve 404)
+    console.log("\n3. Verificando que /api/users/email/... não existe...");
+    try {
+      await axios.get(
+        `${API_BASE_URL}/api/users/email/security-test@example.com`,
+      );
+      console.log("   ❌ SECURITY ISSUE: rota por e-mail ainda exposta!");
       return;
-    } else {
-      console.log("   ✅ Password correctly excluded from email lookup response");
+    } catch (err) {
+      if (err.response && err.response.status === 404) {
+        console.log("   ✅ Rota por e-mail removida (404)");
+      } else {
+        throw err;
+      }
     }
     
     // 4. Get all users

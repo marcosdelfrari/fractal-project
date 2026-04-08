@@ -1,6 +1,8 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
+/** Apenas roteamento/UX de páginas (/admin, /usuario). Segurança de API fica no Express + JWT repassado pelo BFF. */
+
 export default withAuth(
   function middleware(req) {
     // Check for admin routes

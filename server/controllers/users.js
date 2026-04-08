@@ -1,5 +1,6 @@
 const prisma = require("../utills/db");
 const bcrypt = require("bcryptjs");
+const { tokenUserId } = require("../middleware/auth");
 const { asyncHandler, AppError } = require("../utills/errorHandler");
 
 // Helper function to exclude password from user object
@@ -138,24 +139,21 @@ const getUser = asyncHandler(async (request, response) => {
   return response.status(200).json(excludePassword(user));
 });
 
-const getUserByEmail = asyncHandler(async (request, response) => {
-  const { email } = request.params;
-
-  if (!email) {
-    throw new AppError("E-mail é obrigatório", 400);
+/** GET /api/users/me — usuário da sessão JWT (sem expor lookup por e-mail). */
+const getCurrentUser = asyncHandler(async (request, response) => {
+  const uid = tokenUserId(request.auth);
+  if (!uid) {
+    throw new AppError("Sessão inválida", 401);
   }
 
   const user = await prisma.user.findUnique({
-    where: {
-      email: email,
-    },
+    where: { id: uid },
   });
 
   if (!user) {
     throw new AppError("Usuário não encontrado", 404);
   }
 
-  // Exclude password from response
   return response.status(200).json(excludePassword(user));
 });
 
@@ -172,12 +170,12 @@ const getUserProfile = asyncHandler(async (request, response) => {
       id: id,
     },
     include: {
-      addresses: {
+      address: {
         orderBy: {
           isDefault: "desc",
         },
       },
-      reviews: {
+      review: {
         include: {
           product: {
             select: {
@@ -192,7 +190,7 @@ const getUserProfile = asyncHandler(async (request, response) => {
           createdAt: "desc",
         },
       },
-      Wishlist: {
+      wishlist: {
         include: {
           product: {
             select: {
@@ -222,7 +220,7 @@ const getUserProfile = asyncHandler(async (request, response) => {
 // Update user profile (excluding sensitive fields like password and role)
 const updateUserProfile = asyncHandler(async (request, response) => {
   const { id } = request.params;
-  const { name, phone, cpf, photo } = request.body;
+  const { name, phone, cpf, photo, instagram } = request.body;
 
   if (!id) {
     throw new AppError("ID do usuário é obrigatório", 400);
@@ -266,18 +264,33 @@ const updateUserProfile = asyncHandler(async (request, response) => {
     updateData.photo = photo?.trim() || null;
   }
 
+  if (instagram !== undefined) {
+    if (instagram && String(instagram).trim()) {
+      const ig = String(instagram).trim();
+      if (ig.length > 150) {
+        throw new AppError("Instagram deve ter no máximo 150 caracteres", 400);
+      }
+      if (/[<>]/.test(ig)) {
+        throw new AppError("Instagram contém caracteres inválidos", 400);
+      }
+      updateData.instagram = ig;
+    } else {
+      updateData.instagram = null;
+    }
+  }
+
   const updatedUser = await prisma.user.update({
     where: {
       id: existingUser.id,
     },
     data: updateData,
     include: {
-      addresses: {
+      address: {
         orderBy: {
           isDefault: "desc",
         },
       },
-      reviews: {
+      review: {
         include: {
           product: {
             select: {
@@ -292,7 +305,7 @@ const updateUserProfile = asyncHandler(async (request, response) => {
           createdAt: "desc",
         },
       },
-      Wishlist: {
+      wishlist: {
         include: {
           product: {
             select: {
@@ -370,7 +383,7 @@ const getUserOrders = asyncHandler(async (request, response) => {
         city: true,
         country: true,
         total: true,
-        products: {
+        customer_order_product: {
           select: {
             id: true,
             quantity: true,
@@ -418,7 +431,7 @@ const getUserOrders = asyncHandler(async (request, response) => {
     orderNotice: null,
     total: order.total,
     dateTime: order.dateTime,
-    products: order.products.map((orderProduct) => ({
+    products: order.customer_order_product.map((orderProduct) => ({
       id: orderProduct.id,
       quantity: orderProduct.quantity,
       product: orderProduct.product,
@@ -447,7 +460,7 @@ module.exports = {
   deleteUser,
   getUser,
   getAllUsers,
-  getUserByEmail,
+  getCurrentUser,
   getUserProfile,
   updateUserProfile,
   getUserOrders,

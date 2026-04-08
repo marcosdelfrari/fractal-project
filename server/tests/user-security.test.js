@@ -85,24 +85,27 @@ async function testGetUserPasswordExclusion(userId) {
   console.log(`   Retrieved user ${userId} (password excluded)`);
 }
 
-// Test 4: Get user by email and verify password is not returned
-async function testGetUserByEmailPasswordExclusion() {
-  const email = 'test@example.com';
-  const response = await axios.get(`${API_BASE_URL}/api/users/email/${email}`);
-  
-  if (response.status !== 200) {
-    throw new Error(`Expected status 200, got ${response.status}`);
+// Test 4: Lookup por e-mail na URL removido; GET /me exige sessão
+async function testEmailLookupRemovedAndMeRequiresAuth() {
+  const emailRes = await axios.get(
+    `${API_BASE_URL}/api/users/email/test@example.com`,
+    { validateStatus: () => true },
+  );
+  if (emailRes.status !== 404) {
+    throw new Error(
+      `Rota /api/users/email/* deve retornar 404, obteve ${emailRes.status}`,
+    );
   }
-  
-  if (hasPasswordField(response.data)) {
-    throw new Error('Password field found in get user by email response - SECURITY ISSUE!');
+
+  const meRes = await axios.get(`${API_BASE_URL}/api/users/me`, {
+    validateStatus: () => true,
+  });
+  if (meRes.status !== 401) {
+    throw new Error(
+      `GET /api/users/me sem cookie deve retornar 401, obteve ${meRes.status}`,
+    );
   }
-  
-  if (!response.data.id || !response.data.email) {
-    throw new Error('Required user fields missing from response');
-  }
-  
-  console.log(`   Retrieved user by email ${email} (password excluded)`);
+  console.log("   /users/email removido; /users/me exige autenticação");
 }
 
 // Test 5: Update user and verify password is not returned
@@ -221,7 +224,10 @@ async function runUserSecurityTests() {
     }
     
     // Test 4: Get user by email
-    await testSecurity("Get User by Email - Password Exclusion", testGetUserByEmailPasswordExclusion);
+    await testSecurity(
+      "Email lookup removido + /me requer auth",
+      testEmailLookupRemovedAndMeRequiresAuth,
+    );
     
     // Test 5: Update user
     if (testUserId) {

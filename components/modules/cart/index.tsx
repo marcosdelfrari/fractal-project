@@ -43,7 +43,7 @@ export const CartModule = () => {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center justify-center rounded-full border border-transparent bg-black px-8 py-3 text-sm font-medium uppercase tracking-wider text-white shadow-lg hover:bg-zinc-800 transition-all duration-300"
+          className="inline-flex items-center justify-center rounded-full border-2 border-black bg-black px-8 py-3 text-sm font-medium uppercase tracking-wider text-white hover:bg-zinc-800 transition-all duration-300"
         >
           Voltar para a loja
         </Link>
@@ -141,7 +141,7 @@ export const CartModule = () => {
       {/* Order summary */}
       <section
         aria-labelledby="summary-heading"
-        className="mt-10 rounded-3xl border border-gray-100 bg-white px-6 py-6 shadow-md sm:p-8 lg:col-span-5 lg:mt-0"
+        className="mt-10 rounded-3xl border-2 border-black bg-white px-6 py-6 sm:p-8 lg:col-span-5 lg:mt-0"
       >
         <h2
           id="summary-heading"
@@ -208,7 +208,7 @@ export const CartModule = () => {
           <div className="mt-6">
             <Link
               href="/compra"
-              className="flex w-full items-center justify-center rounded-full border border-transparent bg-black px-6 py-3 text-sm font-medium uppercase tracking-wider text-white shadow-lg hover:bg-zinc-800 transition-all duration-300"
+              className="flex w-full items-center justify-center rounded-full border-2 border-black bg-black px-6 py-3 text-sm font-medium uppercase tracking-wider text-white hover:bg-zinc-800 transition-all duration-300"
             >
               <span>Ir para o Checkout</span>
             </Link>

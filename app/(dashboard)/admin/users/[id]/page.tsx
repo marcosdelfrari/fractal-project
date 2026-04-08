@@ -2,6 +2,7 @@
 import { DashboardSidebar } from "@/components";
 import React, { useEffect, useState, use } from "react";
 import toast from "react-hot-toast";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { useRouter } from "next/navigation";
 import { isValidEmailAddressFormat } from "@/lib/utils";
 import apiClient from "@/lib/api";
@@ -33,11 +34,10 @@ const DashboardSingleUserPage = ({ params }: DashboardUserDetailsProps) => {
   });
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteUserOpen, setDeleteUserOpen] = useState(false);
   const router = useRouter();
 
   const deleteUser = async () => {
-    if (!window.confirm("Tem certeza que deseja excluir este usuário?")) return;
-
     setIsDeleting(true);
     apiClient
       .delete(`/api/users/${id}`)
@@ -50,7 +50,10 @@ const DashboardSingleUserPage = ({ params }: DashboardUserDetailsProps) => {
         }
       })
       .catch(() => toast.error("Erro ao excluir usuário"))
-      .finally(() => setIsDeleting(false));
+      .finally(() => {
+        setIsDeleting(false);
+        setDeleteUserOpen(false);
+      });
   };
 
   const updateUser = async () => {
@@ -106,9 +109,9 @@ const DashboardSingleUserPage = ({ params }: DashboardUserDetailsProps) => {
   }, [id]);
 
   return (
-    <div className="bg-[#E3E1D6] flex min-h-screen max-w-screen-2xl mx-auto max-lg:flex-col animate-fade-in-up">
+    <div className="bg-white flex min-h-screen max-w-screen-2xl mx-auto max-lg:flex-col animate-fade-in-up">
       <DashboardSidebar />
-      <div className="flex-1 p-10 max-md:p-4">
+      <div className="flex-1 p-10 max-md:p-4 pb-admin-mobile-nav">
         {/* Header Section */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-6 mb-10">
           <div className="flex items-center gap-3">
@@ -127,7 +130,8 @@ const DashboardSingleUserPage = ({ params }: DashboardUserDetailsProps) => {
           </div>
 
           <button
-            onClick={deleteUser}
+            type="button"
+            onClick={() => setDeleteUserOpen(true)}
             disabled={isDeleting}
             className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-red-100 text-[10px] uppercase tracking-widest font-medium text-red-400 hover:bg-red-50 hover:text-red-600 transition-all duration-300 disabled:opacity-50"
           >
@@ -216,6 +220,18 @@ const DashboardSingleUserPage = ({ params }: DashboardUserDetailsProps) => {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteUserOpen}
+        onClose={() => !isDeleting && setDeleteUserOpen(false)}
+        title="Excluir usuário?"
+        description="Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        variant="danger"
+        isBusy={isDeleting}
+        onConfirm={deleteUser}
+      />
     </div>
   );
 };

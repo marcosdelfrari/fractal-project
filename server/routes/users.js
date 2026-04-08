@@ -8,23 +8,32 @@ const {
   updateUser,
   deleteUser,
   getAllUsers,
-  getUserByEmail,
+  getCurrentUser,
   getUserProfile,
   updateUserProfile,
   getUserOrders,
 } = require("../controllers/users");
 
-router.route("/").get(getAllUsers).post(createUser);
+const { requireAdmin, requireAuth, requireSelfOrAdmin } = require("../middleware/auth");
 
-// Rota específica deve vir ANTES da rota com parâmetro :id
-router.route("/email/:email").get(getUserByEmail);
+router.route("/").get(requireAdmin, getAllUsers).post(requireAdmin, createUser);
 
-router.route("/:id").get(getUser).put(updateUser).delete(deleteUser);
+// Antes de /:id — sessão atual (sem lookup por e-mail na URL)
+router.get("/me", requireAuth, getCurrentUser);
+
+router
+  .route("/:id")
+  .get(requireSelfOrAdmin("id"), getUser)
+  .put(requireSelfOrAdmin("id"), updateUser)
+  .delete(requireSelfOrAdmin("id"), deleteUser);
 
 // Profile routes
-router.route("/:id/profile").get(getUserProfile).put(updateUserProfile);
+router
+  .route("/:id/profile")
+  .get(requireSelfOrAdmin("id"), getUserProfile)
+  .put(requireSelfOrAdmin("id"), updateUserProfile);
 
 // Orders routes
-router.route("/:id/orders").get(getUserOrders);
+router.route("/:id/orders").get(requireSelfOrAdmin("id"), getUserOrders);
 
 module.exports = router;

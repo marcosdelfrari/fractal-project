@@ -40,35 +40,35 @@ const UserStats = ({ stats, className = "" }: UserStatsProps) => {
   const getColorClasses = (color: StatCard["color"]) => {
     const colorMap = {
       blue: {
-        card: "bg-white border-gray-100",
+        card: "bg-white",
         iconBg: "bg-[#E3E1D6] text-gray-900",
         title: "text-gray-600 font-light",
         value: "text-gray-900",
         change: "text-gray-500",
       },
       green: {
-        card: "bg-white border-gray-100",
+        card: "bg-white",
         iconBg: "bg-[#E3E1D6] text-gray-900",
         title: "text-gray-600 font-light",
         value: "text-gray-900",
         change: "text-gray-500",
       },
       purple: {
-        card: "bg-white border-gray-100",
+        card: "bg-white",
         iconBg: "bg-[#E3E1D6] text-gray-900",
         title: "text-gray-600 font-light",
         value: "text-gray-900",
         change: "text-gray-500",
       },
       orange: {
-        card: "bg-white border-gray-100",
+        card: "bg-white",
         iconBg: "bg-[#E3E1D6] text-gray-900",
         title: "text-gray-600 font-light",
         value: "text-gray-900",
         change: "text-gray-500",
       },
       red: {
-        card: "bg-white border-gray-100",
+        card: "bg-white",
         iconBg: "bg-[#E3E1D6] text-gray-900",
         title: "text-gray-600 font-light",
         value: "text-gray-900",
@@ -114,7 +114,7 @@ const UserStats = ({ stats, className = "" }: UserStatsProps) => {
         return (
           <div
             key={stat.id}
-            className={`${colors.card} rounded-2xl p-6 shadow-md border hover:shadow-lg transition-all duration-300`}
+            className={`${colors.card} rounded-2xl p-6 border-2 border-black transition-all duration-300`}
           >
             <div className="flex items-center justify-between mb-4">
               <div className={`p-3 rounded-full ${colors.iconBg}`}>

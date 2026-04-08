@@ -123,9 +123,9 @@ export default function AdminSettingsProximosEventosPage() {
 
   if (loading) {
     return (
-      <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+      <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
         <DashboardSidebar />
-        <div className="flex-1 p-10 flex items-center justify-center">
+        <div className="flex-1 p-10 pb-admin-mobile-nav flex items-center justify-center">
           <p className="text-gray-500">Carregando...</p>
         </div>
       </div>
@@ -133,9 +133,9 @@ export default function AdminSettingsProximosEventosPage() {
   }
 
   return (
-    <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+    <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
       <DashboardSidebar />
-      <div className="flex-1 p-10 max-md:p-4 animate-fade-in-up">
+      <div className="flex-1 p-10 max-md:p-4 pb-admin-mobile-nav animate-fade-in-up">
         <SettingsBackHeader
           title="Próximos eventos"
           description="Faixa amarela fixa na home, acima do rodapé (fora da moldura preta). Os dados ficam aqui; a ordem das outras seções em “Seções da home” não afeta este bloco."

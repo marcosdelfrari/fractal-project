@@ -19,12 +19,16 @@ const orderFieldLabel = (field) => {
     phone: "Telefone",
     company: "Empresa",
     address: "Endereço",
+    street: "Rua/Avenida",
+    district: "Bairro",
+    state: "Estado (UF)",
     apartment: "Complemento",
     city: "Cidade",
     country: "País",
     postalCode: "CEP",
     total: "Total",
     status: "Status",
+    orderNotice: "Observações",
   };
   return map[field] || field;
 };
@@ -284,8 +288,13 @@ const orderValidation = {
 
     const trimmedAddress = address.trim();
 
-    // Special case for apartment - only 1 character minimum
-    const minLength = fieldName === "apartment" ? 1 : 5;
+    // apartment: mín. 1; UF (ViaCEP): 2 letras; demais campos de endereço: mín. 5
+    const minLength =
+      fieldName === "apartment"
+        ? 1
+        : fieldName === "state"
+          ? 2
+          : 5;
 
     if (trimmedAddress.length < minLength) {
       throw new ValidationError(
@@ -367,12 +376,31 @@ const orderValidation = {
     return Math.round(numTotal * 100) / 100; // Round to 2 decimal places
   },
 
+  /** Observações do pedido (opcional); máx. 500 caracteres UTF-8. */
+  validateOrderNotice: (notice) => {
+    if (notice == null || notice === "") {
+      return "";
+    }
+    if (typeof notice !== "string") {
+      throw new ValidationError("Observações do pedido inválidas", "orderNotice");
+    }
+    const t = notice.trim();
+    if (t.length > 500) {
+      throw new ValidationError(
+        "Observações do pedido devem ter no máximo 500 caracteres",
+        "orderNotice",
+      );
+    }
+    return t;
+  },
+
   // Validate order status
   validateStatus: (status) => {
     const validStatuses = [
       "pending",
       "processing",
       "shipped",
+      "ready_for_pickup",
       "delivered",
       "cancelled",
     ];
@@ -481,15 +509,94 @@ const validateOrderData = (orderData) => {
     "status",
   );
 
-  // Optional fields
-  validatedData.orderNotice = orderData.orderNotice
-    ? orderData.orderNotice.trim().substring(0, 500)
-    : ""; // Limit to 500 characters
+  validatedData.orderNotice = safeValidate(
+    orderValidation.validateOrderNotice,
+    orderData.orderNotice,
+    "orderNotice",
+  );
+
+  validatedData.deliveryOption =
+    orderData?.deliveryOption === "retirada" ? "retirada" : "entrega";
 
   return {
     isValid: errors.length === 0,
     errors,
     validatedData,
+  };
+};
+
+/**
+ * Itens do pedido em POST /api/orders agregado (`items`: array).
+ * @returns {{ isValid: boolean, errors: Array<{ field: string, message: string }>, normalizedItems: Array<{ productId: string, quantity: number, selectedColor: string|null, selectedSize: string|null }> }}
+ */
+const validateOrderItemsPayload = (items) => {
+  const errors = [];
+  if (!Array.isArray(items)) {
+    return {
+      isValid: false,
+      errors: [{ field: "items", message: "items deve ser um array" }],
+      normalizedItems: [],
+    };
+  }
+  if (items.length === 0) {
+    return {
+      isValid: false,
+      errors: [{ field: "items", message: "items não pode ser vazio quando informado" }],
+      normalizedItems: [],
+    };
+  }
+  if (items.length > 100) {
+    return {
+      isValid: false,
+      errors: [{ field: "items", message: "no máximo 100 itens por pedido" }],
+      normalizedItems: [],
+    };
+  }
+
+  const normalizedItems = [];
+  for (let i = 0; i < items.length; i++) {
+    const row = items[i];
+    if (!row || typeof row !== "object") {
+      errors.push({ field: `items[${i}]`, message: "item inválido" });
+      continue;
+    }
+    const productId =
+      typeof row.productId === "string" ? row.productId.trim() : "";
+    if (!productId) {
+      errors.push({
+        field: `items[${i}].productId`,
+        message: "productId é obrigatório",
+      });
+      continue;
+    }
+    const quantity = parseInt(row.quantity, 10);
+    if (!Number.isFinite(quantity) || quantity < 1 || quantity > 99999) {
+      errors.push({
+        field: `items[${i}].quantity`,
+        message: "quantidade deve ser entre 1 e 99999",
+      });
+      continue;
+    }
+    const selectedColor =
+      typeof row.selectedColor === "string"
+        ? row.selectedColor.trim() || null
+        : null;
+    const selectedSize =
+      typeof row.selectedSize === "string"
+        ? row.selectedSize.trim() || null
+        : null;
+    normalizedItems.push({
+      productId,
+      quantity,
+      selectedColor,
+      selectedSize,
+    });
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    normalizedItems,
   };
 };
 
@@ -577,5 +684,6 @@ module.exports = {
   paymentValidation,
   orderValidation,
   validateOrderData,
+  validateOrderItemsPayload,
   validatePaymentData,
 };

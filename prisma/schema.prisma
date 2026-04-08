@@ -49,6 +49,8 @@ model customer_order {
   country                String
   orderNotice            String?
   total                  Int
+  /// entrega | retirada
+  deliveryOption         String                   @default("entrega")
   customer_order_product customer_order_product[]
 }
 
@@ -92,6 +94,10 @@ model product {
   price                  Int                      @default(0)
   rating                 Int                      @default(0)
   description            String
+  additionalInfo         String?                  @db.Text
+  material               String?                  @db.Text
+  colors                 Json?
+  sizes                  Json?
   manufacturer           String
   inStock                Int                      @default(1)
   categoryId             String
@@ -127,6 +133,7 @@ model user {
   phone     String?
   cpf       String?
   photo     String?
+  instagram String?
   createdAt DateTime   @default(now())
   updatedAt DateTime
   address   address[]

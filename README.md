@@ -217,3 +217,8 @@ npm run dev
 <h3>Admin dashboard - All users page</h3>
 
 ![singitronic admin users page](https://github.com/Kuzma02/Electronics-eCommerce-Shop-With-Admin-Dashboard-NextJS-NodeJS/assets/138793624/e14e8f2c-4377-42fd-b89b-d4868cc11b11)
+
+<hr />
+
+<h2>API de pedidos (fractal-project)</h2>
+<p>Documentação do pedido agregado (<code>POST /api/orders</code> com <code>items</code>), rotas aninhadas e legado: <a href="docs/API-PEDIDOS.md"><b>docs/API-PEDIDOS.md</b></a>. Teste rápido com o Express no ar: <code>npm run debug:order</code> (variável opcional <code>API_BASE_URL</code>, padrão <code>http://localhost:3001</code>).</p>

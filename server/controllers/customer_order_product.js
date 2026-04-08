@@ -169,46 +169,81 @@ const updateProductOrder = asyncHandler(async (request, response) => {
   return response.json(updatedOrder);
 });
 
-const deleteProductOrder = asyncHandler(async (request, response) => {
-  const { id } = request.params;
-
-  if (!id) {
-    throw new AppError("Order product ID is required", 400);
+/**
+ * PUT /api/orders/:orderId/items/:lineId — após requireOrderOwnerOrAdmin(orderId).
+ */
+const updateOrderLineItemNested = asyncHandler(async (request, response) => {
+  const { orderId, lineId } = request.params;
+  if (!orderId || !lineId) {
+    throw new AppError("IDs obrigatórios", 400);
   }
-
-  const hasV = await orderProductHasVariantColumns();
-  const existingOrder = await prisma.customer_order_product.findUnique({
-    where: { id },
-    ...(hasV
-      ? {}
-      : {
-          select: { id: true },
-        }),
+  const line = await prisma.customer_order_product.findUnique({
+    where: { id: lineId },
+    select: { customerOrderId: true },
   });
-
-  if (!existingOrder) {
-    throw new AppError("Order product not found", 404);
+  if (!line || line.customerOrderId !== orderId) {
+    throw new AppError("Item não encontrado neste pedido", 404);
   }
-
-  await prisma.customer_order_product.deleteMany({
-    where: {
-      customerOrderId: id,
-    },
-  });
-  return response.status(204).send();
+  request.params.id = lineId;
+  return updateProductOrder(request, response);
 });
 
-const getProductOrder = asyncHandler(async (request, response) => {
-  const { id } = request.params;
+/**
+ * Linhas do pedido (GET /api/orders/:orderId/items).
+ */
+/**
+ * Cria linhas dentro de uma transação Prisma (POST /api/orders com `items`).
+ * @param {import("@prisma/client").Prisma.TransactionClient} tx
+ * @param {string} customerOrderId
+ * @param {Array<{ productId: string, quantity: number, selectedColor: string|null, selectedSize: string|null }>} normalizedItems
+ */
+async function createOrderLineItemsInTransaction(tx, customerOrderId, normalizedItems) {
+  const hasV = await orderProductHasVariantColumns();
+  const productIds = [...new Set(normalizedItems.map((i) => i.productId))];
+  const found = await tx.product.findMany({
+    where: { id: { in: productIds } },
+    select: { id: true },
+  });
+  if (found.length !== productIds.length) {
+    const err = new Error("Um ou mais produtos não foram encontrados");
+    err.code = "PRODUCT_NOT_FOUND";
+    throw err;
+  }
 
-  if (!id) {
-    throw new AppError("Order ID is required", 400);
+  for (const item of normalizedItems) {
+    const id = randomUUID();
+    const qty = item.quantity;
+    const color = item.selectedColor;
+    const size = item.selectedSize;
+    if (hasV) {
+      await tx.customer_order_product.create({
+        data: {
+          id,
+          customerOrderId,
+          productId: item.productId,
+          quantity: qty,
+          selectedColor: color,
+          selectedSize: size,
+        },
+      });
+    } else {
+      await tx.$executeRaw`
+        INSERT INTO \`customer_order_product\` (\`id\`, \`customerOrderId\`, \`productId\`, \`quantity\`)
+        VALUES (${id}, ${customerOrderId}, ${item.productId}, ${qty})
+      `;
+    }
+  }
+}
+
+async function fetchLineItemsByCustomerOrderId(customerOrderId) {
+  if (!customerOrderId) {
+    return [];
   }
 
   const hasV = await orderProductHasVariantColumns();
   const order = await prisma.customer_order_product.findMany({
     where: {
-      customerOrderId: id,
+      customerOrderId,
     },
     select: {
       id: true,
@@ -221,21 +256,19 @@ const getProductOrder = asyncHandler(async (request, response) => {
   });
 
   if (!order || order.length === 0) {
-    throw new AppError("Order not found", 404);
+    return [];
   }
 
   if (!hasV) {
-    return response.status(200).json(
-      order.map((row) => ({
-        ...row,
-        selectedColor: null,
-        selectedSize: null,
-      })),
-    );
+    return order.map((row) => ({
+      ...row,
+      selectedColor: null,
+      selectedSize: null,
+    }));
   }
 
-  return response.status(200).json(order);
-});
+  return order;
+}
 
 const getAllProductOrders = asyncHandler(async (request, response) => {
   const hasV = await orderProductHasVariantColumns();
@@ -303,7 +336,8 @@ const getAllProductOrders = asyncHandler(async (request, response) => {
 module.exports = {
   createOrderProduct,
   updateProductOrder,
-  deleteProductOrder,
-  getProductOrder,
+  updateOrderLineItemNested,
   getAllProductOrders,
+  fetchLineItemsByCustomerOrderId,
+  createOrderLineItemsInTransaction,
 };

@@ -16,7 +16,12 @@ type NavLinkItem = {
 const FALLBACK_LINKS: NavLinkItem[] = [
   { id: "woodcut", name: "Woodcut", href: "/woodcut", hasMegaMenu: false },
   { id: "linocut", name: "Linocut", href: "/linocut", hasMegaMenu: false },
-  { id: "paintings", name: "Paintings", href: "/paintings", hasMegaMenu: false },
+  {
+    id: "paintings",
+    name: "Paintings",
+    href: "/paintings",
+    hasMegaMenu: false,
+  },
   { id: "about", name: "About", href: "/about", hasMegaMenu: false },
 ];
 
@@ -31,13 +36,19 @@ function toId(value: string) {
 export default function AdminSettingsNavPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [hideStoreNameUntilLoaded, setHideStoreNameUntilLoaded] = useState(true);
-  const [navBrandDesktopMode, setNavBrandDesktopMode] = useState<"name" | "logo">("name");
-  const [navBrandMobileMode, setNavBrandMobileMode] = useState<"name" | "logo">("name");
-  const [navLinks, setNavLinks] = useState<NavLinkItem[]>(FALLBACK_LINKS);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(
-    null,
+  const [hideStoreNameUntilLoaded, setHideStoreNameUntilLoaded] =
+    useState(true);
+  const [navBrandDesktopMode, setNavBrandDesktopMode] = useState<
+    "name" | "logo"
+  >("name");
+  const [navBrandMobileMode, setNavBrandMobileMode] = useState<"name" | "logo">(
+    "name",
   );
+  const [navLinks, setNavLinks] = useState<NavLinkItem[]>(FALLBACK_LINKS);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   const showMessage = (type: "success" | "error", text: string) => {
     setMessage({ type, text });
@@ -53,8 +64,12 @@ export default function AdminSettingsNavPage() {
         if (!res.ok) return;
         const data = (await res.json()) as Record<string, unknown>;
         setHideStoreNameUntilLoaded(data.hideStoreNameUntilLoaded !== false);
-        setNavBrandDesktopMode(data.navBrandDesktopMode === "logo" ? "logo" : "name");
-        setNavBrandMobileMode(data.navBrandMobileMode === "logo" ? "logo" : "name");
+        setNavBrandDesktopMode(
+          data.navBrandDesktopMode === "logo" ? "logo" : "name",
+        );
+        setNavBrandMobileMode(
+          data.navBrandMobileMode === "logo" ? "logo" : "name",
+        );
 
         if (Array.isArray(data.navLinks) && data.navLinks.length > 0) {
           const normalized = data.navLinks
@@ -157,9 +172,9 @@ export default function AdminSettingsNavPage() {
 
   if (loading) {
     return (
-      <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+      <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
         <DashboardSidebar />
-        <div className="flex-1 p-10 flex items-center justify-center text-gray-500">
+        <div className="flex-1 p-10 pb-admin-mobile-nav flex items-center justify-center text-gray-500">
           Carregando...
         </div>
       </div>
@@ -167,9 +182,9 @@ export default function AdminSettingsNavPage() {
   }
 
   return (
-    <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+    <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
       <DashboardSidebar />
-      <div className="flex-1 p-10 max-md:p-4 animate-fade-in-up">
+      <div className="flex-1 p-10 max-md:p-4 pb-admin-mobile-nav animate-fade-in-up">
         <SettingsBackHeader
           title="Navegação (Nav)"
           description="Controle os links principais da navbar, ocultação de nome até carregar e modo de marca por dispositivo."
@@ -196,7 +211,9 @@ export default function AdminSettingsNavPage() {
               <select
                 value={navBrandDesktopMode}
                 onChange={(e) =>
-                  setNavBrandDesktopMode(e.target.value === "logo" ? "logo" : "name")
+                  setNavBrandDesktopMode(
+                    e.target.value === "logo" ? "logo" : "name",
+                  )
                 }
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 bg-white"
               >
@@ -211,7 +228,9 @@ export default function AdminSettingsNavPage() {
               <select
                 value={navBrandMobileMode}
                 onChange={(e) =>
-                  setNavBrandMobileMode(e.target.value === "logo" ? "logo" : "name")
+                  setNavBrandMobileMode(
+                    e.target.value === "logo" ? "logo" : "name",
+                  )
                 }
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 bg-white"
               >
@@ -233,7 +252,9 @@ export default function AdminSettingsNavPage() {
 
           <div className="border-t border-gray-100 pt-8">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-900">Links da navbar</h3>
+              <h3 className="text-sm font-medium text-gray-900">
+                Links da navbar
+              </h3>
               <button
                 type="button"
                 onClick={addLink}
@@ -252,14 +273,18 @@ export default function AdminSettingsNavPage() {
                   <input
                     type="text"
                     value={item.name}
-                    onChange={(e) => updateLink(index, { name: e.target.value })}
+                    onChange={(e) =>
+                      updateLink(index, { name: e.target.value })
+                    }
                     placeholder="Nome"
                     className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400"
                   />
                   <input
                     type="text"
                     value={item.href}
-                    onChange={(e) => updateLink(index, { href: e.target.value })}
+                    onChange={(e) =>
+                      updateLink(index, { href: e.target.value })
+                    }
                     placeholder="/rota"
                     className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400"
                   />

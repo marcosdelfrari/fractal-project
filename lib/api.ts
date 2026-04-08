@@ -1,58 +1,67 @@
 import config from "./config";
 
+/** Browser: rewrite Next (`next.config.mjs`) envia cookie ao Express. Servidor: URL direta + repasse de Cookie. */
+function resolveRequestUrl(endpoint: string, isServer: boolean): string {
+  const normalizedEndpoint = endpoint.startsWith("/")
+    ? endpoint
+    : `/${endpoint}`;
+  if (isServer) {
+    const baseUrl = config.apiBaseUrl.replace(/\/+$/, "");
+    return `${baseUrl}${normalizedEndpoint}`;
+  }
+  if (normalizedEndpoint.startsWith("/api/")) {
+    return `/backend-api/${normalizedEndpoint.slice(5)}`;
+  }
+  return normalizedEndpoint;
+}
+
 export const apiClient = {
   baseUrl: config.apiBaseUrl,
 
   async request(endpoint: string, options: RequestInit = {}) {
     const isServer = typeof window === "undefined";
 
-    // Normalizar a URL base removendo barra final se existir
-    const baseUrl = this.baseUrl.replace(/\/+$/, "");
-    // Garantir que o endpoint comece com barra
-    const normalizedEndpoint = endpoint.startsWith("/")
-      ? endpoint
-      : `/${endpoint}`;
-    const url = `${baseUrl}${normalizedEndpoint}`;
+    const url = resolveRequestUrl(endpoint, isServer);
 
-    // Log para debug em produção (apenas no servidor)
-    if (
-      typeof window === "undefined" &&
-      process.env.NODE_ENV === "production"
-    ) {
-      console.log(`[API Client] Making request to: ${url}`);
-      console.log(`[API Client] Base URL: ${this.baseUrl}`);
-    }
-
-    const defaultOptions: RequestInit = {
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
+    const mergedHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...(options.headers as Record<string, string>),
     };
+
+    if (isServer) {
+      try {
+        const { headers: getHeaders } = await import("next/headers");
+        const h = await getHeaders();
+        const cookie = h.get("cookie");
+        if (cookie) {
+          mergedHeaders.cookie = cookie;
+        }
+      } catch {
+        /* fora do App Router / build */
+      }
+    }
 
     try {
       const response = await fetch(url, {
         ...(isServer ? { cache: "no-store" as RequestCache } : {}),
-        ...defaultOptions,
         ...options,
+        headers: mergedHeaders,
+        credentials: isServer ? undefined : "include",
       });
 
-      // Log para debug em produção (apenas no servidor)
       if (
         typeof window === "undefined" &&
         process.env.NODE_ENV === "production"
       ) {
         console.log(
-          `[API Client] Response status: ${response.status} ${response.statusText}`
+          `[API Client] Response status: ${response.status} ${response.statusText}`,
         );
       }
 
       return response;
     } catch (error) {
-      // Log detalhado do erro
       console.error("[API Client] Request failed:", {
         url,
-        baseUrl: this.baseUrl,
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
@@ -60,18 +69,17 @@ export const apiClient = {
     }
   },
 
-  // Convenience methods
   get: (endpoint: string, options?: RequestInit) =>
     apiClient.request(endpoint, { ...options, method: "GET" }),
 
-  post: (endpoint: string, data?: any, options?: RequestInit) =>
+  post: (endpoint: string, data?: unknown, options?: RequestInit) =>
     apiClient.request(endpoint, {
       ...options,
       method: "POST",
       body: data ? JSON.stringify(data) : undefined,
     }),
 
-  put: (endpoint: string, data?: any, options?: RequestInit) =>
+  put: (endpoint: string, data?: unknown, options?: RequestInit) =>
     apiClient.request(endpoint, {
       ...options,
       method: "PUT",

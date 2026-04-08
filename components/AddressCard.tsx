@@ -88,7 +88,7 @@ const AddressCard = ({
 
   return (
     <div
-      className={`rounded-2xl border border-gray-100 bg-white shadow-md transition-all duration-300 hover:shadow-lg hover:border-gray-200 ${className}`}
+      className={`rounded-2xl border-2 border-black bg-white transition-all duration-300 ${className}`}
     >
       {/* Header */}
       <div className="p-6 border-b border-gray-100">

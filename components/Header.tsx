@@ -90,20 +90,6 @@ const Header = () => {
     setWishlist(productArray);
   };
 
-  // getting user by email so I can get his user id
-  const getUserByEmail = async () => {
-    if (session?.user?.email) {
-      apiClient
-        .get(`/api/users/email/${session?.user?.email}`, {
-          cache: "no-store",
-        })
-        .then((response) => response.json())
-        .then((data) => {
-          getWishlistByUserId(data?.id);
-        });
-    }
-  };
-
   // Carregar dados do menu via mock
   useEffect(() => {
     const loadMenuData = async () => {
@@ -139,8 +125,10 @@ const Header = () => {
   }, [siteSettings.navLinks]);
 
   useEffect(() => {
-    getUserByEmail();
-  }, [session?.user?.email, wishlist.length]);
+    if (session?.user?.id) {
+      getWishlistByUserId(session.user.id);
+    }
+  }, [session?.user?.id, wishlist.length]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -284,14 +272,14 @@ const Header = () => {
 
       {/* Side Menu */}
       <div
-        className={`fixed inset-y-0 left-0 w-[85%] max-w-[400px] bg-white z-50 shadow-[20px_0_40px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] transform ${
+        className={`fixed inset-y-0 left-0 w-[85%] max-w-[400px] bg-[#e3e1d6] z-50 border-r-4 border-black transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] transform ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         } xl:hidden flex flex-col overflow-y-auto`}
       >
         <div className="flex justify-end p-6 sm:p-8">
           <button
             onClick={() => setIsMobileMenuOpen(false)}
-            className="text-gray-400 hover:text-black transition-all hover:rotate-90 p-2 -mr-2 duration-300"
+            className="text-gray-900 hover:text-black transition-all hover:rotate-90 p-2 -mr-2 duration-300"
             aria-label="Close menu"
           >
             <FaTimes className="text-2xl font-light" />
@@ -404,10 +392,10 @@ const Header = () => {
               className="flex items-center gap-4 hover:text-black transition-colors py-1 group"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              <FaHeart className="text-lg text-gray-300 group-hover:text-black transition-colors" />
+              <FaHeart className="text-lg text-gray-600 group-hover:text-black transition-colors" />
               <span className="tracking-wide">Favoritos</span>
               {wishQuantity > 0 && (
-                <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full text-gray-600 font-medium">
+                <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full text-gray-900 font-medium">
                   {wishQuantity}
                 </span>
               )}
@@ -417,11 +405,11 @@ const Header = () => {
               className="flex items-center gap-4 hover:text-black transition-colors py-1 group"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              <FaShoppingBag className="text-lg text-gray-300 group-hover:text-black transition-colors" />
+              <FaShoppingBag className="text-lg text-gray-600 group-hover:text-black transition-colors" />
               <span className="tracking-wide">Carrinho</span>
             </Link>
 
-            <div className="w-full h-px bg-gray-100/80 my-2"></div>
+            <div className="w-full h-px bg-gray-600/80 my-2"></div>
 
             {!session?.user ? (
               <Link
@@ -429,12 +417,12 @@ const Header = () => {
                 className="flex items-center gap-4 hover:text-black transition-colors py-1 group"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <FaUser className="text-lg text-gray-300 group-hover:text-black transition-colors" />
+                <FaUser className="text-lg text-gray-600 group-hover:text-black transition-colors" />
                 <span className="tracking-wide">Login / Cadastro</span>
               </Link>
             ) : (
               <div className="flex flex-col gap-5 pt-2">
-                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1">
+                <span className="text-[10px] font-semibold text-gray-600 uppercase tracking-widest mb-1">
                   Minha Conta
                 </span>
                 <Link
@@ -442,7 +430,7 @@ const Header = () => {
                   className="flex items-center gap-4 hover:text-black transition-colors group"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <FaThLarge className="text-lg text-gray-300 group-hover:text-black transition-colors" />
+                  <FaThLarge className="text-lg text-gray-600 group-hover:text-black transition-colors" />
                   <span className="tracking-wide">Dashboard</span>
                 </Link>
                 <Link
@@ -450,7 +438,7 @@ const Header = () => {
                   className="flex items-center gap-4 hover:text-black transition-colors group"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <FaUser className="text-lg text-gray-300 group-hover:text-black transition-colors" />
+                  <FaUser className="text-lg text-gray-600 group-hover:text-black transition-colors" />
                   <span className="tracking-wide">Meu Perfil</span>
                 </Link>
                 <Link
@@ -458,7 +446,7 @@ const Header = () => {
                   className="flex items-center gap-4 hover:text-black transition-colors group"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <FaShoppingBag className="text-lg text-gray-300 group-hover:text-black transition-colors" />
+                  <FaShoppingBag className="text-lg text-gray-600 group-hover:text-black transition-colors" />
                   <span className="tracking-wide">Meus Pedidos</span>
                 </Link>
                 <Link
@@ -466,15 +454,15 @@ const Header = () => {
                   className="flex items-center gap-4 hover:text-black transition-colors group"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <FaMapMarkerAlt className="text-lg text-gray-300 group-hover:text-black transition-colors" />
+                  <FaMapMarkerAlt className="text-lg text-gray-600 group-hover:text-black transition-colors" />
                   <span className="tracking-wide">Endereços</span>
                 </Link>
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-4 hover:text-red-600 transition-colors pt-2 group text-left mt-2"
                 >
-                  <FaSignOutAlt className="text-lg text-gray-300 group-hover:text-red-400 transition-colors" />
-                  <span className="tracking-wide text-gray-500 group-hover:text-red-600">
+                  <FaSignOutAlt className="text-lg text-gray-600 group-hover:text-red-400 transition-colors" />
+                  <span className="tracking-wide text-gray-600 group-hover:text-red-600">
                     Sair
                   </span>
                 </button>

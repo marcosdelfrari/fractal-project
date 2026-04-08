@@ -3,7 +3,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { DashboardSidebar } from "@/components";
 import { FaFloppyDisk } from "react-icons/fa6";
-import { getAdminSettingsApiBase, uploadSectionImage } from "@/lib/adminSettingsApi";
+import {
+  getAdminSettingsApiBase,
+  uploadSectionImage,
+} from "@/lib/adminSettingsApi";
 import { getHeroConfig, type HeroSectionContent } from "@/lib/sectionContent";
 import type { HomeSection } from "../types";
 import { SettingsBackHeader } from "../SettingsBackHeader";
@@ -11,8 +14,13 @@ import { SettingsBackHeader } from "../SettingsBackHeader";
 export default function AdminSettingsHeroPage() {
   const [sections, setSections] = useState<HomeSection[]>([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [form, setForm] = useState<HeroSectionContent>(() => getHeroConfig(undefined));
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [form, setForm] = useState<HeroSectionContent>(() =>
+    getHeroConfig(undefined),
+  );
   const [saving, setSaving] = useState(false);
   const [uploadingBg, setUploadingBg] = useState(false);
   const bgFileRef = useRef<HTMLInputElement>(null);
@@ -54,10 +62,16 @@ export default function AdminSettingsHeroPage() {
       setUploadingBg(true);
       const url = await uploadSectionImage(file);
       setForm((f) => ({ ...f, backgroundImage: url }));
-      showMessage("success", "Imagem de fundo enviada. Salve para persistir no banco.");
+      showMessage(
+        "success",
+        "Imagem de fundo enviada. Salve para persistir no banco.",
+      );
     } catch (e) {
       console.error(e);
-      showMessage("error", e instanceof Error ? e.message : "Erro ao enviar imagem");
+      showMessage(
+        "error",
+        e instanceof Error ? e.message : "Erro ao enviar imagem",
+      );
     } finally {
       setUploadingBg(false);
     }
@@ -106,9 +120,9 @@ export default function AdminSettingsHeroPage() {
 
   if (loading) {
     return (
-      <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+      <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
         <DashboardSidebar />
-        <div className="flex-1 p-10 flex items-center justify-center">
+        <div className="flex-1 p-10 pb-admin-mobile-nav flex items-center justify-center">
           <p className="text-gray-500">Carregando...</p>
         </div>
       </div>
@@ -116,9 +130,9 @@ export default function AdminSettingsHeroPage() {
   }
 
   return (
-    <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+    <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
       <DashboardSidebar />
-      <div className="flex-1 p-10 max-md:p-4 animate-fade-in-up">
+      <div className="flex-1 p-10 max-md:p-4 pb-admin-mobile-nav animate-fade-in-up">
         <SettingsBackHeader
           title="Hero (banner principal)"
           description="Imagem em tela cheia, título em duas partes (prefixo visível em telas grandes) e botão com link. Imagem apenas por upload."
@@ -176,7 +190,8 @@ export default function AdminSettingsHeroPage() {
                   {uploadingBg ? "Enviando…" : "Enviar imagem"}
                 </button>
                 <p className="text-[11px] text-gray-500 max-w-sm">
-                  Recomendado: imagem larga (ex.: 1920×1080 ou similar), WebP ou JPG.
+                  Recomendado: imagem larga (ex.: 1920×1080 ou similar), WebP ou
+                  JPG.
                 </p>
               </div>
             </div>

@@ -43,7 +43,7 @@ async function fetchSiteSettings(): Promise<SiteSettingsDTO> {
     process.env.NEXTAUTH_URL || "http://localhost:3000"
   ).replace(/\/$/, "");
   try {
-    const res = await fetch(`${base}/api/settings/site`, {
+    const res = await fetch(`${base}/api/settings/public`, {
       next: { revalidate: 60 },
     });
     if (res.ok) {

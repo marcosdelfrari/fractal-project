@@ -1,3 +1,4 @@
+const { nanoid } = require("nanoid");
 const prisma = require("../utills/db");
 const { asyncHandler, AppError } = require("../utills/errorHandler");
 const { orderValidation } = require("../utills/validation");
@@ -58,6 +59,11 @@ const getAddress = asyncHandler(async (request, response) => {
 // Create a new address
 const createAddress = asyncHandler(async (request, response) => {
   const { userId } = request.params;
+
+  if (!request.body || typeof request.body !== "object") {
+    throw new AppError("Corpo da requisição inválido ou ausente", 400);
+  }
+
   const {
     label,
     street,
@@ -84,20 +90,19 @@ const createAddress = asyncHandler(async (request, response) => {
     throw new AppError("User not found", 404);
   }
 
-  // Validate required fields
-  if (
-    !label ||
-    !street ||
-    !number ||
-    !district ||
-    !city ||
-    !state ||
-    !zipCode
-  ) {
-    throw new AppError(
-      "Label, street, number, district, city, state, and zipCode are required",
-      400
-    );
+  const missing = [];
+  if (label == null || String(label).trim() === "") missing.push("rótulo");
+  if (street == null || String(street).trim() === "")
+    missing.push("logradouro (preencha o CEP e aguarde a busca)");
+  if (number == null || String(number).trim() === "") missing.push("número");
+  if (district == null || String(district).trim() === "")
+    missing.push("bairro");
+  if (city == null || String(city).trim() === "") missing.push("cidade");
+  if (state == null || String(state).trim() === "") missing.push("estado (UF)");
+  if (zipCode == null || String(zipCode).trim() === "") missing.push("CEP");
+
+  if (missing.length > 0) {
+    throw new AppError(`Preencha: ${missing.join(", ")}`, 400);
   }
 
   // Validate field lengths and formats
@@ -143,8 +148,10 @@ const createAddress = asyncHandler(async (request, response) => {
     });
   }
 
+  const now = new Date();
   const address = await prisma.address.create({
     data: {
+      id: nanoid(),
       userId,
       label: validatedLabel,
       street: validatedStreet,
@@ -156,6 +163,7 @@ const createAddress = asyncHandler(async (request, response) => {
       zipCode: validatedZipCode,
       country: validatedCountry,
       isDefault,
+      updatedAt: now,
     },
   });
 
@@ -266,6 +274,10 @@ const updateAddress = asyncHandler(async (request, response) => {
     }
   }
 
+  if (Object.keys(updateData).length > 0) {
+    updateData.updatedAt = new Date();
+  }
+
   const updatedAddress = await prisma.address.update({
     where: { id: addressId },
     data: updateData,
@@ -326,7 +338,7 @@ const setDefaultAddress = asyncHandler(async (request, response) => {
   // Set this address as default
   const updatedAddress = await prisma.address.update({
     where: { id: addressId },
-    data: { isDefault: true },
+    data: { isDefault: true, updatedAt: new Date() },
   });
 
   return response.json(updatedAddress);

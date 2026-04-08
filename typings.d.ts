@@ -62,11 +62,19 @@ interface Order {
   name: string;
   phone: string;
   postalCode: string;
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+  status:
+    | "pending"
+    | "processing"
+    | "shipped"
+    | "ready_for_pickup"
+    | "delivered"
+    | "cancelled";
   city: string;
   country: string;
   orderNotice: string?;
   total: number;
+  /** entrega | retirada */
+  deliveryOption?: "entrega" | "retirada";
 }
 
 interface SingleProductBtnProps {

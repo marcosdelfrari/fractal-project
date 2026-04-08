@@ -11,20 +11,27 @@ const {
   setDefaultAddress,
 } = require("../controllers/addresses");
 
-// Get all addresses for a user
-router.route("/user/:userId").get(getUserAddresses);
+const {
+  requireSelfOrAdmin,
+  requireAddressOwnerOrAdmin,
+} = require("../middleware/auth");
 
-// Create address for a user
-router.route("/user/:userId").post(createAddress);
+// Get all addresses for a user
+router
+  .route("/user/:userId")
+  .get(requireSelfOrAdmin("userId"), getUserAddresses)
+  .post(requireSelfOrAdmin("userId"), createAddress);
+
+// Set address as default (antes de /:addressId só com um segmento)
+router
+  .route("/:addressId/default")
+  .put(requireAddressOwnerOrAdmin("addressId"), setDefaultAddress);
 
 // Get, update, or delete a specific address
 router
   .route("/:addressId")
-  .get(getAddress)
-  .put(updateAddress)
-  .delete(deleteAddress);
-
-// Set address as default
-router.route("/:addressId/default").put(setDefaultAddress);
+  .get(requireAddressOwnerOrAdmin("addressId"), getAddress)
+  .put(requireAddressOwnerOrAdmin("addressId"), updateAddress)
+  .delete(requireAddressOwnerOrAdmin("addressId"), deleteAddress);
 
 module.exports = router;

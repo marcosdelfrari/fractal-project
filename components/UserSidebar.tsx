@@ -149,7 +149,7 @@ const UserSidebar = ({
         {/* Mobile Toggle Button */}
         <button
           onClick={onToggle}
-          className={`fixed top-4 left-4 z-50 p-2 bg-blue-600 text-white rounded-lg shadow-lg ${className}`}
+          className={`fixed top-4 left-4 z-50 p-2 bg-blue-600 text-white rounded-lg border-2 border-black ${className}`}
         >
           <FaBars className="text-xl" />
         </button>

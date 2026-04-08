@@ -23,7 +23,7 @@ export default function HomeUpcomingEventsSlot() {
     let cancelled = false;
     void (async () => {
       try {
-        const res = await fetch("/api/settings/site", {
+        const res = await fetch("/api/settings/public", {
           cache: "no-store",
         });
         if (!res.ok || cancelled) return;

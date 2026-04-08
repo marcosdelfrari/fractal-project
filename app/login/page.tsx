@@ -82,7 +82,7 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen bg-[#E3E1D6] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-3xl shadow-md border border-gray-100 px-8 py-10">
+        <div className="bg-white rounded-3xl border-2 border-black px-8 py-10">
           {/* Header */}
           <div className="mb-8 text-center">
             <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-gray-900 text-white">

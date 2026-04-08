@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import { apiClient } from "@/lib/api";
 import AddressCard from "@/components/AddressCard";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import {
   FaSpinner,
   FaPlus,
   FaMapMarkerAlt,
+  FaSearchLocation,
 } from "react-icons/fa";
 
 interface Address {
@@ -66,14 +69,25 @@ export default function UserAddresses() {
 
   const [isLoadingCep, setIsLoadingCep] = useState(false);
   const [cepError, setCepError] = useState<string | null>(null);
+  const [modalMounted, setModalMounted] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [isDeletingAddress, setIsDeletingAddress] = useState(false);
 
-  // Busca endereço pelo CEP via API interna (/api/cep)
-  const fetchAddressByCep = async (cep: string) => {
+  useEffect(() => {
+    setModalMounted(true);
+  }, []);
+
+  /** Resultado da API /api/cep — usado no debounce e antes de salvar (evita enviar sem rua/cidade). */
+  const lookupCep = async (
+    cep: string
+  ): Promise<
+    | { ok: true; street: string; district: string; city: string; state: string }
+    | { ok: false; error: string }
+  > => {
     const digits = cep.replace(/\D/g, "");
-    if (digits.length !== 8) return;
-
-    setIsLoadingCep(true);
-    setCepError(null);
+    if (digits.length !== 8) {
+      return { ok: false, error: "Informe um CEP com 8 dígitos." };
+    }
     try {
       const res = await fetch(`/api/cep/${digits}`, { cache: "no-store" });
       const data = (await res.json()) as {
@@ -83,9 +97,32 @@ export default function UserAddresses() {
         cidade?: string;
         uf?: string;
       };
-
       if (!res.ok) {
-        setCepError(data.error || "CEP não encontrado.");
+        return { ok: false, error: data.error || "CEP não encontrado." };
+      }
+      return {
+        ok: true,
+        street: data.endereco || "",
+        district: data.bairro || "",
+        city: data.cidade || "",
+        state: data.uf || "",
+      };
+    } catch {
+      return { ok: false, error: "Erro ao buscar CEP. Tente novamente." };
+    }
+  };
+
+  // Busca endereço pelo CEP via API interna (/api/cep)
+  const fetchAddressByCep = async (cep: string) => {
+    const digits = cep.replace(/\D/g, "");
+    if (digits.length !== 8) return;
+
+    setIsLoadingCep(true);
+    setCepError(null);
+    try {
+      const result = await lookupCep(cep);
+      if (!result.ok) {
+        setCepError(result.error);
         setFormData((prev) => ({
           ...prev,
           street: "",
@@ -95,36 +132,30 @@ export default function UserAddresses() {
         }));
         return;
       }
-
       setFormData((prev) => ({
         ...prev,
-        street: data.endereco || "",
-        district: data.bairro || "",
-        city: data.cidade || "",
-        state: data.uf || "",
-      }));
-    } catch {
-      setCepError("Erro ao buscar CEP. Tente novamente.");
-      setFormData((prev) => ({
-        ...prev,
-        street: "",
-        district: "",
-        city: "",
-        state: "",
+        street: result.street,
+        district: result.district,
+        city: result.city,
+        state: result.state,
       }));
     } finally {
       setIsLoadingCep(false);
     }
   };
 
-  const handleZipCodeBlur = () => {
+  // Busca automática ao completar 8 dígitos (debounce igual ao checkout /compra)
+  useEffect(() => {
+    if (!showForm) return;
     const digits = formData.zipCode.replace(/\D/g, "");
-    if (digits.length === 8) {
-      fetchAddressByCep(formData.zipCode);
-    } else {
-      setCepError(null);
-    }
-  };
+    if (digits.length !== 8) return;
+
+    const timer = setTimeout(() => {
+      void fetchAddressByCep(formData.zipCode);
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [formData.zipCode, showForm]);
 
   const formatZipCode = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 8);
@@ -217,6 +248,50 @@ export default function UserAddresses() {
       setError(null);
       setSuccessMessage(null);
 
+      let payload: AddressFormData = { ...formData };
+      const cepDigits = payload.zipCode.replace(/\D/g, "");
+
+      if (cepDigits.length !== 8) {
+        setError("Informe um CEP válido com 8 dígitos.");
+        return;
+      }
+
+      const addressIncomplete =
+        !payload.street.trim() ||
+        !payload.district.trim() ||
+        !payload.city.trim() ||
+        !payload.state.trim();
+
+      if (addressIncomplete) {
+        setIsLoadingCep(true);
+        setCepError(null);
+        const cepResult = await lookupCep(payload.zipCode);
+        setIsLoadingCep(false);
+        if (!cepResult.ok) {
+          setCepError(cepResult.error);
+          setError(cepResult.error);
+          return;
+        }
+        payload = {
+          ...payload,
+          street: cepResult.street,
+          district: cepResult.district,
+          city: cepResult.city,
+          state: cepResult.state,
+        };
+        setFormData(payload);
+      }
+
+      const labelTrim = payload.label.trim();
+      if (labelTrim.length < 2) {
+        setError("O rótulo deve ter pelo menos 2 caracteres.");
+        return;
+      }
+      if (!payload.number.trim()) {
+        setError("Informe o número do endereço.");
+        return;
+      }
+
       const url = editingAddress
         ? `/api/addresses/${editingAddress.id}`
         : `/api/addresses/user/${session.user.id}`;
@@ -225,12 +300,21 @@ export default function UserAddresses() {
 
       const response = await apiClient.request(url, {
         method,
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...payload, label: labelTrim }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Falha ao salvar endereço");
+        const errorData = (await response.json().catch(() => ({}))) as {
+          message?: string;
+          error?: string;
+          details?: string;
+        };
+        throw new Error(
+          errorData.message ||
+            errorData.error ||
+            errorData.details ||
+            "Falha ao salvar endereço"
+        );
       }
 
       setSuccessMessage(
@@ -291,12 +375,15 @@ export default function UserAddresses() {
     setShowForm(true);
   };
 
-  const handleDelete = async (addressId: string) => {
-    if (!confirm("Tem certeza que deseja excluir este endereço?")) {
-      return;
-    }
+  const openDeleteConfirm = (addressId: string) => {
+    setDeleteTargetId(addressId);
+  };
 
+  const confirmDeleteAddress = async () => {
+    if (!deleteTargetId) return;
+    const addressId = deleteTargetId;
     try {
+      setIsDeletingAddress(true);
       setError(null);
       setSuccessMessage(null);
 
@@ -309,16 +396,17 @@ export default function UserAddresses() {
 
       setSuccessMessage("Endereço excluído com sucesso!");
 
-      // Refresh addresses
       await fetchAddresses();
 
-      // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccessMessage(null);
       }, 3000);
+      setDeleteTargetId(null);
     } catch (err) {
       console.error("Erro ao excluir endereço:", err);
       setError(err instanceof Error ? err.message : "Erro ao excluir endereço");
+    } finally {
+      setIsDeletingAddress(false);
     }
   };
 
@@ -441,7 +529,7 @@ export default function UserAddresses() {
 
       {/* Success Message */}
       {successMessage && (
-        <div className="mb-8 rounded-2xl border border-gray-100 bg-[#E3E1D6] p-5 shadow-sm">
+        <div className="mb-8 rounded-2xl border-2 border-black bg-[#E3E1D6] p-5">
           <div className="flex items-center gap-4">
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 text-gray-600">
               <svg className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
@@ -455,7 +543,7 @@ export default function UserAddresses() {
 
       {/* Error Message */}
       {error && (
-        <div className="mb-8 rounded-2xl border border-gray-100 bg-[#E3E1D6] p-5 shadow-sm">
+        <div className="mb-8 rounded-2xl border-2 border-black bg-[#E3E1D6] p-5">
           <div className="flex items-center gap-4">
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 text-red-600">
               <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -467,35 +555,99 @@ export default function UserAddresses() {
         </div>
       )}
 
-      {/* Address Form Modal */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-8">
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
-                    <FaMapMarkerAlt size={16} />
+      {/* Address Form Modal — portal no body evita `fixed` preso ao pai com `transform` (animate-fade-in-up) */}
+      {modalMounted &&
+        showForm &&
+        createPortal(
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/50"
+              aria-hidden
+              onClick={handleCancel}
+            />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="address-modal-title"
+              className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border-2 border-black bg-white shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-8">
+                <div className="mb-8 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-full bg-[#E3E1D6] p-3 text-gray-900">
+                      <FaMapMarkerAlt size={16} />
+                    </div>
+                    <h2
+                      id="address-modal-title"
+                      className="text-lg font-light uppercase tracking-widest text-gray-900"
+                    >
+                      {editingAddress ? "Editar Endereço" : "Adicionar Endereço"}
+                    </h2>
                   </div>
-                  <h2 className="text-lg font-light tracking-widest text-gray-900 uppercase">
-                    {editingAddress ? "Editar Endereço" : "Adicionar Endereço"}
-                  </h2>
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    aria-label="Fechar"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition-colors hover:bg-[#E3E1D6] hover:text-gray-700"
+                  >
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  aria-label="Fechar"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-[#E3E1D6] hover:text-gray-700 transition-colors"
-                >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  {/* Label */}
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* CEP primeiro — preenchimento automático como no checkout */}
+                  <div>
+                    <label
+                      htmlFor="user-address-zip"
+                      className="mb-1 block text-sm font-medium text-gray-700"
+                    >
+                      CEP *
+                    </label>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <FaSearchLocation className="text-sm text-gray-400" />
+                      </span>
+                      <input
+                        id="user-address-zip"
+                        type="text"
+                        name="zipCode"
+                        value={formData.zipCode}
+                        onChange={handleInputChange}
+                        placeholder="00000-000"
+                        maxLength={9}
+                        autoComplete="postal-code"
+                        className="block w-full rounded-lg border-2 border-black py-2.5 pl-10 pr-10 focus:border-black focus:ring-gray-400 sm:text-sm"
+                        required
+                      />
+                      {isLoadingCep && (
+                        <span className="absolute inset-y-0 right-0 flex items-center pr-3">
+                          <FaSpinner className="h-4 w-4 animate-spin text-gray-500" />
+                        </span>
+                      )}
+                    </div>
+                    {cepError && (
+                      <p className="mt-1 text-sm text-red-600">{cepError}</p>
+                    )}
+                    <p className="mt-1 text-xs font-light text-gray-500">
+                      Digite o CEP para buscar rua, bairro, cidade e UF
+                      automaticamente.
+                    </p>
+                  </div>
+
+                  {/* Rótulo */}
                   <div>
                     <label className="mb-1 block text-sm font-medium text-gray-700">
                       Rótulo *
@@ -506,36 +658,12 @@ export default function UserAddresses() {
                       value={formData.label}
                       onChange={handleInputChange}
                       placeholder="Ex: Casa, Trabalho"
-                      className="block w-full rounded-lg border border-gray-300 py-2.5 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm"
+                      className="block w-full rounded-lg border-2 border-black py-2.5 focus:border-black focus:ring-gray-400 sm:text-sm"
                       required
                     />
                   </div>
 
-                  {/* Zip Code */}
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                      CEP *
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="zipCode"
-                        value={formData.zipCode}
-                        onChange={handleInputChange}
-                        onBlur={handleZipCodeBlur}
-                        placeholder="00000-000"
-                        maxLength={9}
-                        className="block w-full rounded-lg border border-gray-300 py-2.5 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm"
-                        required
-                      />
-                    </div>
-                    {cepError && (
-                      <p className="mt-1 text-sm text-red-600">{cepError}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                   {/* Street - somente leitura (preenchido pelo CEP) */}
                   <div className="md:col-span-2">
                     <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -563,7 +691,7 @@ export default function UserAddresses() {
                       value={formData.number}
                       onChange={handleInputChange}
                       placeholder="123"
-                      className="block w-full rounded-lg border border-gray-300 py-2.5 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm"
+                      className="block w-full rounded-lg border-2 border-black py-2.5 focus:border-black focus:ring-gray-400 sm:text-sm"
                       required
                     />
                   </div>
@@ -580,7 +708,7 @@ export default function UserAddresses() {
                     value={formData.complement}
                     onChange={handleInputChange}
                     placeholder="Apto, Sala, etc."
-                    className="block w-full rounded-lg border border-gray-300 py-2.5 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm"
+                    className="block w-full rounded-lg border-2 border-black py-2.5 focus:border-black focus:ring-gray-400 sm:text-sm"
                   />
                 </div>
 
@@ -644,7 +772,7 @@ export default function UserAddresses() {
                     name="country"
                     value={formData.country}
                     onChange={handleInputChange}
-                    className="block w-full rounded-lg border border-gray-300 py-2.5 shadow-sm focus:border-gray-400 focus:ring-gray-400 sm:text-sm"
+                    className="block w-full rounded-lg border-2 border-black py-2.5 focus:border-black focus:ring-gray-400 sm:text-sm"
                     required
                   />
                 </div>
@@ -676,7 +804,7 @@ export default function UserAddresses() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="rounded-full border border-transparent bg-black px-8 py-3 text-sm font-medium uppercase tracking-wider text-white shadow-lg hover:bg-zinc-800 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-full border-2 border-black bg-black px-8 py-3 text-sm font-medium uppercase tracking-wider text-white hover:bg-zinc-800 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {isSubmitting
                       ? "Salvando..."
@@ -686,14 +814,15 @@ export default function UserAddresses() {
                   </button>
                 </div>
               </form>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
 
       {/* Addresses List */}
       {addresses.length === 0 ? (
-        <div className="rounded-3xl border border-gray-100 bg-white p-12 text-center shadow-md">
+        <div className="rounded-3xl border-2 border-black bg-white p-12 text-center">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#E3E1D6] text-gray-400">
             <FaMapMarkerAlt className="h-8 w-8" />
           </div>
@@ -705,7 +834,7 @@ export default function UserAddresses() {
           </p>
           <button
             onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-transparent bg-black px-8 py-3 text-sm font-medium uppercase tracking-wider text-white shadow-lg hover:bg-zinc-800 transition-all duration-300"
+            className="inline-flex items-center gap-2 rounded-full border-2 border-black bg-black px-8 py-3 text-sm font-medium uppercase tracking-wider text-white hover:bg-zinc-800 transition-all duration-300"
           >
             <FaPlus />
             Adicionar Primeiro Endereço
@@ -718,7 +847,7 @@ export default function UserAddresses() {
               key={address.id}
               address={address}
               onEdit={handleEdit}
-              onDelete={handleDelete}
+              onDelete={openDeleteConfirm}
               onSetDefault={handleSetDefault}
             />
           ))}
@@ -727,7 +856,7 @@ export default function UserAddresses() {
 
       {/* Summary */}
       {addresses.length > 0 && (
-        <div className="mt-8 rounded-3xl border border-gray-100 bg-white p-8 shadow-md">
+        <div className="mt-8 rounded-3xl border-2 border-black bg-white p-8">
           <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-6">
             <div className="p-3 rounded-full bg-[#E3E1D6] text-gray-900">
               <FaMapMarkerAlt size={16} />
@@ -758,6 +887,18 @@ export default function UserAddresses() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteTargetId !== null}
+        onClose={() => !isDeletingAddress && setDeleteTargetId(null)}
+        title="Excluir endereço?"
+        description="Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        variant="danger"
+        isBusy={isDeletingAddress}
+        onConfirm={confirmDeleteAddress}
+      />
     </div>
   );
 }

@@ -3,7 +3,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { DashboardSidebar } from "@/components";
 import { FaFloppyDisk, FaPlus, FaTrash } from "react-icons/fa6";
-import { getAdminSettingsApiBase, uploadSectionImage } from "@/lib/adminSettingsApi";
+import {
+  getAdminSettingsApiBase,
+  uploadSectionImage,
+} from "@/lib/adminSettingsApi";
 import {
   getFeaturedProductsFromContent,
   type FeaturedProductSlide,
@@ -14,8 +17,13 @@ import { SettingsBackHeader } from "../SettingsBackHeader";
 export default function AdminSettingsProdutosDestaquePage() {
   const [sections, setSections] = useState<HomeSection[]>([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [featuredItems, setFeaturedItems] = useState<FeaturedProductSlide[]>([]);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [featuredItems, setFeaturedItems] = useState<FeaturedProductSlide[]>(
+    [],
+  );
   const [saving, setSaving] = useState(false);
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
   const lifestyleRefs = useRef<Record<number, HTMLInputElement | null>>({});
@@ -136,7 +144,10 @@ export default function AdminSettingsProdutosDestaquePage() {
       showMessage("success", "Imagem enviada.");
     } catch (e) {
       console.error(e);
-      showMessage("error", e instanceof Error ? e.message : "Erro ao enviar imagem");
+      showMessage(
+        "error",
+        e instanceof Error ? e.message : "Erro ao enviar imagem",
+      );
     } finally {
       setUploadingKey(null);
     }
@@ -149,9 +160,7 @@ export default function AdminSettingsProdutosDestaquePage() {
   const addFeaturedItem = () => {
     setFeaturedItems((prev) => {
       const nextId =
-        prev.length === 0
-          ? 1
-          : Math.max(...prev.map((i) => i.id)) + 1;
+        prev.length === 0 ? 1 : Math.max(...prev.map((i) => i.id)) + 1;
       return [
         ...prev,
         {
@@ -167,9 +176,9 @@ export default function AdminSettingsProdutosDestaquePage() {
 
   if (loading) {
     return (
-      <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+      <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
         <DashboardSidebar />
-        <div className="flex-1 p-10 flex items-center justify-center">
+        <div className="flex-1 p-10 pb-admin-mobile-nav flex items-center justify-center">
           <p className="text-gray-500">Carregando...</p>
         </div>
       </div>
@@ -177,9 +186,9 @@ export default function AdminSettingsProdutosDestaquePage() {
   }
 
   return (
-    <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+    <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
       <DashboardSidebar />
-      <div className="flex-1 p-10 max-md:p-4 animate-fade-in-up">
+      <div className="flex-1 p-10 max-md:p-4 pb-admin-mobile-nav animate-fade-in-up">
         <SettingsBackHeader
           title="Produtos em destaque (home)"
           description="Imagens apenas por upload (lifestyle e produto por slide). Textos podem ser editados abaixo."
@@ -199,7 +208,8 @@ export default function AdminSettingsProdutosDestaquePage() {
 
         <div className="bg-white border border-gray-100 rounded-2xl p-8">
           <p className="text-xs text-gray-500 mb-6">
-            Cada slide: duas imagens obrigatórias (envio de arquivo), título e rótulo de categoria.
+            Cada slide: duas imagens obrigatórias (envio de arquivo), título e
+            rótulo de categoria.
           </p>
 
           <div className="space-y-6">

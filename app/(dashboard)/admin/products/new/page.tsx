@@ -77,10 +77,10 @@ const AddNewProduct = () => {
         ...product,
         mainImage: product.mainImage || mainImageFile?.name || "",
       };
-      
+
       const sanitizedProduct = sanitizeFormData(productToSend);
       const response = await apiClient.post(`/api/products`, sanitizedProduct);
-      
+
       if (response.status === 201) {
         const data = await response.json();
         const productId = data.id;
@@ -89,7 +89,7 @@ const AddNewProduct = () => {
           for (const [index, img] of secondaryImages.entries()) {
             const uploadedFileName = await uploadFile(
               img.file,
-              getImageBaseName(index + 2)
+              getImageBaseName(index + 2),
             );
             await apiClient.post("/api/images", {
               productID: productId,
@@ -99,7 +99,7 @@ const AddNewProduct = () => {
         }
 
         toast.success("Produto adicionado com sucesso!");
-        
+
         setProduct({
           title: "",
           price: 0,
@@ -144,7 +144,7 @@ const AddNewProduct = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData?.message || `Erro no upload da imagem (${response.status})`
+          errorData?.message || `Erro no upload da imagem (${response.status})`,
         );
       }
       const data = await response.json();
@@ -154,17 +154,19 @@ const AddNewProduct = () => {
     }
   };
 
-  const handleMainImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMainImageChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setMainImageFile(selectedFile);
       const previewUrl = URL.createObjectURL(selectedFile);
       setMainImagePreview(previewUrl);
-      
+
       try {
         const uploadedFileName = await uploadFile(
           selectedFile,
-          getImageBaseName(1)
+          getImageBaseName(1),
         );
         setProduct((prev) => ({ ...prev, mainImage: uploadedFileName }));
         toast.success("Imagem principal carregada!");
@@ -174,7 +176,9 @@ const AddNewProduct = () => {
     }
   };
 
-  const handleSecondaryImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSecondaryImagesChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const newImages: SecondaryImage[] = Array.from(files).map((file) => ({
@@ -206,9 +210,9 @@ const AddNewProduct = () => {
   }, []);
 
   return (
-    <div className="bg-[#E3E1D6] flex min-h-screen max-w-screen-2xl mx-auto max-lg:flex-col animate-fade-in-up">
+    <div className="bg-white flex min-h-screen max-w-screen-2xl mx-auto max-lg:flex-col animate-fade-in-up">
       <DashboardSidebar />
-      <div className="flex-1 p-10 max-md:p-4">
+      <div className="flex-1 p-10 max-md:p-4 pb-admin-mobile-nav">
         {/* Header Section */}
         <div className="flex items-center gap-3 border-b border-gray-100 pb-6 mb-10">
           <div className="p-3 bg-[#E3E1D6] rounded-full text-gray-900">
@@ -226,38 +230,55 @@ const AddNewProduct = () => {
               <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                 <FaTag size={12} />
               </div>
-              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Informações Básicas</h2>
+              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">
+                Informações Básicas
+              </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2">
-                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Nome do Produto *</label>
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                  Nome do Produto *
+                </label>
                 <input
                   type="text"
                   placeholder="Ex: Camiseta Básica"
                   className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 placeholder:text-gray-300"
                   value={product?.title}
-                  onChange={(e) => setProduct({ ...product, title: e.target.value })}
+                  onChange={(e) =>
+                    setProduct({ ...product, title: e.target.value })
+                  }
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Slug do Produto *</label>
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                  Slug do Produto *
+                </label>
                 <input
                   type="text"
                   placeholder="ex-camiseta-basica"
                   className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 placeholder:text-gray-300"
                   value={convertSlugToURLFriendly(product?.slug)}
-                  onChange={(e) => setProduct({ ...product, slug: convertSlugToURLFriendly(e.target.value) })}
+                  onChange={(e) =>
+                    setProduct({
+                      ...product,
+                      slug: convertSlugToURLFriendly(e.target.value),
+                    })
+                  }
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Categoria</label>
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                  Categoria
+                </label>
                 <select
                   className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 appearance-none cursor-pointer"
                   value={product?.categoryId}
-                  onChange={(e) => setProduct({ ...product, categoryId: e.target.value })}
+                  onChange={(e) =>
+                    setProduct({ ...product, categoryId: e.target.value })
+                  }
                 >
                   {categories.map((category: any) => (
                     <option key={category?.id} value={category?.id}>
@@ -268,13 +289,17 @@ const AddNewProduct = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Fabricante *</label>
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                  Fabricante *
+                </label>
                 <input
                   type="text"
                   placeholder="Ex: Marca XYZ"
                   className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 placeholder:text-gray-300"
                   value={product?.manufacturer}
-                  onChange={(e) => setProduct({ ...product, manufacturer: e.target.value })}
+                  onChange={(e) =>
+                    setProduct({ ...product, manufacturer: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -286,29 +311,37 @@ const AddNewProduct = () => {
               <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                 <FaBox size={12} />
               </div>
-              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Preço e Estoque</h2>
+              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">
+                Preço e Estoque
+              </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="space-y-2">
-                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Preço (R$) *</label>
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                  Preço (R$) *
+                </label>
                 <input
                   type="number"
                   placeholder="0.00"
                   className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 placeholder:text-gray-300"
                   value={product?.price}
-                  onChange={(e) => setProduct({ ...product, price: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setProduct({ ...product, price: Number(e.target.value) })
+                  }
                 />
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between px-1">
-                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest">Em estoque?</label>
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest">
+                    Em estoque?
+                  </label>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="sr-only peer" 
-                      checked={product.inStock > 0} 
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={product.inStock > 0}
                       onChange={(e) => {
                         const hasStock = e.target.checked;
                         if (!hasStock) {
@@ -326,16 +359,20 @@ const AddNewProduct = () => {
                     type="number"
                     min="0"
                     step="1"
-                    className={`w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${product.inStock <= 0 ? 'opacity-50 grayscale' : ''}`}
+                    className={`w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${product.inStock <= 0 ? "opacity-50 grayscale" : ""}`}
                     value={product.inStock || 0}
-                    onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+                    onWheel={(e) =>
+                      (e.currentTarget as HTMLInputElement).blur()
+                    }
                     onChange={(e) => {
                       const val = parseInt(e.target.value, 10);
                       setProduct({ ...product, inStock: isNaN(val) ? 0 : val });
                     }}
                     placeholder="0"
                   />
-                  <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 uppercase font-medium tracking-widest pointer-events-none">Unidades</span>
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 uppercase font-medium tracking-widest pointer-events-none">
+                    Unidades
+                  </span>
                 </div>
               </div>
             </div>
@@ -347,7 +384,9 @@ const AddNewProduct = () => {
               <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                 <FaImage size={12} />
               </div>
-              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Imagens do Produto</h2>
+              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">
+                Imagens do Produto
+              </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -371,13 +410,17 @@ const AddNewProduct = () => {
                           className="w-full h-full rounded-2xl object-cover border border-gray-100"
                         />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 rounded-2xl flex items-center justify-center transition-all duration-300">
-                          <span className="text-white text-[10px] uppercase tracking-widest">Alterar</span>
+                          <span className="text-white text-[10px] uppercase tracking-widest">
+                            Alterar
+                          </span>
                         </div>
                       </div>
                     ) : (
                       <>
                         <FaImage size={32} className="text-gray-200 mb-2" />
-                        <span className="text-xs text-gray-400 font-light">Selecione a imagem principal</span>
+                        <span className="text-xs text-gray-400 font-light">
+                          Selecione a imagem principal
+                        </span>
                       </>
                     )}
                   </div>
@@ -387,7 +430,9 @@ const AddNewProduct = () => {
               <div className="space-y-4">
                 <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1 flex items-center justify-between w-full">
                   Imagens Secundárias
-                  <span className="text-[9px] text-gray-300 tracking-normal italic uppercase">Múltiplas imagens</span>
+                  <span className="text-[9px] text-gray-300 tracking-normal italic uppercase">
+                    Múltiplas imagens
+                  </span>
                 </label>
                 <div className="border-2 border-dashed border-gray-100 rounded-[2rem] p-4 min-h-[148px] flex flex-wrap gap-3 transition-all duration-300 hover:border-gray-200">
                   {secondaryImages.map((img, index) => (
@@ -427,16 +472,22 @@ const AddNewProduct = () => {
               <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                 <FaInfoCircle size={12} />
               </div>
-              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Detalhes e Descrição</h2>
+              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">
+                Detalhes e Descrição
+              </h2>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Descrição Completa *</label>
+              <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                Descrição Completa *
+              </label>
               <textarea
                 className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-3xl py-6 px-8 transition-all duration-300 text-gray-900 placeholder:text-gray-300 h-48 leading-relaxed resize-none"
                 placeholder="Descreva os detalhes, características e benefícios do produto..."
                 value={product?.description}
-                onChange={(e) => setProduct({ ...product, description: e.target.value })}
+                onChange={(e) =>
+                  setProduct({ ...product, description: e.target.value })
+                }
               ></textarea>
             </div>
 
@@ -474,7 +525,11 @@ const AddNewProduct = () => {
                 <MultiValueInput
                   label="Cores (Opcional)"
                   placeholder="Ex: Preto, Prata"
-                  values={Array.isArray(product.colors) ? product.colors.map((c) => c.name) : []}
+                  values={
+                    Array.isArray(product.colors)
+                      ? product.colors.map((c) => c.name)
+                      : []
+                  }
                   onChange={(nextColors) =>
                     setProduct({
                       ...product,
@@ -499,12 +554,12 @@ const AddNewProduct = () => {
               </div>
             </div>
           </section>
-          
+
           <div className="flex justify-end gap-x-4 pt-10 border-t border-gray-50">
             <button
-               type="button"
-               onClick={() => window.history.back()}
-               className="px-8 py-3.5 rounded-full border border-gray-200 text-[11px] uppercase tracking-widest font-medium text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all duration-300"
+              type="button"
+              onClick={() => window.history.back()}
+              className="px-8 py-3.5 rounded-full border border-gray-200 text-[11px] uppercase tracking-widest font-medium text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all duration-300"
             >
               Cancelar
             </button>
@@ -516,9 +571,24 @@ const AddNewProduct = () => {
             >
               {isSubmitting ? (
                 <>
-                  <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    ></path>
                   </svg>
                   Processando...
                 </>

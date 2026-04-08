@@ -1,60 +1,51 @@
-// Debug script to test order creation and product addition
-const axios = require('axios');
+// Debug: POST /api/orders agregado (cabeçalho + items em uma transação).
+// Uso: npm run debug:order  (Express em API_BASE_URL, ex. :3001)
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3001";
 
 async function debugOrderCreation() {
-  console.log("🔍 Debugging Order Creation Process...\n");
-  
+  console.log("🔍 POST /api/orders com items (transação única)\n");
+  console.log(`   → ${API_BASE_URL}/api/orders\n`);
+
+  const orderData = {
+    name: "John",
+    lastname: "Doe",
+    email: "debug.test@example.com",
+    phone: "+1-555-123-4567",
+    company: "Test Company Inc",
+    adress: "123 Main Street",
+    apartment: "Apt 4B",
+    city: "New York",
+    country: "United States",
+    postalCode: "10001",
+    total: 9999,
+    status: "pending",
+    orderNotice: "Debug test order",
+    items: [{ productId: "10", quantity: 3 }],
+  };
+
   try {
-    // Step 1: Create an order
-    console.log("1️⃣ Creating order...");
-    const orderData = {
-      name: "John",
-      lastname: "Doe",
-      email: "debug.test@example.com",
-      phone: "+1-555-123-4567",
-      company: "Test Company Inc",
-      adress: "123 Main Street",
-      apartment: "Apt 4B",
-      city: "New York",
-      country: "United States",
-      postalCode: "10001",
-      total: 99.99,
-      status: "pending",
-      orderNotice: "Debug test order"
-    };
-
-    const orderResponse = await axios.post(`${API_BASE_URL}/api/orders`, orderData);
-    console.log("✅ Order created successfully");
-    console.log(`   Order ID: ${orderResponse.data.id}`);
-    console.log(`   Full response:`, JSON.stringify(orderResponse.data, null, 2));
-
-    const orderId = orderResponse.data.id;
-
-    // Step 2: Add a product to the order
-    console.log("\n2️⃣ Adding product to order...");
-    const productData = {
-      customerOrderId: orderId,
-      productId: "10", // Use a valid product ID from your database
-      quantity: 3
-    };
-
-    console.log(`   Sending product data:`, JSON.stringify(productData, null, 2));
-
-    const productResponse = await axios.post(`${API_BASE_URL}/api/order-product`, productData);
-    console.log("✅ Product added successfully");
-    console.log(`   Product order ID: ${productResponse.data.id}`);
-    console.log(`   Full response:`, JSON.stringify(productResponse.data, null, 2));
-
-  } catch (error) {
-    console.log("❌ Error occurred:");
-    if (error.response) {
-      console.log(`   Status: ${error.response.status}`);
-      console.log(`   Error: ${JSON.stringify(error.response.data, null, 2)}`);
-    } else {
-      console.log(`   Error: ${error.message}`);
+    const res = await fetch(`${API_BASE_URL}/api/orders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderData),
+    });
+    const text = await res.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = text;
     }
+    if (!res.ok) {
+      console.log("❌ Falha:", res.status, data);
+      process.exitCode = 1;
+      return;
+    }
+    console.log("✅ Pedido criado:", JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.log("❌ Erro de rede ou servidor:", err?.message || err);
+    process.exitCode = 1;
   }
 }
 

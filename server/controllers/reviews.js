@@ -1,4 +1,5 @@
 const prisma = require("../utills/db");
+const { tokenUserId } = require("../middleware/auth");
 const { asyncHandler, AppError } = require("../utills/errorHandler");
 
 // Get all reviews for a product
@@ -117,12 +118,17 @@ const getReview = asyncHandler(async (request, response) => {
   return response.json(review);
 });
 
-// Create a new review
+// Create a new review (userId vem da sessão)
 const createReview = asyncHandler(async (request, response) => {
-  const { userId, productId, rating, comment } = request.body;
+  const userId = tokenUserId(request.auth);
+  if (!userId) {
+    throw new AppError("Não autenticado", 401);
+  }
 
-  if (!userId || !productId || !rating) {
-    throw new AppError("User ID, Product ID, and rating are required", 400);
+  const { productId, rating, comment } = request.body;
+
+  if (!productId || !rating) {
+    throw new AppError("Product ID and rating are required", 400);
   }
 
   // Validate rating

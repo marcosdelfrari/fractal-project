@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
 const { nanoid } = require("nanoid");
 
 const HOME_SECTION_DEFAULTS = require(path.join(
@@ -55,6 +56,61 @@ const ALLOWED_IMAGE_MIME = new Set([
   "image/vnd.microsoft.icon",
 ]);
 
+/** Campos expostos à vitrine (contrato estável; não incluir id nem metadados internos). */
+function toPublicSiteSettingsDto(row) {
+  return {
+    storeName: row.storeName,
+    storeIcon: row.storeIcon,
+    storeLogo: row.storeLogo,
+    navBrandDesktopMode: row.navBrandDesktopMode,
+    navBrandMobileMode: row.navBrandMobileMode,
+    hideStoreNameUntilLoaded: row.hideStoreNameUntilLoaded,
+    navLinks: row.navLinks ?? DEFAULT_NAV_LINKS,
+    whatsapp: row.whatsapp,
+    facebook: row.facebook,
+    instagram: row.instagram,
+    x: row.x,
+    pinterest: row.pinterest,
+    youtube: row.youtube,
+    linkedin: row.linkedin,
+    tiktok: row.tiktok,
+    address: row.address,
+    email: row.email,
+    phone: row.phone,
+    pickupAddresses: row.pickupAddresses,
+    checkoutMode: row.checkoutMode,
+    deliveryEnabled: row.deliveryEnabled,
+    upcomingEvents: row.upcomingEvents,
+  };
+}
+
+function publicSiteSettingsETag(row) {
+  const basis = row.updatedAt
+    ? row.updatedAt.toISOString()
+    : `${row.id}-${row.storeName}`;
+  const hash = crypto.createHash("sha1").update(basis).digest("hex").slice(0, 20);
+  return `"${hash}"`;
+}
+
+async function getOrCreateSiteSettings() {
+  let settings = await prisma.siteSettings.findFirst();
+
+  if (!settings) {
+    settings = await prisma.siteSettings.create({
+      data: {
+        id: DEFAULT_SITE_ID,
+        storeName: "Fractal Store",
+        navBrandDesktopMode: "name",
+        navBrandMobileMode: "name",
+        hideStoreNameUntilLoaded: true,
+        navLinks: DEFAULT_NAV_LINKS,
+      },
+    });
+  }
+
+  return settings;
+}
+
 async function ensureDefaultHomeSections() {
   const count = await prisma.homeSection.count();
   if (count > 0) return;
@@ -72,23 +128,28 @@ async function ensureDefaultHomeSections() {
   }
 }
 
-// Get site settings
-const getSiteSettings = asyncHandler(async (request, response) => {
-  let settings = await prisma.siteSettings.findFirst();
+/** GET /api/settings/public — DTO da vitrine + ETag / Cache-Control (invalidação via updatedAt). */
+const getPublicSiteSettings = asyncHandler(async (request, response) => {
+  const row = await getOrCreateSiteSettings();
+  const etag = publicSiteSettingsETag(row);
+  response.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  response.setHeader("ETag", etag);
 
-  if (!settings) {
-    settings = await prisma.siteSettings.create({
-      data: {
-        id: DEFAULT_SITE_ID,
-        storeName: "Fractal Store",
-        navBrandDesktopMode: "name",
-        navBrandMobileMode: "name",
-        hideStoreNameUntilLoaded: true,
-        navLinks: DEFAULT_NAV_LINKS,
-      },
-    });
+  const inm = request.headers["if-none-match"];
+  if (inm && inm === etag) {
+    return response.status(304).end();
   }
 
+  if (request.method === "HEAD") {
+    return response.status(200).end();
+  }
+
+  return response.status(200).json(toPublicSiteSettingsDto(row));
+});
+
+// Get site settings (payload completo — apenas admin no Express)
+const getSiteSettings = asyncHandler(async (request, response) => {
+  const settings = await getOrCreateSiteSettings();
   return response.status(200).json(settings);
 });
 
@@ -400,6 +461,7 @@ const toggleSection = asyncHandler(async (request, response) => {
 });
 
 module.exports = {
+  getPublicSiteSettings,
   getSiteSettings,
   updateSiteSettings,
   getHomeSections,

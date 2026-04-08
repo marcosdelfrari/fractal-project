@@ -11,7 +11,16 @@ import {
 } from "../../../../../utils/categoryFormating";
 import apiClient from "@/lib/api";
 import { sanitizeFormData } from "@/lib/form-sanitize";
-import { FaEdit, FaTrash, FaImage, FaTag, FaBox, FaInfoCircle, FaChevronLeft, FaPlus } from "react-icons/fa";
+import {
+  FaEdit,
+  FaTrash,
+  FaImage,
+  FaTag,
+  FaBox,
+  FaInfoCircle,
+  FaChevronLeft,
+  FaPlus,
+} from "react-icons/fa";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import MultiValueInput from "@/components/MultiValueInput";
 
@@ -47,7 +56,9 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
       .then((response) => {
         if (response.status !== 204) {
           if (response.status === 400) {
-            toast.error("Não é possível excluir o produto pois ele está em pedidos existentes.");
+            toast.error(
+              "Não é possível excluir o produto pois ele está em pedidos existentes.",
+            );
           } else {
             throw Error("Erro ao excluir produto");
           }
@@ -109,7 +120,9 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
         return data.fileName || file.name;
       } else {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData?.message || `Erro no upload (${response.status})`);
+        throw new Error(
+          errorData?.message || `Erro no upload (${response.status})`,
+        );
       }
     } catch (error: any) {
       throw new Error(error?.message || "Falha ao enviar arquivo");
@@ -117,7 +130,7 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
   };
 
   const handleGalleryImagesChange = async (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -129,7 +142,7 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
       try {
         const uploadedFileName = await uploadFile(
           file,
-          getImageBaseName(startIndex + offset)
+          getImageBaseName(startIndex + offset),
         );
 
         const response = await apiClient.post("/api/images", {
@@ -151,7 +164,7 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
     if (uploadedImages.length > 0) {
       setOtherImages((prev) => [...prev, ...uploadedImages]);
       toast.success(
-        `${uploadedImages.length} imagem(ns) adicionada(s) na galeria`
+        `${uploadedImages.length} imagem(ns) adicionada(s) na galeria`,
       );
     }
 
@@ -164,7 +177,8 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
       .then((res) => res.json())
       .then((data) => setProduct(data));
 
-    apiClient.get(`/api/images/${id}`, { cache: "no-store" })
+    apiClient
+      .get(`/api/images/${id}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((images) => setOtherImages(images));
   };
@@ -180,7 +194,7 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
       }
 
       setOtherImages((prev) =>
-        prev.filter((img) => String(img.imageID) !== imageToDelete)
+        prev.filter((img) => String(img.imageID) !== imageToDelete),
       );
       toast.success("Imagem removida da galeria");
     } catch (_) {
@@ -209,13 +223,13 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
   }, [product?.inStock]);
 
   return (
-    <div className="bg-[#E3E1D6] flex min-h-screen max-w-screen-2xl mx-auto max-lg:flex-col animate-fade-in-up">
+    <div className="bg-white flex min-h-screen max-w-screen-2xl mx-auto max-lg:flex-col animate-fade-in-up">
       <DashboardSidebar />
-      <div className="flex-1 p-10 max-md:p-4">
+      <div className="flex-1 p-10 max-md:p-4 pb-admin-mobile-nav">
         {/* Header Section */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-6 mb-10">
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={() => router.push("/admin/products")}
               className="p-3 bg-[#E3E1D6] rounded-full text-gray-400 hover:text-gray-900 transition-colors"
             >
@@ -228,7 +242,7 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
               Detalhes do Produto
             </h1>
           </div>
-          
+
           <button
             onClick={() => setIsProductModalOpen(true)}
             disabled={isDeleting}
@@ -246,46 +260,69 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
               <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                 <FaTag size={12} />
               </div>
-              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Informações Básicas</h2>
+              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">
+                Informações Básicas
+              </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2">
-                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Nome do Produto</label>
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                  Nome do Produto
+                </label>
                 <input
                   type="text"
                   className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                   value={product?.title || ""}
-                  onChange={(e) => setProduct({ ...product!, title: e.target.value })}
+                  onChange={(e) =>
+                    setProduct({ ...product!, title: e.target.value })
+                  }
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Slug</label>
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                  Slug
+                </label>
                 <input
                   type="text"
                   className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
-                  value={product?.slug ? convertSlugToURLFriendly(product?.slug) : ""}
-                  onChange={(e) => setProduct({ ...product!, slug: convertSlugToURLFriendly(e.target.value) })}
+                  value={
+                    product?.slug ? convertSlugToURLFriendly(product?.slug) : ""
+                  }
+                  onChange={(e) =>
+                    setProduct({
+                      ...product!,
+                      slug: convertSlugToURLFriendly(e.target.value),
+                    })
+                  }
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Fabricante</label>
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                  Fabricante
+                </label>
                 <input
                   type="text"
                   className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                   value={product?.manufacturer || ""}
-                  onChange={(e) => setProduct({ ...product!, manufacturer: e.target.value })}
+                  onChange={(e) =>
+                    setProduct({ ...product!, manufacturer: e.target.value })
+                  }
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Categoria</label>
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                  Categoria
+                </label>
                 <select
                   className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 appearance-none cursor-pointer"
                   value={product?.categoryId || ""}
-                  onChange={(e) => setProduct({ ...product!, categoryId: e.target.value })}
+                  onChange={(e) =>
+                    setProduct({ ...product!, categoryId: e.target.value })
+                  }
                 >
                   {categories?.map((category: Category) => (
                     <option key={category?.id} value={category?.id}>
@@ -303,27 +340,35 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
               <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                 <FaBox size={12} />
               </div>
-              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Preço e Estoque</h2>
+              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">
+                Preço e Estoque
+              </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="space-y-2">
-                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Preço (R$)</label>
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                  Preço (R$)
+                </label>
                 <input
                   type="number"
                   className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900"
                   value={product?.price || 0}
-                  onChange={(e) => setProduct({ ...product!, price: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setProduct({ ...product!, price: Number(e.target.value) })
+                  }
                 />
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between px-1">
-                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest">Em estoque?</label>
+                  <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest">
+                    Em estoque?
+                  </label>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="sr-only peer" 
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
                       checked={stockEnabled}
                       onChange={(e) => {
                         const hasStock = e.target.checked;
@@ -343,9 +388,11 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
                     type="number"
                     min="0"
                     step="1"
-                    className={`w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!stockEnabled ? 'opacity-50 grayscale' : ''}`}
+                    className={`w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-2xl py-4 px-6 transition-all duration-300 text-gray-900 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!stockEnabled ? "opacity-50 grayscale" : ""}`}
                     value={product?.inStock || 0}
-                    onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+                    onWheel={(e) =>
+                      (e.currentTarget as HTMLInputElement).blur()
+                    }
                     onChange={(e) => {
                       const val = parseInt(e.target.value, 10);
                       const finalVal = isNaN(val) ? 0 : val;
@@ -354,7 +401,9 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
                     }}
                     placeholder="0"
                   />
-                  <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 uppercase font-medium tracking-widest pointer-events-none">Unidades</span>
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 uppercase font-medium tracking-widest pointer-events-none">
+                    Unidades
+                  </span>
                 </div>
               </div>
             </div>
@@ -366,12 +415,16 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
               <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                 <FaImage size={12} />
               </div>
-              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Imagens</h2>
+              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">
+                Imagens
+              </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="space-y-4">
-                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Imagem Principal</label>
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                  Imagem Principal
+                </label>
                 <div className="relative group border-2 border-dashed border-gray-100 rounded-[2rem] p-4 transition-all duration-300 hover:border-gray-200 hover:bg-[#E3E1D6]/50">
                   <input
                     type="file"
@@ -381,14 +434,17 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
                       if (selectedFile) {
                         const uploadedFileName = await uploadFile(
                           selectedFile,
-                          getImageBaseName(1)
+                          getImageBaseName(1),
                         );
                         if (!uploadedFileName) {
                           toast.error("Erro ao enviar imagem");
                           return;
                         }
                         toast.success("Imagem atualizada!");
-                        setProduct({ ...product!, mainImage: uploadedFileName });
+                        setProduct({
+                          ...product!,
+                          mainImage: uploadedFileName,
+                        });
                       }
                     }}
                   />
@@ -402,7 +458,9 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
                           className="rounded-2xl object-cover border border-gray-100"
                         />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 rounded-2xl flex items-center justify-center transition-all duration-300">
-                          <span className="text-white text-[10px] uppercase tracking-widest">Alterar</span>
+                          <span className="text-white text-[10px] uppercase tracking-widest">
+                            Alterar
+                          </span>
                         </div>
                       </div>
                     ) : (
@@ -413,7 +471,9 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
               </div>
 
               <div className="space-y-4">
-                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Galeria</label>
+                <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                  Galeria
+                </label>
                 <div className="border-2 border-dashed border-gray-100 rounded-[2rem] p-4 min-h-[148px] flex flex-wrap gap-3">
                   {otherImages?.map((image) => (
                     <button
@@ -459,15 +519,21 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
               <div className="p-2 bg-[#E3E1D6] rounded-full text-gray-400">
                 <FaInfoCircle size={12} />
               </div>
-              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">Descrição</h2>
+              <h2 className="text-sm font-light tracking-widest text-gray-900 uppercase">
+                Descrição
+              </h2>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">Descrição do Produto</label>
+              <label className="text-[11px] font-medium text-gray-400 uppercase tracking-widest px-1">
+                Descrição do Produto
+              </label>
               <textarea
                 className="w-full bg-[#E3E1D6] border-transparent focus:border-gray-200 focus:bg-white focus:ring-0 rounded-3xl py-6 px-8 transition-all duration-300 text-gray-900 h-48 leading-relaxed resize-none"
                 value={product?.description || ""}
-                onChange={(e) => setProduct({ ...product!, description: e.target.value })}
+                onChange={(e) =>
+                  setProduct({ ...product!, description: e.target.value })
+                }
               ></textarea>
             </div>
 
@@ -533,12 +599,12 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
               </div>
             </div>
           </section>
-          
+
           <div className="flex justify-end gap-x-4 pt-10 border-t border-gray-50">
             <button
-               type="button"
-               onClick={() => router.push("/admin/products")}
-               className="px-8 py-3.5 rounded-full border border-gray-200 text-[11px] uppercase tracking-widest font-medium text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all duration-300"
+              type="button"
+              onClick={() => router.push("/admin/products")}
+              className="px-8 py-3.5 rounded-full border border-gray-200 text-[11px] uppercase tracking-widest font-medium text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all duration-300"
             >
               Voltar
             </button>
@@ -549,9 +615,24 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
             >
               {isUpdating ? (
                 <>
-                  <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    ></path>
                   </svg>
                   Salvando...
                 </>

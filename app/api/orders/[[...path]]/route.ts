@@ -1,17 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
-import { getExpressOrigin, proxyExpressRequest } from "@/lib/expressUpstream";
-
-async function requireAdminSession() {
-  const session = await getServerSession(authOptions);
-  if (
-    (session as { user?: { role?: string } } | null)?.user?.role !== "admin"
-  ) {
-    return null;
-  }
-  return session;
-}
+import { proxyExpressRequest } from "@/lib/expressUpstream";
 
 function expressOrdersPath(pathSegments: string[] | undefined): string {
   const suffix = pathSegments?.length ? pathSegments.join("/") : "";
@@ -24,13 +12,26 @@ export async function POST(
   context: { params: Promise<{ path?: string[] }> },
 ) {
   const { path } = await context.params;
-  if (path?.length) {
-    return new NextResponse(null, { status: 404 });
+  const segments = path ?? [];
+
+  if (segments.length === 0) {
+    return proxyExpressRequest(req, "/api/orders");
   }
-  return proxyExpressRequest(req, "/api/orders");
+
+  if (segments.length === 2 && segments[1] === "items") {
+    return proxyExpressRequest(
+      req,
+      `/api/orders/${encodeURIComponent(segments[0])}/items`,
+    );
+  }
+
+  return new NextResponse(null, { status: 404 });
 }
 
-/** Lista completa: só admin. Um segmento: admin ou dono do pedido (e-mail = sessão). */
+/**
+ * Negócio: `server/controllers/customer_orders.js` e itens em `customer_order_product.js`.
+ * Proxy repassa query e cookie; autorização no Express.
+ */
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ path?: string[] }> },
@@ -39,63 +40,36 @@ export async function GET(
   const segments = path ?? [];
 
   if (segments.length === 0) {
-    const admin = await requireAdminSession();
-    if (!admin) {
-      return new NextResponse(null, { status: 403 });
-    }
     return proxyExpressRequest(req, "/api/orders");
+  }
+
+  if (segments.length === 1 && segments[0] === "product-lines") {
+    return proxyExpressRequest(req, "/api/orders/product-lines");
   }
 
   if (segments.length === 1) {
     const orderId = segments[0];
-    const session = await getServerSession(authOptions);
-    const role = (session as { user?: { role?: string; email?: string | null } } | null)?.user?.role;
-
-    if (role === "admin") {
-      return proxyExpressRequest(req, expressOrdersPath(segments));
-    }
-
-    const userEmail = (session as { user?: { email?: string | null } } | null)?.user?.email;
-    if (!userEmail) {
-      return new NextResponse(null, { status: 401 });
-    }
-
-    const upstream = await fetch(
-      `${getExpressOrigin()}/api/orders/${encodeURIComponent(orderId)}`,
-      { cache: "no-store" },
+    return proxyExpressRequest(
+      req,
+      `/api/orders/${encodeURIComponent(orderId)}`,
     );
+  }
 
-    if (!upstream.ok) {
-      const outHeaders = new Headers();
-      const ct = upstream.headers.get("content-type");
-      if (ct) outHeaders.set("content-type", ct);
-      return new NextResponse(upstream.body, {
-        status: upstream.status,
-        headers: outHeaders,
-      });
-    }
-
-    const order = (await upstream.json()) as { email?: string };
-    if (
-      (order.email || "").toLowerCase() === userEmail.toLowerCase()
-    ) {
-      return NextResponse.json(order);
-    }
-
-    return new NextResponse(null, { status: 403 });
+  if (segments.length === 2 && segments[1] === "items") {
+    return proxyExpressRequest(
+      req,
+      `/api/orders/${encodeURIComponent(segments[0])}/items`,
+    );
   }
 
   return new NextResponse(null, { status: 404 });
 }
 
-async function handleAdminOnly(
+/** PUT/DELETE: sessão repassada ao Express; autorização centralizada lá (admin ou dono). */
+async function handleOrderPathMutate(
   req: NextRequest,
   context: { params: Promise<{ path?: string[] }> },
 ) {
-  const admin = await requireAdminSession();
-  if (!admin) {
-    return new NextResponse(null, { status: 403 });
-  }
   const { path } = await context.params;
   if (!path?.length) {
     return new NextResponse(null, { status: 404 });
@@ -103,5 +77,5 @@ async function handleAdminOnly(
   return proxyExpressRequest(req, expressOrdersPath(path));
 }
 
-export const PUT = handleAdminOnly;
-export const DELETE = handleAdminOnly;
+export const PUT = handleOrderPathMutate;
+export const DELETE = handleOrderPathMutate;

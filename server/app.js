@@ -16,7 +16,6 @@ const mainImageRouter = require("./routes/mainImages");
 const userRouter = require("./routes/users");
 const orderRouter = require("./routes/customer_orders");
 const slugRouter = require("./routes/slugs");
-const orderProductRouter = require("./routes/customer_order_product");
 const wishlistRouter = require("./routes/wishlist");
 const addressesRouter = require("./routes/addresses");
 const reviewsRouter = require("./routes/reviews");
@@ -35,12 +34,13 @@ const {
 // Import rate limiting middleware
 const {
   generalLimiter,
-  authLimiter,
   registerLimiter,
   userManagementLimiter,
   uploadLimiter,
   searchLimiter,
-  orderLimiter,
+  orderCreateLimiter,
+  orderLinePostLimiter,
+  orderReadLimiter,
 } = require("./middleware/rateLimiter");
 
 const {
@@ -98,7 +98,12 @@ const corsOptions = {
     return callback(new Error(msg), false);
   },
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Cookie",
+    "Idempotency-Key",
+  ],
   credentials: true, // Allow cookies and authorization headers
 };
 
@@ -112,17 +117,28 @@ app.use(fileUpload());
 // Apply specific rate limiters to different route groups
 app.use("/api/users", userManagementLimiter);
 app.use("/api/search", searchLimiter);
-app.use("/api/orders", orderLimiter);
-app.use("/api/order-product", orderLimiter);
+app.use("/api/orders", (req, res, next) => {
+  const method = req.method;
+  const pathOnly = (req.originalUrl || req.url || "").split("?")[0];
+  const isPostCreateOrder =
+    method === "POST" &&
+    (pathOnly === "/api/orders" || pathOnly === "/api/orders/");
+  const isPostOrderLineItems =
+    method === "POST" && /\/api\/orders\/[^/]+\/items\/?$/.test(pathOnly);
+  if (isPostCreateOrder) {
+    return orderCreateLimiter(req, res, next);
+  }
+  if (isPostOrderLineItems) {
+    return orderLinePostLimiter(req, res, next);
+  }
+  return orderReadLimiter(req, res, next);
+});
 app.use("/api/images", uploadLimiter);
 app.use("/api/main-image", uploadLimiter);
 app.use("/api/wishlist", wishlistLimiter);
 app.use("/api/addresses", userManagementLimiter);
 app.use("/api/reviews", userManagementLimiter);
 app.use("/api/products", productLimiter);
-
-// Apply stricter rate limiting to authentication-related routes
-app.use("/api/users/email", authLimiter); // For login attempts via email lookup
 
 // Apply admin rate limiting to admin routes
 app.use("/api/users", adminLimiter); // Admin user management
@@ -135,7 +151,6 @@ app.use("/api/users", userRouter);
 app.use("/api/users", userProfileRouter);
 app.use("/api/search", searchRouter);
 app.use("/api/orders", orderRouter);
-app.use("/api/order-product", orderProductRouter);
 app.use("/api/slugs", slugRouter);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/addresses", addressesRouter);
@@ -162,7 +177,8 @@ app.get("/rate-limit-info", (req, res) => {
     register: "3 registrations per hour",
     upload: "10 uploads per 15 minutes",
     search: "30 searches per minute",
-    orders: "15 order operations per 15 minutes",
+    orders:
+      "POST /orders (criar pedido): 10 per 15 min; POST /orders/:id/items (linhas avulsas): 80 per 15 min; demais em /orders: 50 per 15 min",
     wishlist: "20 operations per 5 minutes",
     products: "60 requests per minute",
     requestId: req.reqId,

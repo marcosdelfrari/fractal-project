@@ -130,7 +130,7 @@ class MigrationValidator {
   }
 
   async validateAllMigrations() {
-    const migrationsDir = path.join(__dirname, "../prisma/migrations");
+    const migrationsDir = path.join(__dirname, "../../prisma/migrations");
     const migrations = fs
       .readdirSync(migrationsDir)
       .filter((dir) => dir !== "migration_lock.toml")

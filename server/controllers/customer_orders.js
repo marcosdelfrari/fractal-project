@@ -1,6 +1,39 @@
+const { randomUUID } = require("crypto");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const { validateOrderData, ValidationError } = require("../utills/validation");
+const {
+  validateOrderData,
+  validateOrderItemsPayload,
+  ValidationError,
+} = require("../utills/validation");
+const {
+  fetchLineItemsByCustomerOrderId,
+  createOrderLineItemsInTransaction,
+  createOrderProduct,
+  getAllProductOrders,
+} = require("./customer_order_product");
+const {
+  hashOrderPayload,
+  stableOrderItemsForHash,
+  normalizeIdempotencyKey,
+  tryBeginIdempotentCreate,
+  recordIdempotentSuccess,
+  MAX_KEY_LEN,
+} = require("../utills/orderIdempotency");
+
+/** GET /api/orders/:id — produtos vêm por padrão; use `include=none` ou `include=` para só o cabeçalho do pedido. */
+function orderIncludesProductsQuery(query) {
+  const raw = query?.include;
+  if (raw === undefined || raw === null) return true;
+  if (typeof raw !== "string") return false;
+  if (raw === "full") return true;
+  const trimmed = raw.trim();
+  if (trimmed === "" || trimmed === "none") return false;
+  return trimmed
+    .split(",")
+    .map((s) => s.trim())
+    .includes("products");
+}
 
 async function createCustomerOrder(request, response) {
   try {
@@ -28,9 +61,64 @@ async function createCustomerOrder(request, response) {
 
     const validatedData = validation.validatedData;
 
+    const hasItemsKey = Object.prototype.hasOwnProperty.call(
+      request.body,
+      "items",
+    );
+    let normalizedLineItems = null;
+    let stableForIdem = null;
+    if (hasItemsKey) {
+      const iv = validateOrderItemsPayload(request.body.items);
+      if (!iv.isValid) {
+        return response.status(400).json({
+          error: "Falha na validação dos itens",
+          details: iv.errors,
+        });
+      }
+      normalizedLineItems = iv.normalizedItems;
+      stableForIdem = stableOrderItemsForHash(normalizedLineItems);
+    }
+
     const confirmDuplicateOrder =
       request.body?.confirmDuplicateOrder === true ||
       request.body?.confirmDuplicateOrder === "true";
+
+    const idemHeaderRaw = request.get("idempotency-key");
+    const idemKey = normalizeIdempotencyKey(idemHeaderRaw);
+    if (idemHeaderRaw != null && String(idemHeaderRaw).trim() !== "" && !idemKey) {
+      return response.status(400).json({
+        error: "Idempotency-Key inválida",
+        details: `Use entre 1 e ${MAX_KEY_LEN} caracteres ou omita o cabeçalho.`,
+      });
+    }
+
+    if (process.env.ORDER_REQUIRE_IDEMPOTENCY_KEY === "true" && !idemKey) {
+      return response.status(400).json({
+        error: "Cabeçalho Idempotency-Key obrigatório",
+        details: "Envie Idempotency-Key (UUID recomendado) para criar pedidos.",
+      });
+    }
+
+    const payloadHash = hashOrderPayload(
+      validatedData,
+      confirmDuplicateOrder,
+      stableForIdem,
+    );
+
+    if (idemKey) {
+      const idem = tryBeginIdempotentCreate(idemKey, payloadHash);
+      if (idem.conflict) {
+        return response.status(409).json({
+          error: "Conflito de idempotência",
+          code: "IDEMPOTENCY_KEY_REUSE",
+          details:
+            "Esta Idempotency-Key já foi usada com outro corpo de pedido.",
+        });
+      }
+      if (idem.hit) {
+        return response.status(idem.status).json(idem.body);
+      }
+    }
 
     // Additional business logic validation
     if (validatedData.total < 0.01) {
@@ -46,13 +134,15 @@ async function createCustomerOrder(request, response) {
       });
     }
 
+    const totalCents = Math.round(Number(validatedData.total));
+
     // Check for duplicate orders (same email and total within last 5 minutes)
     if (!confirmDuplicateOrder) {
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       const duplicateOrder = await prisma.customer_order.findFirst({
         where: {
           email: validatedData.email,
-          total: validatedData.total,
+          total: totalCents,
           dateTime: {
             gte: fiveMinutesAgo,
           },
@@ -71,25 +161,47 @@ async function createCustomerOrder(request, response) {
     }
 
     console.log("Creating order in database...");
-    // Create the order with validated data
-    const corder = await prisma.customer_order.create({
-      data: {
-        name: validatedData.name,
-        lastname: validatedData.lastname,
-        phone: validatedData.phone,
-        email: validatedData.email,
-        company: validatedData.company,
-        adress: validatedData.adress,
-        apartment: validatedData.apartment,
-        postalCode: validatedData.postalCode,
-        status: validatedData.status,
-        city: validatedData.city,
-        country: validatedData.country,
-        orderNotice: validatedData.orderNotice,
-        total: validatedData.total,
-        dateTime: new Date(),
-      },
-    });
+    const orderCreateData = {
+      id: randomUUID(),
+      name: validatedData.name,
+      lastname: validatedData.lastname,
+      phone: validatedData.phone,
+      email: validatedData.email,
+      company: validatedData.company,
+      adress: validatedData.adress,
+      apartment: validatedData.apartment,
+      postalCode: validatedData.postalCode,
+      status: validatedData.status,
+      city: validatedData.city,
+      country: validatedData.country,
+      orderNotice: validatedData.orderNotice,
+      total: totalCents,
+      dateTime: new Date(),
+      deliveryOption: validatedData.deliveryOption || "entrega",
+    };
+
+    let corder;
+    if (normalizedLineItems && normalizedLineItems.length > 0) {
+      try {
+        corder = await prisma.$transaction(async (tx) => {
+          const order = await tx.customer_order.create({ data: orderCreateData });
+          await createOrderLineItemsInTransaction(tx, order.id, normalizedLineItems);
+          return order;
+        });
+      } catch (err) {
+        if (err && err.code === "PRODUCT_NOT_FOUND") {
+          return response.status(404).json({
+            error: "Produto não encontrado",
+            details: "Um ou mais itens referenciam produto inexistente.",
+          });
+        }
+        throw err;
+      }
+    } else {
+      corder = await prisma.customer_order.create({
+        data: orderCreateData,
+      });
+    }
 
     console.log("✅ Order created successfully");
     console.log("Order ID:", corder.id);
@@ -106,6 +218,7 @@ async function createCustomerOrder(request, response) {
     };
 
     console.log("Sending response:", responseData);
+    recordIdempotentSuccess(idemKey, payloadHash, 201, responseData);
     return response.status(201).json(responseData);
   } catch (error) {
     console.error("❌ Error creating order:", error);
@@ -197,6 +310,7 @@ async function updateCustomerOrder(request, response) {
         country: validatedData.country,
         orderNotice: validatedData.orderNotice,
         total: validatedData.total,
+        deliveryOption: validatedData.deliveryOption || "entrega",
       },
     });
 
@@ -298,6 +412,11 @@ async function getCustomerOrder(request, response) {
       });
     }
 
+    if (orderIncludesProductsQuery(request.query)) {
+      const products = await fetchLineItemsByCustomerOrderId(id);
+      return response.status(200).json({ ...order, products });
+    }
+
     return response.status(200).json(order);
   } catch (error) {
     console.error("Error fetching order:", error);
@@ -352,10 +471,99 @@ async function getAllOrders(request, response) {
   }
 }
 
+/** DELETE /api/orders/:orderId/items — remove todas as linhas (admin/dono). */
+async function deleteAllOrderLineItemsForOrder(request, response) {
+  try {
+    const { orderId } = request.params;
+    if (!orderId || typeof orderId !== "string") {
+      return response.status(400).json({
+        error: "ID do pedido inválido",
+      });
+    }
+    await prisma.customer_order_product.deleteMany({
+      where: { customerOrderId: orderId },
+    });
+    return response.status(204).send();
+  } catch (error) {
+    console.error("Error deleting order items:", error);
+    return response.status(500).json({
+      error: "Erro interno do servidor",
+      details: "Não foi possível remover os itens do pedido.",
+    });
+  }
+}
+
+/** GET /api/orders/:orderId/items — lista linhas (mesmo payload que `products` em GET /api/orders/:id). */
+async function getOrderLineItems(request, response) {
+  try {
+    const { orderId } = request.params;
+    if (!orderId || typeof orderId !== "string") {
+      return response.status(400).json({ error: "ID do pedido inválido" });
+    }
+    const lines = await fetchLineItemsByCustomerOrderId(orderId);
+    return response.status(200).json(lines);
+  } catch (error) {
+    console.error("Error fetching order line items:", error);
+    return response.status(500).json({
+      error: "Erro interno do servidor",
+      details: "Não foi possível carregar os itens do pedido.",
+    });
+  }
+}
+
+/** POST /api/orders/:orderId/items — adiciona linha (body como POST legado, sem customerOrderId obrigatório no JSON). */
+function createOrderLineItemNested(request, response) {
+  const { orderId } = request.params;
+  if (!orderId) {
+    return response.status(400).json({ error: "ID do pedido ausente" });
+  }
+  const base =
+    request.body && typeof request.body === "object" && !Array.isArray(request.body)
+      ? request.body
+      : {};
+  request.body = { ...base, customerOrderId: orderId };
+  return createOrderProduct(request, response);
+}
+
+/** DELETE /api/orders/:orderId/items/:lineId — remove uma linha (valida pedido ↔ linha). */
+async function deleteOrderLineItemNested(request, response) {
+  try {
+    const { orderId, lineId } = request.params;
+    if (!orderId || !lineId) {
+      return response.status(400).json({ error: "IDs inválidos" });
+    }
+    const line = await prisma.customer_order_product.findUnique({
+      where: { id: lineId },
+      select: { customerOrderId: true },
+    });
+    if (!line || line.customerOrderId !== orderId) {
+      return response.status(404).json({
+        error: "Item não encontrado",
+        details: "O item não pertence a este pedido",
+      });
+    }
+    await prisma.customer_order_product.delete({
+      where: { id: lineId },
+    });
+    return response.status(204).send();
+  } catch (error) {
+    console.error("Error deleting order line:", error);
+    return response.status(500).json({
+      error: "Erro interno do servidor",
+      details: "Não foi possível remover o item.",
+    });
+  }
+}
+
 module.exports = {
   createCustomerOrder,
   updateCustomerOrder,
   deleteCustomerOrder,
   getCustomerOrder,
   getAllOrders,
+  getOrderLineItems,
+  createOrderLineItemNested,
+  getAllProductOrders,
+  deleteAllOrderLineItemsForOrder,
+  deleteOrderLineItemNested,
 };

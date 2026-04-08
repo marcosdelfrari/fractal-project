@@ -32,6 +32,7 @@ class UserProfileController {
           phone: true,
           cpf: true,
           photo: true,
+          instagram: true,
           role: true,
           createdAt: true,
           updatedAt: true,
@@ -40,7 +41,7 @@ class UserProfileController {
             select: {
               addresses: true,
               reviews: true,
-              Wishlist: true,
+              wishlist: true,
             },
           },
         },
@@ -59,7 +60,7 @@ class UserProfileController {
         stats: {
           totalAddresses: user._count.addresses,
           totalReviews: user._count.reviews,
-          totalWishlist: user._count.Wishlist,
+          totalWishlist: user._count.wishlist,
         },
       };
 
@@ -86,7 +87,7 @@ class UserProfileController {
   async updateUserProfile(req, res) {
     try {
       const { id } = req.params;
-      const { name, phone, cpf, photo, currentPassword, newPassword } =
+      const { name, phone, cpf, photo, instagram, currentPassword, newPassword } =
         req.body;
 
       if (!id) {
@@ -107,6 +108,7 @@ class UserProfileController {
           phone: true,
           cpf: true,
           photo: true,
+          instagram: true,
           role: true,
         },
       });
@@ -183,6 +185,28 @@ class UserProfileController {
         }
       }
 
+      // Instagram (@usuario ou URL)
+      if (instagram !== undefined) {
+        if (instagram && String(instagram).trim()) {
+          const ig = String(instagram).trim();
+          if (ig.length > 150) {
+            return res.status(400).json({
+              success: false,
+              message: "Instagram deve ter no máximo 150 caracteres",
+            });
+          }
+          if (/[<>]/.test(ig)) {
+            return res.status(400).json({
+              success: false,
+              message: "Instagram contém caracteres inválidos",
+            });
+          }
+          updateData.instagram = ig;
+        } else {
+          updateData.instagram = null;
+        }
+      }
+
       // Processar mudança de senha se fornecida
       if (newPassword !== undefined) {
         if (!currentPassword) {
@@ -229,6 +253,7 @@ class UserProfileController {
           phone: true,
           cpf: true,
           photo: true,
+          instagram: true,
           role: true,
           updatedAt: true,
         },
@@ -280,7 +305,7 @@ class UserProfileController {
       const [totalAddresses, totalReviews, totalWishlist] = await Promise.all([
         prisma.address.count({ where: { userId: id } }),
         prisma.review.count({ where: { userId: id } }),
-        prisma.Wishlist.count({ where: { userId: id } }),
+        prisma.wishlist.count({ where: { userId: id } }),
       ]);
 
       const stats = {

@@ -12,9 +12,10 @@ export default function AdminSettingsCheckoutRetiradaPage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(
-    null,
-  );
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     void fetchSettings();
@@ -35,12 +36,14 @@ export default function AdminSettingsCheckoutRetiradaPage() {
           ...(data as unknown as SiteSettings),
           pickupAddresses: parsePickupAddresses(data.pickupAddresses),
           checkoutMode:
-            data.checkoutMode === "delivery_only" || data.checkoutMode === "pickup_only"
+            data.checkoutMode === "delivery_only" ||
+            data.checkoutMode === "pickup_only"
               ? (data.checkoutMode as "delivery_only" | "pickup_only")
               : data.deliveryEnabled === false
                 ? "pickup_only"
                 : "delivery_and_pickup",
-          deliveryEnabled: (data as { deliveryEnabled?: boolean }).deliveryEnabled !== false,
+          deliveryEnabled:
+            (data as { deliveryEnabled?: boolean }).deliveryEnabled !== false,
         });
       }
     } catch (error) {
@@ -60,7 +63,10 @@ export default function AdminSettingsCheckoutRetiradaPage() {
           : `pickup-${Date.now()}`;
       return {
         ...prev,
-        pickupAddresses: [...prev.pickupAddresses, { id, name: "", address: "" }],
+        pickupAddresses: [
+          ...prev.pickupAddresses,
+          { id, name: "", address: "" },
+        ],
       };
     });
   };
@@ -76,7 +82,11 @@ export default function AdminSettingsCheckoutRetiradaPage() {
     );
   };
 
-  const updatePickupLocation = (id: string, field: "name" | "address", value: string) => {
+  const updatePickupLocation = (
+    id: string,
+    field: "name" | "address",
+    value: string,
+  ) => {
     setSettings((prev) =>
       prev
         ? {
@@ -124,9 +134,9 @@ export default function AdminSettingsCheckoutRetiradaPage() {
 
   if (loading) {
     return (
-      <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+      <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
         <DashboardSidebar />
-        <div className="flex-1 p-10 flex items-center justify-center">
+        <div className="flex-1 p-10 pb-admin-mobile-nav flex items-center justify-center">
           <p className="text-gray-500">Carregando...</p>
         </div>
       </div>
@@ -134,9 +144,9 @@ export default function AdminSettingsCheckoutRetiradaPage() {
   }
 
   return (
-    <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+    <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
       <DashboardSidebar />
-      <div className="flex-1 p-10 max-md:p-4 animate-fade-in-up">
+      <div className="flex-1 p-10 max-md:p-4 pb-admin-mobile-nav animate-fade-in-up">
         <SettingsBackHeader
           title="Checkout e retirada"
           description="Configure se o checkout oferece entrega e gerencie os pontos de retirada."
@@ -157,9 +167,12 @@ export default function AdminSettingsCheckoutRetiradaPage() {
         <div className="bg-white border border-gray-100 rounded-2xl p-8">
           <div className="space-y-8">
             <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-1">Modo do checkout</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-1">
+                Modo do checkout
+              </h3>
               <p className="text-[11px] text-gray-500 mb-4 max-w-2xl">
-                Escolha entre: entrega e retirada, somente entrega ou somente retirada.
+                Escolha entre: entrega e retirada, somente entrega ou somente
+                retirada.
               </p>
               <div className="flex flex-col gap-3">
                 <label
@@ -267,10 +280,12 @@ export default function AdminSettingsCheckoutRetiradaPage() {
             <div className="border-t border-gray-100 pt-8">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900">Pontos de retirada</h3>
+                  <h3 className="text-sm font-medium text-gray-900">
+                    Pontos de retirada
+                  </h3>
                   <p className="text-[11px] text-gray-500 mt-1 max-w-xl">
-                    O cliente escolhe um deles ao finalizar com &quot;retirada na
-                    loja&quot;.
+                    O cliente escolhe um deles ao finalizar com &quot;retirada
+                    na loja&quot;.
                   </p>
                 </div>
                 <button
@@ -286,8 +301,9 @@ export default function AdminSettingsCheckoutRetiradaPage() {
               <div className="space-y-4">
                 {settings?.pickupAddresses?.length === 0 && (
                   <p className="text-sm text-amber-800 bg-amber-50 border border-amber-100 rounded-lg px-4 py-3">
-                    Nenhum ponto cadastrado. Quem escolher retirada no checkout verá um
-                    aviso até você incluir ao menos um ponto com nome e endereço.
+                    Nenhum ponto cadastrado. Quem escolher retirada no checkout
+                    verá um aviso até você incluir ao menos um ponto com nome e
+                    endereço.
                   </p>
                 )}
                 {settings?.pickupAddresses?.map((p) => (
@@ -301,7 +317,9 @@ export default function AdminSettingsCheckoutRetiradaPage() {
                         <input
                           type="text"
                           value={p.name}
-                          onChange={(e) => updatePickupLocation(p.id, "name", e.target.value)}
+                          onChange={(e) =>
+                            updatePickupLocation(p.id, "name", e.target.value)
+                          }
                           placeholder="Loja Centro"
                           className="mt-1.5 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-gray-400"
                         />
@@ -319,7 +337,9 @@ export default function AdminSettingsCheckoutRetiradaPage() {
                       Endereço e observações (horário, andar, etc.)
                       <textarea
                         value={p.address}
-                        onChange={(e) => updatePickupLocation(p.id, "address", e.target.value)}
+                        onChange={(e) =>
+                          updatePickupLocation(p.id, "address", e.target.value)
+                        }
                         rows={3}
                         placeholder="Rua, número, CEP, horário de retirada..."
                         className="mt-1.5 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-gray-400 font-mono"

@@ -50,7 +50,7 @@ export default async function UserDashboard() {
   if (!session?.user?.id) {
     return (
       <div className="min-h-screen bg-[#E3E1D6] flex items-center justify-center px-4">
-        <div className="bg-white rounded-3xl shadow-md border border-gray-100 p-12 text-center max-w-md">
+        <div className="bg-white rounded-3xl border-2 border-black p-12 text-center max-w-md">
           <h1 className="text-2xl font-light text-gray-900 tracking-tight mb-4">
             Erro de Autenticação
           </h1>

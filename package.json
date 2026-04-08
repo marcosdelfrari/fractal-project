@@ -9,8 +9,10 @@
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "db:seed-settings": "node prisma/seed-settings.js",
+    "debug:order": "node server/tests/debug-order-creation.js",
     "postinstall": "prisma generate"
   },
   "dependencies": {

@@ -116,6 +116,16 @@ const handleServerError = (error, res, context = '') => {
     return;
   }
 
+  // Validação de domínio (ex.: endereços, pedidos)
+  if (error && error.name === "ValidationError") {
+    res.status(400).json({
+      error: error.message,
+      field: error.field ?? undefined,
+      timestamp
+    });
+    return;
+  }
+
   // Prisma errors
   if (error && typeof error === 'object' && 'code' in error) {
     const errorResponse = handlePrismaError(error);

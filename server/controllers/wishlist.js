@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const { tokenUserId } = require("../middleware/auth");
 const { asyncHandler, AppError } = require("../utills/errorHandler");
 
 const getAllWishlist = asyncHandler(async (request, response) => {
@@ -31,11 +32,12 @@ const getAllWishlistByUserId = asyncHandler(async (request, response) => {
 });
 
 const createWishItem = asyncHandler(async (request, response) => {
-  const { userId, productId } = request.body;
-
+  const userId = tokenUserId(request.auth);
   if (!userId) {
-    throw new AppError("User ID is required", 400);
+    throw new AppError("Não autenticado", 401);
   }
+
+  const { productId } = request.body;
 
   if (!productId) {
     throw new AppError("Product ID is required", 400);

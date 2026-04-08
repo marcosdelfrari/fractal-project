@@ -115,22 +115,60 @@ const searchLimiter = rateLimit({
   }
 });
 
-// Rate limiter for order operations
-const orderLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // Limit each IP to 15 order operations per windowMs
+/** POST /api/orders — criação de pedido (checkout); mais estrito que leituras. */
+const orderCreateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
   message: {
-    error: 'Muitas operações de pedido. Tente novamente mais tarde.',
-    retryAfter: '15 minutos'
+    error: "Muitas tentativas de criar pedido deste IP. Tente novamente mais tarde.",
+    retryAfter: "15 minutos",
   },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     res.status(429).json({
-      error: 'Muitas operações de pedido. Tente novamente mais tarde.',
-      retryAfter: '15 minutos'
+      error:
+        "Muitas tentativas de criar pedido deste IP. Tente novamente mais tarde.",
+      retryAfter: "15 minutos",
     });
-  }
+  },
+});
+
+/** POST /api/orders/:orderId/items — adicionar linha ao pedido; checkout agregado usa POST /api/orders com `items`. */
+const orderLinePostLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 80,
+  message: {
+    error: "Muitas operações de itens do pedido. Tente novamente mais tarde.",
+    retryAfter: "15 minutos",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({
+      error:
+        "Muitas operações de itens do pedido. Tente novamente mais tarde.",
+      retryAfter: "15 minutos",
+    });
+  },
+});
+
+/** GET/PUT/DELETE em pedidos e itens (autenticado / admin). */
+const orderReadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  message: {
+    error: "Muitas operações de pedido. Tente novamente mais tarde.",
+    retryAfter: "15 minutos",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({
+      error: "Muitas operações de pedido. Tente novamente mais tarde.",
+      retryAfter: "15 minutos",
+    });
+  },
 });
 
 module.exports = {
@@ -140,5 +178,7 @@ module.exports = {
   userManagementLimiter,
   uploadLimiter,
   searchLimiter,
-  orderLimiter
+  orderCreateLimiter,
+  orderLinePostLimiter,
+  orderReadLimiter,
 };

@@ -12,7 +12,10 @@ export default function AdminSettingsLojaPage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [uploadingIcon, setUploadingIcon] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const iconInputRef = React.useRef<HTMLInputElement>(null);
@@ -36,7 +39,8 @@ export default function AdminSettingsLojaPage() {
         setSettings({
           ...(data as unknown as SiteSettings),
           pickupAddresses: parsePickupAddresses(data.pickupAddresses),
-          deliveryEnabled: (data as { deliveryEnabled?: boolean }).deliveryEnabled !== false,
+          deliveryEnabled:
+            (data as { deliveryEnabled?: boolean }).deliveryEnabled !== false,
         });
       }
     } catch (error) {
@@ -54,7 +58,10 @@ export default function AdminSettingsLojaPage() {
     setSettings((prev) => (prev ? { ...prev, [field]: value } : null));
   };
 
-  const uploadSiteFile = async (field: "storeIcon" | "storeLogo", file: File | null) => {
+  const uploadSiteFile = async (
+    field: "storeIcon" | "storeLogo",
+    file: File | null,
+  ) => {
     if (!file) return;
     const setBusy = field === "storeIcon" ? setUploadingIcon : setUploadingLogo;
     setBusy(true);
@@ -70,7 +77,9 @@ export default function AdminSettingsLojaPage() {
       if (!res.ok) {
         showMessage(
           "error",
-          typeof data.error === "string" ? data.error : "Erro ao enviar arquivo",
+          typeof data.error === "string"
+            ? data.error
+            : "Erro ao enviar arquivo",
         );
         return;
       }
@@ -81,7 +90,9 @@ export default function AdminSettingsLojaPage() {
       }
       showMessage(
         "success",
-        field === "storeIcon" ? "Ícone enviado e salvo." : "Logo enviada e salva.",
+        field === "storeIcon"
+          ? "Ícone enviado e salvo."
+          : "Logo enviada e salva.",
       );
     } catch (error) {
       console.error("Upload settings asset:", error);
@@ -130,9 +141,9 @@ export default function AdminSettingsLojaPage() {
 
   if (loading) {
     return (
-      <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+      <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
         <DashboardSidebar />
-        <div className="flex-1 p-10 flex items-center justify-center">
+        <div className="flex-1 p-10 pb-admin-mobile-nav flex items-center justify-center">
           <p className="text-gray-500">Carregando...</p>
         </div>
       </div>
@@ -140,9 +151,9 @@ export default function AdminSettingsLojaPage() {
   }
 
   return (
-    <div className="bg-[#E3E1D6] min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
+    <div className="bg-white min-h-screen flex justify-start max-w-screen-2xl mx-auto max-lg:flex-col">
       <DashboardSidebar />
-      <div className="flex-1 p-10 max-md:p-4 animate-fade-in-up">
+      <div className="flex-1 p-10 max-md:p-4 pb-admin-mobile-nav animate-fade-in-up">
         <SettingsBackHeader
           title="Informações da loja"
           description="Contato, endereço geral, pontos de retirada no checkout e identidade visual (ícone e logo)."
@@ -220,8 +231,8 @@ export default function AdminSettingsLojaPage() {
                 Redes sociais
               </h3>
               <p className="text-[11px] text-gray-500 mb-4 max-w-2xl">
-                Cadastre apenas as redes que deseja exibir no site. Campos vazios não
-                serão exibidos.
+                Cadastre apenas as redes que deseja exibir no site. Campos
+                vazios não serão exibidos.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -336,7 +347,8 @@ export default function AdminSettingsLojaPage() {
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400"
               />
               <p className="text-[11px] text-gray-500 mt-1">
-                Texto institucional; não é o mesmo que os pontos de retirada abaixo.
+                Texto institucional; não é o mesmo que os pontos de retirada
+                abaixo.
               </p>
             </div>
 
@@ -425,7 +437,8 @@ export default function AdminSettingsLojaPage() {
                       {uploadingLogo ? "Enviando…" : "Enviar imagem"}
                     </button>
                     <p className="text-[11px] text-gray-500">
-                      PNG ou SVG com fundo transparente — apenas envio de arquivo.
+                      PNG ou SVG com fundo transparente — apenas envio de
+                      arquivo.
                     </p>
                   </div>
                 </div>
