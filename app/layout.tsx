@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { getServerSession } from "next-auth/next";
-import "svgmap/dist/svgMap.min.css";
 import SessionProvider from "@/utils/SessionProvider";
 import Header from "@/components/Header";
 import AppShell from "@/components/AppShell";
@@ -40,6 +39,10 @@ export default async function RootLayout({
         <link
           href="https://fonts.googleapis.com/css2?family=Economica:ital,wght@0,400;0,700;1,400;1,700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playball&family=Sour+Gummy:ital,wght@0,100..900;1,100..900&display=swap"
           rel="stylesheet"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/svgmap@2.19.2/dist/svg-map.min.css"
         />
       </head>
       <body className="font-sans antialiased">
