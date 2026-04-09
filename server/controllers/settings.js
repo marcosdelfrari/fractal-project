@@ -23,10 +23,10 @@ const { asyncHandler, AppError } = require("../utills/errorHandler");
 
 const DEFAULT_SITE_ID = "default-site-id";
 const DEFAULT_NAV_LINKS = [
-  { id: "woodcut", name: "Woodcut", href: "/woodcut", hasMegaMenu: false },
-  { id: "linocut", name: "Linocut", href: "/linocut", hasMegaMenu: false },
-  { id: "paintings", name: "Paintings", href: "/paintings", hasMegaMenu: false },
-  { id: "about", name: "About", href: "/about", hasMegaMenu: false },
+  { id: "woodcut", name: "Woodcut", href: "/", hasMegaMenu: false },
+  { id: "linocut", name: "Linocut", href: "/", hasMegaMenu: false },
+  { id: "paintings", name: "Paintings", href: "/", hasMegaMenu: false },
+  { id: "about", name: "About", href: "/", hasMegaMenu: false },
 ];
 
 /** Seções padrão da home (quando a tabela ainda está vazia). */

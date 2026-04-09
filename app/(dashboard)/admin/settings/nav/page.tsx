@@ -14,15 +14,15 @@ type NavLinkItem = {
 };
 
 const FALLBACK_LINKS: NavLinkItem[] = [
-  { id: "woodcut", name: "Woodcut", href: "/woodcut", hasMegaMenu: false },
-  { id: "linocut", name: "Linocut", href: "/linocut", hasMegaMenu: false },
+  { id: "woodcut", name: "Woodcut", href: "/", hasMegaMenu: false },
+  { id: "linocut", name: "Linocut", href: "/", hasMegaMenu: false },
   {
     id: "paintings",
     name: "Paintings",
-    href: "/paintings",
+    href: "/",
     hasMegaMenu: false,
   },
-  { id: "about", name: "About", href: "/about", hasMegaMenu: false },
+  { id: "about", name: "About", href: "/", hasMegaMenu: false },
 ];
 
 function toId(value: string) {
