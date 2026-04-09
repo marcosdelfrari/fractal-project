@@ -3,13 +3,6 @@ const fs = require("fs");
 const crypto = require("crypto");
 const { nanoid } = require("nanoid");
 
-const HOME_SECTION_DEFAULTS = require(path.join(
-  __dirname,
-  "..",
-  "..",
-  "data",
-  "home-section-defaults.json",
-));
 const { PrismaClient } = require(path.join(
   __dirname,
   "..",
@@ -20,6 +13,119 @@ const { PrismaClient } = require(path.join(
 ));
 const prisma = new PrismaClient();
 const { asyncHandler, AppError } = require("../utills/errorHandler");
+
+/** Dados padrão para seções da home (fallback inicial quando tabela está vazia). */
+const HOME_SECTION_DEFAULTS = {
+  hero: {
+    backgroundImage: "/uploads/sections/hero.webp",
+    titlePrefix: "Art That",
+    titleSuffix: "Inspires",
+    ctaLabel: "View Collection",
+    ctaHref: "/categories",
+  },
+  categoryMenu: {
+    title: "Categorias",
+    cardImage: "/uploads/sections/categ.webp",
+    items: [
+      {
+        id: "default-menu-1",
+        label: "Smartphones",
+        href: "/loja/smart-phones",
+        enabled: true,
+        image: "/uploads/sections/categ.webp",
+      },
+      {
+        id: "default-menu-2",
+        label: "Câmeras",
+        href: "/loja/cameras",
+        enabled: true,
+        image: "/uploads/sections/categ.webp",
+      },
+      {
+        id: "default-menu-3",
+        label: "Notebooks",
+        href: "/loja/laptops",
+        enabled: true,
+        image: "/uploads/sections/categ.webp",
+      },
+    ],
+  },
+  promoSlider: {
+    slides: [
+      {
+        id: "ps-1",
+        line1: "Novos",
+        line2: "Produtos",
+        buttonLabel: "Ver loja",
+        buttonHref: "/loja",
+        centerImage: "/uploads/sections/promo-slide-1.webp",
+      },
+      {
+        id: "ps-2",
+        line1: "Promoções",
+        line2: "da semana",
+        buttonLabel: "Ver ofertas",
+        buttonHref: "/loja",
+        centerImage: "/uploads/sections/promo-slide-2.webp",
+      },
+      {
+        id: "ps-3",
+        line1: "Destaques",
+        line2: "especiais",
+        buttonLabel: "Explorar",
+        buttonHref: "/loja",
+        centerImage: "/uploads/sections/promo-slide-3.webp",
+      },
+      {
+        id: "ps-4",
+        line1: "Frete",
+        line2: "combinado",
+        buttonLabel: "Saiba mais",
+        buttonHref: "/loja",
+        centerImage: "/uploads/sections/promo-slide-4.webp",
+      },
+    ],
+  },
+  upcomingEvents: {
+    enabled: true,
+    line1: "Próximos",
+    line2: "Eventos",
+    arrowHref: "/loja",
+    events: [
+      {
+        id: "ue-demo-1",
+        title: "SESH DE SEXTA",
+        date: "14 DE ABRIL DE 2026",
+        location: "EDIFÍCIO CENTRAL",
+      },
+    ],
+  },
+  featuredProducts: {
+    items: [
+      {
+        id: 1,
+        lifestyleImage: "/uploads/sections/bertp.webp",
+        productImage: "/uploads/sections/bag.webp",
+        title: "Laurel Knit Shopper Bag",
+        category: "TENNIS CLUB",
+      },
+      {
+        id: 2,
+        lifestyleImage: "/uploads/sections/bertp.webp",
+        productImage: "/uploads/sections/racket.webp",
+        title: "Classic Tennis Racket",
+        category: "TENNIS CLUB",
+      },
+      {
+        id: 3,
+        lifestyleImage: "/uploads/sections/bertp.webp",
+        productImage: "/uploads/sections/shoes.webp",
+        title: "Premium Tennis Shoes",
+        category: "TENNIS CLUB",
+      },
+    ],
+  },
+};
 
 const DEFAULT_SITE_ID = "default-site-id";
 const DEFAULT_NAV_LINKS = [
