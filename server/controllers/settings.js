@@ -241,6 +241,23 @@ async function ensureDefaultHomeSections() {
   }
 }
 
+function isMissingHomeSectionTableError(error) {
+  if (!error) return false;
+  if (error.code === "P2021") return true;
+  const message = String(error.message || "");
+  return message.includes("HomeSection") && message.includes("does not exist");
+}
+
+function buildFallbackHomeSections() {
+  return DEFAULT_HOME_SECTIONS.map((section) => ({
+    id: `fallback-${section.name}`,
+    name: section.name,
+    enabled: section.enabled,
+    order: section.order,
+    content: section.content ?? null,
+  }));
+}
+
 /** GET /api/settings/public — DTO da vitrine + ETag / Cache-Control (invalidação via updatedAt). */
 const getPublicSiteSettings = asyncHandler(async (request, response) => {
   const row = await getOrCreateSiteSettings();
@@ -386,11 +403,18 @@ const updateSiteSettings = asyncHandler(async (request, response) => {
 
 // Get all home sections
 const getHomeSections = asyncHandler(async (request, response) => {
-  await ensureDefaultHomeSections();
-  const sections = await prisma.homeSection.findMany({
-    orderBy: { order: "asc" },
-  });
-  return response.status(200).json(sections);
+  try {
+    await ensureDefaultHomeSections();
+    const sections = await prisma.homeSection.findMany({
+      orderBy: { order: "asc" },
+    });
+    return response.status(200).json(sections);
+  } catch (error) {
+    if (!isMissingHomeSectionTableError(error)) {
+      throw error;
+    }
+    return response.status(200).json(buildFallbackHomeSections());
+  }
 });
 
 // Upload ícone ou logo para public/uploads/site e grava URL em SiteSettings
