@@ -40,6 +40,22 @@ function fallbackPublicSettingsResponse() {
   );
 }
 
+function fallbackHomeSectionsResponse() {
+  return NextResponse.json(
+    [
+      { id: "fallback-hero", name: "hero", enabled: true, order: 0, content: null },
+      { id: "fallback-promoSlider", name: "promoSlider", enabled: true, order: 1, content: null },
+      { id: "fallback-categoryMenu", name: "categoryMenu", enabled: true, order: 2, content: null },
+      { id: "fallback-productsSection", name: "productsSection", enabled: true, order: 3, content: null },
+      { id: "fallback-featuredProducts", name: "featuredProducts", enabled: true, order: 4, content: null },
+    ],
+    {
+      status: 200,
+      headers: { "cache-control": "no-store" },
+    },
+  );
+}
+
 /**
  * GET/HEAD: leitura pública da vitrine em `/api/settings/public` (DTO + cache no Express).
  * `GET/HEAD /api/settings/site` redireciona para `/api/settings/public` (legado).
@@ -62,6 +78,13 @@ export async function GET(
     (response.status === 502 || response.status === 504)
   ) {
     return fallbackPublicSettingsResponse();
+  }
+  if (
+    path?.length === 1 &&
+    path[0] === "home-sections" &&
+    (response.status === 502 || response.status === 504)
+  ) {
+    return fallbackHomeSectionsResponse();
   }
   return response;
 }
