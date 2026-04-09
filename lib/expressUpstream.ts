@@ -8,6 +8,28 @@ export function getExpressOrigin(): string {
   ).replace(/\/$/, "");
 }
 
+const DEFAULT_UPSTREAM_TIMEOUT_MS = 8000;
+
+function resolveUpstreamTimeoutMs() {
+  const raw = process.env.EXPRESS_UPSTREAM_TIMEOUT_MS;
+  const parsed = raw ? Number(raw) : NaN;
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return parsed;
+  }
+  return DEFAULT_UPSTREAM_TIMEOUT_MS;
+}
+
+function isFetchTimeoutError(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const maybeCause = (error as { cause?: { code?: string } }).cause;
+  const code = maybeCause?.code;
+  return (
+    code === "UND_ERR_HEADERS_TIMEOUT" ||
+    code === "UND_ERR_CONNECT_TIMEOUT" ||
+    code === "UND_ERR_BODY_TIMEOUT"
+  );
+}
+
 /**
  * Encaminha o request ao Express (`NEXT_PUBLIC_API_BASE_URL`), preservando método, query e body.
  * Use `search` para substituir a query da requisição (ex.: forçar `?include=products`).
@@ -48,11 +70,26 @@ export async function proxyExpressRequest(
     body = await req.arrayBuffer();
   }
 
-  const upstream = await fetch(url, {
-    method,
-    headers,
-    body: body && body.byteLength > 0 ? body : undefined,
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(url, {
+      method,
+      headers,
+      body: body && body.byteLength > 0 ? body : undefined,
+      signal: AbortSignal.timeout(resolveUpstreamTimeoutMs()),
+    });
+  } catch (error) {
+    const isTimeout = isFetchTimeoutError(error);
+    const status = isTimeout ? 504 : 502;
+    const reason = isTimeout ? "upstream_timeout" : "upstream_unavailable";
+    return NextResponse.json(
+      {
+        error: "Falha ao conectar com o serviço de API",
+        reason,
+      },
+      { status },
+    );
+  }
 
   const outHeaders = new Headers();
   const ct = upstream.headers.get("content-type");

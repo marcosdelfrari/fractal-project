@@ -21,6 +21,25 @@ function expressSettingsPath(pathSegments: string[] | undefined): string {
   return suffix ? `/api/settings/${suffix}` : "/api/settings";
 }
 
+function fallbackPublicSettingsResponse() {
+  return NextResponse.json(
+    {
+      storeName: "Loja",
+      navBrandDesktopMode: "name",
+      navBrandMobileMode: "name",
+      hideStoreNameUntilLoaded: true,
+      navLinks: [],
+      checkoutMode: "delivery_and_pickup",
+      deliveryEnabled: true,
+      pickupAddresses: [],
+    },
+    {
+      status: 200,
+      headers: { "cache-control": "no-store" },
+    },
+  );
+}
+
 /**
  * GET/HEAD: leitura pública da vitrine em `/api/settings/public` (DTO + cache no Express).
  * `GET/HEAD /api/settings/site` redireciona para `/api/settings/public` (legado).
@@ -36,7 +55,15 @@ export async function GET(
     url.pathname = "/api/settings/public";
     return NextResponse.redirect(url, 308);
   }
-  return proxyExpressRequest(req, expressSettingsPath(path));
+  const response = await proxyExpressRequest(req, expressSettingsPath(path));
+  if (
+    path?.length === 1 &&
+    path[0] === "public" &&
+    (response.status === 502 || response.status === 504)
+  ) {
+    return fallbackPublicSettingsResponse();
+  }
+  return response;
 }
 
 export async function HEAD(
