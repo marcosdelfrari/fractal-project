@@ -9,6 +9,8 @@ import SessionTimeoutWrapper from "@/components/SessionTimeoutWrapper";
 import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
 import { getSiteSettings } from "@/lib/getSiteSettings";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSiteSettings();
   const name = s.storeName || "Loja";
