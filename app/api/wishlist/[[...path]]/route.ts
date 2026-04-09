@@ -20,8 +20,9 @@ function expressWishlistPath(pathSegments: string[] | undefined): string {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
+  const { path } = await context.params;
   const session = await requireUserSession();
   if (!session) {
     return NextResponse.json(
@@ -30,14 +31,15 @@ export async function GET(
     );
   }
 
-  const expressPath = expressWishlistPath(params.path);
+  const expressPath = expressWishlistPath(path);
   return proxyExpressRequest(req, expressPath);
 }
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
+  const { path } = await context.params;
   const session = await requireUserSession();
   if (!session) {
     return NextResponse.json(
@@ -46,14 +48,15 @@ export async function POST(
     );
   }
 
-  const expressPath = expressWishlistPath(params.path);
+  const expressPath = expressWishlistPath(path);
   return proxyExpressRequest(req, expressPath);
 }
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
+  const { path } = await context.params;
   const session = await requireUserSession();
   if (!session) {
     return NextResponse.json(
@@ -62,6 +65,6 @@ export async function DELETE(
     );
   }
 
-  const expressPath = expressWishlistPath(params.path);
+  const expressPath = expressWishlistPath(path);
   return proxyExpressRequest(req, expressPath);
 }

@@ -20,8 +20,9 @@ function expressAddressesPath(pathSegments: string[] | undefined): string {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
+  const { path } = await context.params;
   const session = await requireUserSession();
   if (!session) {
     return NextResponse.json(
@@ -30,14 +31,15 @@ export async function GET(
     );
   }
 
-  const expressPath = expressAddressesPath(params.path);
+  const expressPath = expressAddressesPath(path);
   return proxyExpressRequest(req, expressPath);
 }
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
+  const { path } = await context.params;
   const session = await requireUserSession();
   if (!session) {
     return NextResponse.json(
@@ -46,14 +48,15 @@ export async function POST(
     );
   }
 
-  const expressPath = expressAddressesPath(params.path);
+  const expressPath = expressAddressesPath(path);
   return proxyExpressRequest(req, expressPath);
 }
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
+  const { path } = await context.params;
   const session = await requireUserSession();
   if (!session) {
     return NextResponse.json(
@@ -62,14 +65,15 @@ export async function PUT(
     );
   }
 
-  const expressPath = expressAddressesPath(params.path);
+  const expressPath = expressAddressesPath(path);
   return proxyExpressRequest(req, expressPath);
 }
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
+  const { path } = await context.params;
   const session = await requireUserSession();
   if (!session) {
     return NextResponse.json(
@@ -78,6 +82,6 @@ export async function DELETE(
     );
   }
 
-  const expressPath = expressAddressesPath(params.path);
+  const expressPath = expressAddressesPath(path);
   return proxyExpressRequest(req, expressPath);
 }

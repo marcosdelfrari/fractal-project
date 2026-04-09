@@ -22,24 +22,27 @@ function expressUsersPath(pathSegments: string[] | undefined): string {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
-  const expressPath = expressUsersPath(params.path);
+  const { path } = await context.params;
+  const expressPath = expressUsersPath(path);
   return proxyExpressRequest(req, expressPath);
 }
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
-  const expressPath = expressUsersPath(params.path);
+  const { path } = await context.params;
+  const expressPath = expressUsersPath(path);
   return proxyExpressRequest(req, expressPath);
 }
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
+  const { path } = await context.params;
   const session = await requireAdminSession();
   if (!session) {
     return NextResponse.json(
@@ -48,14 +51,15 @@ export async function PUT(
     );
   }
 
-  const expressPath = expressUsersPath(params.path);
+  const expressPath = expressUsersPath(path);
   return proxyExpressRequest(req, expressPath);
 }
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
+  const { path } = await context.params;
   const session = await requireAdminSession();
   if (!session) {
     return NextResponse.json(
@@ -64,6 +68,6 @@ export async function DELETE(
     );
   }
 
-  const expressPath = expressUsersPath(params.path);
+  const expressPath = expressUsersPath(path);
   return proxyExpressRequest(req, expressPath);
 }

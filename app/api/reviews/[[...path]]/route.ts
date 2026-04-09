@@ -20,16 +20,18 @@ function expressReviewsPath(pathSegments: string[] | undefined): string {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
-  const expressPath = expressReviewsPath(params.path);
+  const { path } = await context.params;
+  const expressPath = expressReviewsPath(path);
   return proxyExpressRequest(req, expressPath);
 }
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
+  const { path } = await context.params;
   const session = await requireUserSession();
   if (!session) {
     return NextResponse.json(
@@ -38,14 +40,15 @@ export async function POST(
     );
   }
 
-  const expressPath = expressReviewsPath(params.path);
+  const expressPath = expressReviewsPath(path);
   return proxyExpressRequest(req, expressPath);
 }
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
+  const { path } = await context.params;
   const session = await requireUserSession();
   if (!session) {
     return NextResponse.json(
@@ -54,6 +57,6 @@ export async function DELETE(
     );
   }
 
-  const expressPath = expressReviewsPath(params.path);
+  const expressPath = expressReviewsPath(path);
   return proxyExpressRequest(req, expressPath);
 }

@@ -8,16 +8,18 @@ function expressSlugsPath(pathSegments: string[] | undefined): string {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
-  const expressPath = expressSlugsPath(params.path);
+  const { path } = await context.params;
+  const expressPath = expressSlugsPath(path);
   return proxyExpressRequest(req, expressPath);
 }
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { path?: string[] } },
+  context: { params: Promise<{ path?: string[] }> },
 ) {
-  const expressPath = expressSlugsPath(params.path);
+  const { path } = await context.params;
+  const expressPath = expressSlugsPath(path);
   return proxyExpressRequest(req, expressPath);
 }
