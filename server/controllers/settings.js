@@ -10,7 +10,14 @@ const HOME_SECTION_DEFAULTS = require(path.join(
   "data",
   "home-section-defaults.json",
 ));
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient } = require(path.join(
+  __dirname,
+  "..",
+  "..",
+  "node_modules",
+  "@prisma",
+  "client",
+));
 const prisma = new PrismaClient();
 const { asyncHandler, AppError } = require("../utills/errorHandler");
 

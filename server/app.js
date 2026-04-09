@@ -1,6 +1,10 @@
 const path = require("path");
 try {
-  require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
+  const dotenv = require("dotenv");
+  const envLocalPath = path.join(__dirname, "..", ".env.local");
+  const envPath = path.join(__dirname, "..", ".env");
+  dotenv.config({ path: envLocalPath });
+  dotenv.config({ path: envPath, override: false });
 } catch (_) {
   /* dotenv é opcional se variáveis já estiverem no ambiente */
 }
