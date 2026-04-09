@@ -50,25 +50,25 @@ const MOCK_HEADER_NAV_LINKS: HeaderNavLink[] = [
   {
     id: "woodcut",
     name: "Woodcut",
-    href: "/woodcut",
+    href: "/ ",
     hasMegaMenu: false,
   },
   {
     id: "linocut",
     name: "Linocut",
-    href: "/linocut",
+    href: "/",
     hasMegaMenu: false,
   },
   {
     id: "paintings",
     name: "Paintings",
-    href: "/paintings",
+    href: "/",
     hasMegaMenu: false,
   },
   {
     id: "about",
     name: "About",
-    href: "/about",
+    href: "/",
     hasMegaMenu: false,
   },
 ];

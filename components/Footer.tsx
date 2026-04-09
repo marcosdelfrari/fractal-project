@@ -176,103 +176,105 @@ const Footer = () => {
 
           {/* Mobile: contato + frase de efeito + marca */}
           <div className="md:hidden">
-          {/* Seção 1 — contato */}
-          <div className="px-5 pb-6 pt-9 text-left sm:px-8 sm:pb-8 sm:pt-10">
-            <div className="space-y-3 text-[13px] leading-snug tracking-[0.06em] text-[#F4F4EE] sm:text-sm">
-              {contactEmail ? (
-                <p>
-                  <a
-                    href={`mailto:${contactEmail}`}
-                    className="underline-offset-2 transition hover:text-white hover:underline"
-                  >
-                    {contactEmail}
-                  </a>
-                </p>
-              ) : null}
-              {wa || phoneLink ? (
-                <p>
-                  {wa ? (
+            {/* Seção 1 — contato */}
+            <div className="px-5 pb-6 pt-9 text-left sm:px-8 sm:pb-8 sm:pt-10">
+              <div className="space-y-3 text-[13px] leading-snug tracking-[0.06em] text-[#F4F4EE] sm:text-sm">
+                {contactEmail ? (
+                  <p>
                     <a
-                      href={wa}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={`mailto:${contactEmail}`}
                       className="underline-offset-2 transition hover:text-white hover:underline"
                     >
-                      {waLabel}
+                      {contactEmail}
                     </a>
-                  ) : (
-                    <a
-                      href={phoneLink!}
-                      className="underline-offset-2 transition hover:text-white hover:underline"
-                    >
-                      {settings.phone!.trim()}
-                    </a>
-                  )}
+                  </p>
+                ) : null}
+                {wa || phoneLink ? (
+                  <p>
+                    {wa ? (
+                      <a
+                        href={wa}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline-offset-2 transition hover:text-white hover:underline"
+                      >
+                        {waLabel}
+                      </a>
+                    ) : (
+                      <a
+                        href={phoneLink!}
+                        className="underline-offset-2 transition hover:text-white hover:underline"
+                      >
+                        {settings.phone!.trim()}
+                      </a>
+                    )}
+                  </p>
+                ) : null}
+                {contactAddress ? (
+                  <p className="text-balance text-[#F4F4EE]/95">
+                    {contactAddress}
+                  </p>
+                ) : null}
+                <p className="pt-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#FFFF04] sm:text-[11px]">
+                  Somente com hora marcada
                 </p>
+              </div>
+
+              {socialItems.length > 0 ? (
+                <ul
+                  className="mt-5 flex flex-wrap items-center justify-start gap-2 sm:gap-3"
+                  aria-label="Redes sociais"
+                >
+                  {socialItems.map(({ href, Icon, label }) => (
+                    <li key={`${label}-${href}`}>
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#FFFF04] text-black transition hover:brightness-95 sm:h-11 sm:w-11"
+                        aria-label={label}
+                      >
+                        <Icon className="h-[18px] w-[18px]" aria-hidden />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
               ) : null}
-              {contactAddress ? (
-                <p className="text-balance text-[#F4F4EE]/95">{contactAddress}</p>
-              ) : null}
-              <p className="pt-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#FFFF04] sm:text-[11px]">
-                Somente com hora marcada
+            </div>
+
+            <div className="h-px w-full bg-[#FFFF04]" aria-hidden />
+
+            {/* Seção 2 — frase de efeito */}
+            <div className="px-5 py-7 text-left sm:px-8 sm:py-9">
+              <p className="max-w-[min(100%,20rem)] text-pretty font-sans text-4xl font-bold leading-[1.02] tracking-tight text-[#F4F4EE] sm:max-w-xl sm:text-5xl sm:leading-[0.96]">
+                Não perca nossos eventos!
               </p>
             </div>
 
-            {socialItems.length > 0 ? (
-              <ul
-                className="mt-5 flex flex-wrap items-center justify-start gap-2 sm:gap-3"
-                aria-label="Redes sociais"
-              >
-                {socialItems.map(({ href, Icon, label }) => (
-                  <li key={`${label}-${href}`}>
-                    <a
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#FFFF04] text-black transition hover:brightness-95 sm:h-11 sm:w-11"
-                      aria-label={label}
-                    >
-                      <Icon className="h-[18px] w-[18px]" aria-hidden />
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
+            <div className="h-px w-full bg-[#FFFF04]" aria-hidden />
 
-          <div className="h-px w-full bg-[#FFFF04]" aria-hidden />
-
-          {/* Seção 2 — frase de efeito */}
-          <div className="px-5 py-7 text-left sm:px-8 sm:py-9">
-            <p className="max-w-[min(100%,20rem)] text-pretty font-sans text-4xl font-bold leading-[1.02] tracking-tight text-[#F4F4EE] sm:max-w-xl sm:text-5xl sm:leading-[0.96]">
-              Não perca nossos eventos!
-            </p>
-          </div>
-
-          <div className="h-px w-full bg-[#FFFF04]" aria-hidden />
-
-          {/* Seção 3 — marca */}
-          <div className="flex flex-col items-center justify-center gap-4 px-5 py-8 sm:px-8 sm:py-10">
-            <Link href="/" className={logoLinkClassMobile}>
-              {desktopBrandMode === "logo" && settings.storeLogo ? (
-                <Image
-                  src={settings.storeLogo}
-                  alt={storeName || "Loja"}
-                  width={200}
-                  height={200}
-                  className="h-full w-full object-cover"
-                />
-              ) : hideStoreNameUntilLoaded && loading ? (
-                <span className="text-[10px] font-bold uppercase text-black">
-                  …
-                </span>
-              ) : (
-                <span className="px-2 text-center text-[10px] font-bold uppercase leading-tight tracking-tight text-black sm:text-xs">
-                  {storeName.slice(0, 24) || "Loja"}
-                </span>
-              )}
-            </Link>
-          </div>
+            {/* Seção 3 — marca */}
+            <div className="flex flex-col items-center justify-center gap-4 px-5 py-8 sm:px-8 sm:py-10">
+              <Link href="/" className={logoLinkClassMobile}>
+                {desktopBrandMode === "logo" && settings.storeLogo ? (
+                  <Image
+                    src={settings.storeLogo}
+                    alt={storeName || "Loja"}
+                    width={200}
+                    height={200}
+                    className="h-full w-full object-cover"
+                  />
+                ) : hideStoreNameUntilLoaded && loading ? (
+                  <span className="text-[10px] font-bold uppercase text-black">
+                    …
+                  </span>
+                ) : (
+                  <span className="px-2 text-center text-[10px] font-bold uppercase leading-tight tracking-tight text-black sm:text-xs">
+                    {storeName.slice(0, 24) || "Loja"}
+                  </span>
+                )}
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -282,13 +284,13 @@ const Footer = () => {
             aria-label="Políticas"
           >
             <Link
-              href="/privacidade"
+              href="/"
               className="shrink-0 whitespace-nowrap underline-offset-2 hover:underline"
             >
               Privacy Policy
             </Link>
             <Link
-              href="/cookies"
+              href="/"
               className="shrink-0 whitespace-nowrap underline-offset-2 hover:underline"
             >
               Cookie Policy
