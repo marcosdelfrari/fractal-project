@@ -1,7 +1,7 @@
 /**
  * Base para chamadas do painel admin às configurações do site.
  *
- * Proteção em camadas (diferente do `/backend-api`, que só repassa ao Express):
+ * Proteção em camadas (diferente do proxy genérico `/api/*` → Express):
  * 1. Rotas `/admin/*` no Next: `middleware.ts` exige JWT com `role === "admin"`.
  * 2. `app/api/admin/settings/[[...path]]/route.ts`: `getServerSession(authOptions)` e checagem explícita de `role === "admin"` antes de fazer `fetch` ao Express.
  * 3. O browser chama apenas `/api/admin/settings/...` (mesma origem, cookie de sessão).

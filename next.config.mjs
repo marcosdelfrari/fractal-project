@@ -29,6 +29,7 @@ const nextConfig = {
         NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
     },
     async rewrites() {
+      // Legado: chamadas diretas a /backend-api ainda podem existir; o front usa /api/* + Route Handlers.
       return [
         {
           source: "/backend-api/:path*",

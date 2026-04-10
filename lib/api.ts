@@ -1,6 +1,11 @@
 import config from "./config";
 
-/** Browser: rewrite Next (`next.config.mjs`) envia cookie ao Express. Servidor: URL direta + repasse de Cookie. */
+/**
+ * Browser: mesma origem em `/api/*` — Route Handlers (`app/api/[[...path]]`, `/api/orders`, …)
+ * repassam Cookie ao Express via `proxyExpressRequest`. Não usar `/backend-api` + rewrite externo
+ * (em produção o cookie de sessão pode não chegar ao Railway).
+ * Servidor (RSC, etc.): URL direta do Express + repasse de Cookie dos headers da requisição.
+ */
 function resolveRequestUrl(endpoint: string, isServer: boolean): string {
   const normalizedEndpoint = endpoint.startsWith("/")
     ? endpoint
@@ -8,9 +13,6 @@ function resolveRequestUrl(endpoint: string, isServer: boolean): string {
   if (isServer) {
     const baseUrl = config.apiBaseUrl.replace(/\/+$/, "");
     return `${baseUrl}${normalizedEndpoint}`;
-  }
-  if (normalizedEndpoint.startsWith("/api/")) {
-    return `/backend-api/${normalizedEndpoint.slice(5)}`;
   }
   return normalizedEndpoint;
 }

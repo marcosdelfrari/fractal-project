@@ -1,10 +1,9 @@
 /**
- * Base para chamar o Express direto (ex.: produtos, usuários) via rewrite `/backend-api`.
- * Configurações e pedidos sensíveis devem preferir rotas Next: `/api/settings/...`, `/api/orders/...`.
+ * Base para chamar o Express no browser: mesmo origin `/api` (BFF repassa cookie).
  */
 export function getExpressApiBase(): string {
   if (typeof window !== "undefined") {
-    return "/backend-api";
+    return "/api";
   }
   const base = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001").replace(
     /\/$/,
