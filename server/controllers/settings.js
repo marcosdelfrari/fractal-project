@@ -3,13 +3,24 @@ const fs = require("fs");
 const crypto = require("crypto");
 const { nanoid } = require("nanoid");
 
-const HOME_SECTION_DEFAULTS = require(path.join(
-  __dirname,
-  "..",
-  "..",
-  "data",
-  "home-section-defaults.json",
-));
+// Carrega defaults de forma robusta, com fallback para um objeto vazio
+let HOME_SECTION_DEFAULTS = {};
+try {
+  const defaultsPath = path.join(
+    __dirname,
+    "..",
+    "..",
+    "data",
+    "home-section-defaults.json",
+  );
+  if (fs.existsSync(defaultsPath)) {
+    HOME_SECTION_DEFAULTS = require(defaultsPath);
+  } else {
+    console.warn(`[settings] arquivo de defaults não encontrado em: ${defaultsPath}`);
+  }
+} catch (err) {
+  console.warn(`[settings] erro ao carregar defaults:`, err.message);
+}
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { asyncHandler, AppError } = require("../utills/errorHandler");
