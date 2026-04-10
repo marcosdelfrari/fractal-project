@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model address {
+  id         String   @id
+  userId     String
+  label      String
+  street     String
+  number     String
+  complement String?
+  district   String
+  city       String
+  state      String
+  zipCode    String
+  country    String   @default("Brasil")
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+  user       user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Address_userId_fkey")
+
+  @@index([userId], map: "Address_userId_fkey")
+}
+
+model category {
+  id      String    @id
+  name    String    @unique(map: "Category_name_key")
+  product product[]
+}
+
+model customer_order {
+  id                     String                   @id
+  name                   String
+  lastname               String
+  phone                  String
+  email                  String
+  company                String
+  adress                 String
+  apartment              String
+  postalCode             String
+  dateTime               DateTime?                @default(now())
+  status                 String
+  city                   String
+  country                String
+  orderNotice            String?
+  total                  Int
+  /// entrega | retirada
+  deliveryOption         String                   @default("entrega")
+  customer_order_product customer_order_product[]
+}
+
+model customer_order_product {
+  id              String         @id
+  customerOrderId String
+  productId       String
+  quantity        Int
+  selectedColor   String?
+  selectedSize    String?
+  customer_order  customer_order @relation(fields: [customerOrderId], references: [id])
+  product         product        @relation(fields: [productId], references: [id])
+
+  @@index([customerOrderId], map: "customer_order_product_customerOrderId_fkey")
+  @@index([productId], map: "customer_order_product_productId_fkey")
+}
+
+model image {
+  imageID   String @id
+  productID String
+  image     String
+}
+
+model PinVerification {
+  id        String   @id
+  email     String   @unique(map: "PinVerification_email_key")
+  pin       String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("PinVerification")
+  @@index([email], map: "PinVerification_email_idx")
+}
+
+model product {
+  id                     String                   @id
+  slug                   String                   @unique(map: "Product_slug_key")
+  title                  String
+  mainImage              String
+  price                  Int                      @default(0)
+  rating                 Int                      @default(0)
+  description            String
+  additionalInfo         String?                  @db.Text
+  material               String?                  @db.Text
+  colors                 Json?
+  sizes                  Json?
+  manufacturer           String
+  inStock                Int                      @default(1)
+  categoryId             String
+  customer_order_product customer_order_product[]
+  category               category                 @relation(fields: [categoryId], references: [id], onDelete: Cascade, map: "Product_categoryId_fkey")
+  review                 review[]
+  wishlist               wishlist[]
+
+  @@index([categoryId], map: "Product_categoryId_fkey")
+}
+
+model review {
+  id        String   @id
+  userId    String
+  productId String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  product   product  @relation(fields: [productId], references: [id], onDelete: Cascade, map: "Review_productId_fkey")
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Review_userId_fkey")
+
+  @@unique([userId, productId], map: "Review_userId_productId_key")
+  @@index([productId], map: "Review_productId_fkey")
+}
+
+model user {
+  id        String     @id
+  email     String     @unique(map: "User_email_key")
+  password  String?
+  role      String?    @default("user")
+  name      String?
+  phone     String?
+  cpf       String?
+  photo     String?
+  instagram String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime
+  address   address[]
+  review    review[]
+  wishlist  wishlist[]
+}
+
+model verificationtoken {
+  id        String   @id
+  email     String
+  token     String   @unique(map: "VerificationToken_token_key")
+  pin       String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email], map: "VerificationToken_email_idx")
+  @@index([token], map: "VerificationToken_token_idx")
+}
+
+model wishlist {
+  id        String  @id
+  productId String
+  userId    String
+  product   product @relation(fields: [productId], references: [id], onDelete: Cascade, map: "Wishlist_productId_fkey")
+  user      user    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Wishlist_userId_fkey")
+
+  @@index([productId], map: "Wishlist_productId_fkey")
+  @@index([userId], map: "Wishlist_userId_fkey")
+}
+
+/// Configurações globais da loja (um registro)
+model SiteSettings {
+  id               String  @id
+  storeName        String  @default("Fractal Store")
+  storeIcon        String? @db.LongText
+  storeLogo        String? @db.LongText
+  /// name | logo (desktop)
+  navBrandDesktopMode     String   @default("name")
+  /// name | logo (mobile)
+  navBrandMobileMode      String   @default("name")
+  /// Oculta texto do nome até carregar settings no cliente.
+  hideStoreNameUntilLoaded Boolean @default(true)
+  /// Links da navbar: [{ id, name, href, hasMegaMenu }]
+  navLinks         Json?
+  whatsapp         String?
+  facebook         String?
+  instagram        String?
+  x                String?
+  pinterest        String?
+  youtube          String?
+  linkedin         String?
+  tiktok           String?
+  /// delivery_and_pickup | delivery_only | pickup_only
+  checkoutMode     String   @default("delivery_and_pickup")
+  address          String? @db.Text
+  email            String?
+  phone            String?
+  /// Lista de pontos de retirada: [{ id, name, address }]
+  pickupAddresses  Json?
+  /// Se false, o checkout oferece apenas retirada na loja (sem entrega).
+  deliveryEnabled  Boolean  @default(true)
+  /// Próximos eventos (home, acima do rodapé): { enabled, line1, line2, arrowHref, events }
+  upcomingEvents   Json?
+  updatedAt        DateTime @updatedAt
+
+  @@map("SiteSettings")
+}
+
+/// Seções da home (ordem e ativação)
+model HomeSection {
+  id        String   @id
+  name      String   @unique
+  enabled   Boolean  @default(true)
+  order     Int      @default(0)
+  content   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order], map: "HomeSection_order_idx")
+  @@map("HomeSection")
+}
