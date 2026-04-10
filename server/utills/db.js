@@ -1,12 +1,4 @@
-const path = require("path");
-const { PrismaClient } = require(path.join(
-  __dirname,
-  "..",
-  "..",
-  "node_modules",
-  "@prisma",
-  "client",
-));
+const { PrismaClient } = require("@prisma/client");
 
 const prismaClientSingleton = () => {
   // Validate that DATABASE_URL is present
