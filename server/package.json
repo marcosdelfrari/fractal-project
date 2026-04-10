@@ -15,6 +15,7 @@
     "migrate:backup": "node scripts/migration-validator.js backup",
     "migrate:safe": "node scripts/migration-validator.js safe-migrate",
     "migrate:fix": "node scripts/fix-migrations.js",
+    "railway:release": "npm run migrate:fix && node scripts/conditional-seed.js",
     "prisma:migrate:deploy": "prisma migrate deploy --schema ./prisma/schema.prisma",
     "prisma:generate": "prisma generate --schema ./prisma/schema.prisma",
     "db:backup": "node scripts/backup-database.js",
