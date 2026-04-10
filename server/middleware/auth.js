@@ -1,5 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
-const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
 const prisma = new PrismaClient();
 
@@ -53,6 +53,55 @@ function normalizeEmail(email) {
   return (email || "").toLowerCase().trim();
 }
 
+/**
+ * Decodifica JWT sem verificação (uso apenas quando o token já foi verificado pelo Next.js).
+ * NextAuth fornece tokens JWT válidos; aqui só extraímos o payload.
+ */
+function decodeJWT(token) {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+
+    const payload = parts[1];
+    const decoded = Buffer.from(payload, "base64").toString("utf-8");
+    return JSON.parse(decoded);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Verifica JWT usando HMAC-SHA256 com o secret.
+ */
+function verifyJWT(token, secret) {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+
+    const [headerB64, payloadB64, signatureB64] = parts;
+
+    // Recalcular assinatura
+    const message = `${headerB64}.${payloadB64}`;
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(message)
+      .digest("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=/g, "");
+
+    const providedSignature = signatureB64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+
+    if (expectedSignature !== providedSignature) {
+      return null;
+    }
+
+    return decodeJWT(token);
+  } catch {
+    return null;
+  }
+}
+
 async function decodeRequestAuth(req) {
   const secret = getAuthSecret();
   if (!secret) {
@@ -62,7 +111,7 @@ async function decodeRequestAuth(req) {
   const token = extractRawSessionToken(req);
   if (!token) return null;
   try {
-    const payload = jwt.verify(token, secret);
+    const payload = verifyJWT(token, secret);
     return payload;
   } catch {
     return null;
