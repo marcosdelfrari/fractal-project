@@ -3,20 +3,23 @@ const fs = require("fs");
 const crypto = require("crypto");
 const { nanoid } = require("nanoid");
 
-// Carrega defaults de forma robusta, com fallback para um objeto vazio
+// Carrega defaults de forma robusta, com fallback para objeto vazio.
+// Suporta estrutura local (server/controllers) e estrutura em container (/app/controllers).
 let HOME_SECTION_DEFAULTS = {};
 try {
-  const defaultsPath = path.join(
-    __dirname,
-    "..",
-    "..",
-    "data",
-    "home-section-defaults.json",
-  );
-  if (fs.existsSync(defaultsPath)) {
+  const candidatePaths = [
+    path.join(__dirname, "..", "..", "data", "home-section-defaults.json"),
+    path.join(__dirname, "..", "data", "home-section-defaults.json"),
+    path.join(process.cwd(), "data", "home-section-defaults.json"),
+  ];
+
+  const defaultsPath = candidatePaths.find((p) => fs.existsSync(p));
+  if (defaultsPath) {
     HOME_SECTION_DEFAULTS = require(defaultsPath);
   } else {
-    console.warn(`[settings] arquivo de defaults não encontrado em: ${defaultsPath}`);
+    console.warn(
+      `[settings] arquivo de defaults não encontrado. Tentados: ${candidatePaths.join(", ")}`,
+    );
   }
 } catch (err) {
   console.warn(`[settings] erro ao carregar defaults:`, err.message);
