@@ -91,9 +91,9 @@ async function fixMigrations() {
       console.log("   💡 Executando migrações para criar a tabela...\n");
 
       try {
-        execSync("npx prisma migrate deploy", {
+        execSync("npx prisma migrate deploy --schema ./prisma/schema.prisma", {
           stdio: "inherit",
-          cwd: path.join(__dirname, "../.."),
+          cwd: path.join(__dirname, ".."),
         });
         console.log("\n✅ Migrações aplicadas com sucesso!");
         return;
@@ -125,9 +125,9 @@ async function fixMigrations() {
         );
 
         try {
-          execSync("npx prisma migrate deploy", {
+          execSync("npx prisma migrate deploy --schema ./prisma/schema.prisma", {
             stdio: "inherit",
-            cwd: path.join(__dirname, "../.."),
+            cwd: path.join(__dirname, ".."),
           });
           console.log("\n✅ Migrações aplicadas com sucesso!");
           return;
@@ -146,7 +146,7 @@ async function fixMigrations() {
       console.log("   💡 Marcando migração como aplicada...\n");
 
       // Encontrar a migração mais recente
-      const migrationsDir = path.join(__dirname, "../../prisma/migrations");
+      const migrationsDir = path.join(__dirname, "../prisma/migrations");
       const migrationDirs = fs
         .readdirSync(migrationsDir)
         .filter((dir) => dir !== "migration_lock.toml")
@@ -162,10 +162,13 @@ async function fixMigrations() {
 
       try {
         // Marcar a migração como aplicada
-        execSync(`npx prisma migrate resolve --applied ${latestMigration}`, {
+        execSync(
+          `npx prisma migrate resolve --applied ${latestMigration} --schema ./prisma/schema.prisma`,
+          {
           stdio: "inherit",
-          cwd: path.join(__dirname, "../.."),
-        });
+          cwd: path.join(__dirname, ".."),
+        },
+        );
         console.log("\n✅ Migração marcada como aplicada!");
       } catch (error) {
         console.error("\n❌ Erro ao marcar migração:", error.message);

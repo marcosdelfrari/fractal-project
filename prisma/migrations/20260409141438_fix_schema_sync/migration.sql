@@ -1,0 +1,1 @@
+-- This migration syncs the schema after manual table creation

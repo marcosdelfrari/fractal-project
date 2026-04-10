@@ -42,6 +42,8 @@ next-env.d.ts
 *.sql
 *.dump
 *.backup
+!prisma/migrations/**/*.sql
+!server/prisma/migrations/**/*.sql
 
 # Logs
 *.log
