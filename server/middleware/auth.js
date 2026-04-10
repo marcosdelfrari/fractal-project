@@ -53,6 +53,16 @@ function normalizeEmail(email) {
   return (email || "").toLowerCase().trim();
 }
 
+function isPayloadExpired(payload) {
+  if (!payload) return true;
+  if (payload.expired) return true;
+  if (typeof payload.exp === "number") {
+    const now = Math.floor(Date.now() / 1000);
+    if (now >= payload.exp) return true;
+  }
+  return false;
+}
+
 /**
  * Decodifica JWT sem verificação (uso apenas quando o token já foi verificado pelo Next.js).
  * NextAuth fornece tokens JWT válidos; aqui só extraímos o payload.
@@ -102,6 +112,23 @@ function verifyJWT(token, secret) {
   }
 }
 
+/**
+ * Fallback robusto: usa o decoder oficial do NextAuth para suportar
+ * tanto JWS (3 partes) quanto JWE (5 partes), inclusive rotação/shape internos.
+ */
+async function decodeWithNextAuth(req, secret) {
+  try {
+    const { getToken } = await import("next-auth/jwt");
+    return await getToken({
+      req: { headers: req.headers || {} },
+      secret,
+      secureCookie: process.env.NODE_ENV === "production",
+    });
+  } catch {
+    return null;
+  }
+}
+
 async function decodeRequestAuth(req) {
   const secret = getAuthSecret();
   if (!secret) {
@@ -111,8 +138,19 @@ async function decodeRequestAuth(req) {
   const token = extractRawSessionToken(req);
   if (!token) return null;
   try {
+    // Caminho rápido para Bearer/JWS tradicional.
     const payload = verifyJWT(token, secret);
-    return payload;
+    if (payload && !isPayloadExpired(payload)) {
+      return payload;
+    }
+
+    // Compatibilidade com formatos internos do NextAuth (ex.: JWE).
+    const nextAuthPayload = await decodeWithNextAuth(req, secret);
+    if (nextAuthPayload && !isPayloadExpired(nextAuthPayload)) {
+      return nextAuthPayload;
+    }
+
+    return null;
   } catch {
     return null;
   }
@@ -120,7 +158,7 @@ async function decodeRequestAuth(req) {
 
 function isAuthenticatedPayload(payload) {
   if (!payload) return false;
-  if (payload.expired) return false;
+  if (isPayloadExpired(payload)) return false;
   if (!payload.email && !payload.sub) return false;
   return true;
 }
