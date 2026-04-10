@@ -1,5 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
-const { decode } = require("next-auth/jwt");
+const jwt = require("jsonwebtoken");
 
 const prisma = new PrismaClient();
 
@@ -62,7 +62,7 @@ async function decodeRequestAuth(req) {
   const token = extractRawSessionToken(req);
   if (!token) return null;
   try {
-    const payload = await decode({ token, secret });
+    const payload = jwt.verify(token, secret);
     return payload;
   } catch {
     return null;
