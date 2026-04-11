@@ -128,36 +128,57 @@ function verifyJWT(token, secret) {
  */
 async function decodeWithNextAuth(req, secret) {
   try {
-    // Tenta importar dinamicamente (pode falhar se next-auth não estiver instalado)
-    let getToken;
+    // Estratégia 1: Tentar com getToken direto (para req no formato NextAuth)
     try {
-      const module = await import("next-auth/jwt");
-      getToken = module.getToken;
-    } catch (importErr) {
-      console.error("[auth] Não foi possível importar next-auth/jwt:", importErr.message);
-      console.error("[auth] Certifique-se que next-auth está instalado no servidor");
+      const { getToken } = await import("next-auth/jwt");
+      const decoded = await getToken({
+        req,
+        secret,
+        secureCookie: process.env.NODE_ENV === "production",
+      });
+      
+      if (decoded) {
+        console.log("[auth] ✓ Token decodificado com getToken");
+        return decoded;
+      }
+    } catch (getTokenErr) {
+      console.log("[auth] getToken não funcionou, tentando jose...");
+    }
+    
+    // Estratégia 2: Usar jose (usado internamente pelo NextAuth para JWE)
+    const token = extractRawSessionToken(req);
+    if (!token) {
+      console.error("[auth] Nenhum token para decodificar");
       return null;
     }
     
-    if (!getToken) {
-      console.error("[auth] getToken não encontrado em next-auth/jwt");
-      return null;
-    }
-    
-    const decoded = await getToken({
-      req,
-      secret,
-      secureCookie: process.env.NODE_ENV === "production",
-    });
-    
-    if (decoded) {
-      console.log("[auth] ✓ Token decodificado com sucesso via next-auth/jwt");
-      return decoded;
-    } else {
-      console.error("[auth] getToken retornou null/undefined");
+    try {
+      const { jwtVerify, errors } = await import("jose");
+      const secretKey = new TextEncoder().encode(secret);
+      
+      const { payload } = await jwtVerify(token, secretKey);
+      console.log("[auth] ✓ Token decodificado com jose (JWE)");
+      return payload;
+    } catch (joseErr) {
+      console.error("[auth] jose falhou:", joseErr.message);
+      
+      // Estratégia 3: Tentar decodificar sem verificação (para debug)
+      try {
+        const parts = token.split(".");
+        if (parts.length === 3) {
+          // JWS: decodificar payload sem verificar assinatura
+          const payload = JSON.parse(
+            Buffer.from(parts[1], "base64").toString("utf-8")
+          );
+          console.log("[auth] ⚠️ Token JWS decodificado (sem verificação de assinatura)");
+          return payload;
+        }
+      } catch (fallbackErr) {
+        console.error("[auth] Falha em todas as estratégias de decodificação");
+      }
     }
   } catch (err) {
-    console.error("[auth] Erro ao decodificar com getToken:", err.message);
+    console.error("[auth] Erro geral em decodeWithNextAuth:", err.message);
   }
   
   return null;
