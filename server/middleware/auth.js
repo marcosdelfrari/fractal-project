@@ -8,6 +8,16 @@ function getAuthSecret() {
   return process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 }
 
+/** Mesmo nome que `lib/sessionCookieName.ts` (cookie JWS novo). */
+function getSessionTokenCookieName() {
+  const secure =
+    (process.env.NEXTAUTH_URL && process.env.NEXTAUTH_URL.startsWith("https://")) ||
+    !!process.env.VERCEL;
+  return secure
+    ? "__Secure-next-auth.session-token.jws"
+    : "next-auth.session-token.jws";
+}
+
 function parseCookieHeader(cookieHeader) {
   const out = {};
   if (!cookieHeader || typeof cookieHeader !== "string") return out;
@@ -43,11 +53,16 @@ function extractRawSessionToken(req) {
     }
   }
   const cookies = parseCookieHeader(req.headers.cookie || "");
-  return (
-    cookies["__Secure-next-auth.session-token"] ||
-    cookies["next-auth.session-token"] ||
-    null
-  );
+  const names = [
+    "__Secure-next-auth.session-token.jws",
+    "next-auth.session-token.jws",
+    "__Secure-next-auth.session-token",
+    "next-auth.session-token",
+  ];
+  for (const name of names) {
+    if (cookies[name]) return cookies[name];
+  }
+  return null;
 }
 
 function normalizeEmail(email) {
@@ -86,23 +101,14 @@ function decodeJWT(token) {
  * Compatível com tokens gerados pelo NextAuth com customEncode.
  */
 function verifyJWT(token, secret) {
-  // Log para debug: verificar formato do token
   const parts = token ? token.split(".") : [];
-  console.log(`[auth] Token recebido: ${parts.length} partes, primeiros 50 chars: ${token?.substring(0, 50)}...`);
-  
-  // Se for JWE (5 partes), não tenta verificar com jsonwebtoken
   if (parts.length === 5) {
-    console.log("[auth] Token é JWE (5 partes) - sessão antiga, precisa relogar");
     return null;
   }
-  
   try {
-    const payload = jwt.verify(token, secret, {
+    return jwt.verify(token, secret, {
       algorithms: ["HS256"],
     });
-    
-    console.log("[auth] ✓ Token verificado com sucesso via jsonwebtoken");
-    return payload;
   } catch (err) {
     console.error("[auth] Erro ao verificar JWT:", err.message);
     return null;
@@ -119,16 +125,26 @@ async function decodeWithNextAuth(req, secret) {
       req,
       secret,
       secureCookie: process.env.NODE_ENV === "production",
+      cookieName: getSessionTokenCookieName(),
+      decode: async ({ token: t, secret: s }) => {
+        if (!t) return null;
+        const p = t.split(".");
+        if (p.length !== 3) return null;
+        try {
+          return jwt.verify(t, s, { algorithms: ["HS256"] });
+        } catch {
+          return null;
+        }
+      },
     });
-    
+
     if (decoded) {
-      console.log("[auth] ✓ Token decodificado com getToken (NextAuth)");
       return decoded;
     }
   } catch (err) {
     console.error("[auth] Erro ao usar getToken:", err.message);
   }
-  
+
   return null;
 }
 
@@ -140,37 +156,18 @@ async function decodeRequestAuth(req) {
   }
   const token = extractRawSessionToken(req);
   if (!token) {
-    console.error("[auth] Nenhum token encontrado nos cookies ou Authorization header");
     return null;
   }
-  
+
   try {
-    // Caminho rápido para Bearer/JWS tradicional.
     const payload = verifyJWT(token, secret);
     if (payload && !isPayloadExpired(payload)) {
-      console.log("[auth] Token verificado com sucesso (JWS)");
       return payload;
     }
-    
-    if (!payload) {
-      console.error("[auth] Falha ao verificar assinatura JWT");
-    }
-    if (payload && isPayloadExpired(payload)) {
-      console.error("[auth] Token expirado");
-    }
 
-    // Compatibilidade com formatos internos do NextAuth (ex.: JWE).
-    console.log("[auth] Tentando decodificar com next-auth/jwt como fallback");
     const nextAuthPayload = await decodeWithNextAuth(req, secret);
     if (nextAuthPayload && !isPayloadExpired(nextAuthPayload)) {
-      console.log("[auth] ✓ Token decodificado com sucesso via NextAuth");
       return nextAuthPayload;
-    }
-    
-    if (nextAuthPayload && isPayloadExpired(nextAuthPayload)) {
-      console.error("[auth] Token NextAuth expirado");
-    } else {
-      console.error("[auth] Falha ao decodificar com NextAuth");
     }
 
     return null;

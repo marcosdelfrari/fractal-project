@@ -2,6 +2,7 @@ import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { JWT } from "next-auth/jwt";
 import jwt from "jsonwebtoken";
+import { getSessionTokenCookieName } from "@/lib/sessionCookieName";
 
 /** Decode customizado idêntico ao de authOptions para o middleware conseguir ler o token JWS */
 async function customDecode({ token, secret }: any): Promise<JWT | null> {
@@ -75,6 +76,11 @@ export default withAuth(
     },
     jwt: {
       decode: customDecode,
+    },
+    cookies: {
+      sessionToken: {
+        name: getSessionTokenCookieName(),
+      },
     },
   }
 );

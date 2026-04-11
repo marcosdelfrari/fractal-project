@@ -8,15 +8,13 @@ import bcrypt from "bcryptjs";
 import prisma from "@/utils/db";
 import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
-
-console.log("[NextAuth Init] Carregando authOptions com customEncode/customDecode");
+import { getSessionTokenCookieName } from "./sessionCookieName";
 
 /**
  * Encode custom JWS simples (sem encriptação) para compatibilidade com Express backend.
  * Usa jsonwebtoken library que gera tokens padrão JWT legíveis e verificáveis.
  */
 async function customEncode({ token, secret, maxAge }: any) {
-  console.log("[NextAuth customEncode] Gerando token JWS (HS256)");
   // Adicionar exp ao token se não existir
   const tokenWithExp = {
     ...token,
@@ -26,7 +24,6 @@ async function customEncode({ token, secret, maxAge }: any) {
     algorithm: "HS256",
     noTimestamp: true, // Evitar adicionar iat automaticamente (já vem do token)
   });
-  console.log("[NextAuth customEncode] Token gerado:", signed.split(".").length, "partes");
   return signed;
 }
 
@@ -36,33 +33,25 @@ async function customEncode({ token, secret, maxAge }: any) {
  */
 async function customDecode({ token, secret }: any): Promise<JWT | null> {
   if (!token) return null;
-  
-  // Verificar se é JWE (5 partes) ou JWS (3 partes)
+
   const parts = token.split(".");
-  console.log("[NextAuth customDecode] Token tem", parts.length, "partes");
-  
-  // Se for JWS (3 partes), usar jsonwebtoken
+
   if (parts.length === 3) {
     try {
       const decoded = jwt.verify(token, secret, {
         algorithms: ["HS256"],
       });
       if (typeof decoded === "string") return null;
-      console.log("[NextAuth customDecode] ✓ Token JWS decodificado com sucesso");
       return decoded as JWT;
-    } catch (error) {
-      console.error("[NextAuth customDecode] Erro ao decodificar JWS:", error instanceof Error ? error.message : error);
+    } catch {
       return null;
     }
   }
-  
-  // Se for JWE (5 partes), token antigo - retornar null para forçar novo login
+
   if (parts.length === 5) {
-    console.log("[NextAuth customDecode] Token JWE (antigo) detectado - forçando novo login");
     return null;
   }
-  
-  console.error("[NextAuth customDecode] Token com formato desconhecido:", parts.length, "partes");
+
   return null;
 }
 
@@ -295,11 +284,21 @@ export const authOptions: NextAuthOptions = {
   },
   jwt: {
     maxAge: 15 * 60, // 15 minutes in seconds
-    // Usar apenas JWS (não JWE) para compatibilidade com Express backend
-    // JWS = assinado mas não encriptado = formato padrão de JWT (3 partes)
-    // JWE = assinado e encriptado = formato mais complexo (5 partes)
     encode: customEncode,
     decode: customDecode,
+  },
+  cookies: {
+    sessionToken: {
+      name: getSessionTokenCookieName(),
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure:
+          process.env.NEXTAUTH_URL?.startsWith("https://") === true ||
+          !!process.env.VERCEL,
+      },
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
