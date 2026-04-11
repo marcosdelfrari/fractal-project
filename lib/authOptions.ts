@@ -6,6 +6,99 @@ import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import prisma from "@/utils/db";
 import { nanoid } from "nanoid";
+import crypto from "crypto";
+
+/**
+ * Encode custom JWS simples (sem encriptação) para compatibilidade com Express backend.
+ * Formato: header.payload.signature
+ */
+async function customEncode({ token, secret, maxAge }: any) {
+  // Header do JWT
+  const header = {
+    alg: "HS256",
+    typ: "JWT",
+  };
+
+  // Payload contém os dados do token + timestamps
+  const payload = {
+    ...token,
+    iat: Math.floor(Date.now() / 1000),
+    exp: Math.floor(Date.now() / 1000) + (maxAge || 15 * 60),
+  };
+
+  // Codificar em base64url
+  const encodedHeader = Buffer.from(JSON.stringify(header))
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+
+  const encodedPayload = Buffer.from(JSON.stringify(payload))
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+
+  // Assinar com HMAC-SHA256
+  const message = `${encodedHeader}.${encodedPayload}`;
+  const signature = crypto
+    .createHmac("sha256", secret)
+    .update(message)
+    .digest("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+
+  return `${message}.${signature}`;
+}
+
+/**
+ * Decode custom para tokens JWS simples.
+ */
+async function customDecode({ token, secret }: any) {
+  if (!token) return null;
+
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) {
+      console.warn("[JWT] Token com formato inesperado:", parts.length, "partes");
+      return null;
+    }
+
+    const [encodedHeader, encodedPayload, encodedSignature] = parts;
+
+    // Verificar assinatura
+    const message = `${encodedHeader}.${encodedPayload}`;
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(message)
+      .digest("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=/g, "");
+
+    if (expectedSignature !== encodedSignature) {
+      console.warn("[JWT] Assinatura inválida");
+      return null;
+    }
+
+    // Decodificar payload
+    const payload = JSON.parse(
+      Buffer.from(encodedPayload, "base64").toString("utf-8")
+    );
+
+    // Verificar expiração
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      console.warn("[JWT] Token expirado");
+      return null;
+    }
+
+    return payload;
+  } catch (error) {
+    console.error("[JWT] Erro ao decodificar token:", error);
+    return null;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   // Configure one or more authentication providers
@@ -239,6 +332,8 @@ export const authOptions: NextAuthOptions = {
     // Usar apenas JWS (não JWE) para compatibilidade com Express backend
     // JWS = assinado mas não encriptado = formato padrão de JWT (3 partes)
     // JWE = assinado e encriptado = formato mais complexo (5 partes)
+    encode: customEncode,
+    decode: customDecode,
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
