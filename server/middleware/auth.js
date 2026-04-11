@@ -82,32 +82,42 @@ function decodeJWT(token) {
 
 /**
  * Verifica JWT usando HMAC-SHA256 com o secret.
+ * Tenta tanto JWS (3 partes) quanto suporta base64url com padding automático.
  */
 function verifyJWT(token, secret) {
   try {
     const parts = token.split(".");
-    if (parts.length !== 3) return null;
+    
+    // JWE tem 5 partes; não pode ser verificado com HMAC simples
+    if (parts.length === 5) {
+      console.log("[auth] Token é JWE (5 partes) — requer decodeWithNextAuth");
+      return null;
+    }
+    
+    if (parts.length !== 3) {
+      console.log(`[auth] Token tem ${parts.length} partes, esperado 3 (JWS) ou 5 (JWE)`);
+      return null;
+    }
 
     const [headerB64, payloadB64, signatureB64] = parts;
 
-    // Recalcular assinatura
+    // Recalcular assinatura com padding correto
     const message = `${headerB64}.${payloadB64}`;
+    
+    // NextAuth usa base64url sem padding; crypto.createHmac usa base64 com padding
     const expectedSignature = crypto
       .createHmac("sha256", secret)
       .update(message)
-      .digest("base64")
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=/g, "");
+      .digest("base64url"); // base64url sem padding
 
-    const providedSignature = signatureB64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
-
-    if (expectedSignature !== providedSignature) {
+    if (expectedSignature !== signatureB64) {
+      console.log("[auth] Assinatura JWT inválida");
       return null;
     }
 
     return decodeJWT(token);
-  } catch {
+  } catch (err) {
+    console.error("[auth] Erro ao verificar JWT:", err.message);
     return null;
   }
 }
@@ -119,14 +129,21 @@ function verifyJWT(token, secret) {
 async function decodeWithNextAuth(req, secret) {
   try {
     const { getToken } = await import("next-auth/jwt");
-    return await getToken({
-      req: { headers: req.headers || {} },
+    const decoded = await getToken({
+      req,
       secret,
       secureCookie: process.env.NODE_ENV === "production",
     });
-  } catch {
-    return null;
+    
+    if (decoded) {
+      console.log("[auth] Token decodificado com getToken da NextAuth");
+      return decoded;
+    }
+  } catch (err) {
+    console.error("[auth] Erro ao usar getToken do NextAuth:", err.message);
   }
+  
+  return null;
 }
 
 async function decodeRequestAuth(req) {
@@ -136,22 +153,43 @@ async function decodeRequestAuth(req) {
     return null;
   }
   const token = extractRawSessionToken(req);
-  if (!token) return null;
+  if (!token) {
+    console.error("[auth] Nenhum token encontrado nos cookies ou Authorization header");
+    return null;
+  }
+  
   try {
     // Caminho rápido para Bearer/JWS tradicional.
     const payload = verifyJWT(token, secret);
     if (payload && !isPayloadExpired(payload)) {
+      console.log("[auth] Token verificado com sucesso (JWS)");
       return payload;
+    }
+    
+    if (!payload) {
+      console.error("[auth] Falha ao verificar assinatura JWT");
+    }
+    if (payload && isPayloadExpired(payload)) {
+      console.error("[auth] Token expirado");
     }
 
     // Compatibilidade com formatos internos do NextAuth (ex.: JWE).
+    console.log("[auth] Tentando decodificar com next-auth/jwt");
     const nextAuthPayload = await decodeWithNextAuth(req, secret);
     if (nextAuthPayload && !isPayloadExpired(nextAuthPayload)) {
+      console.log("[auth] Token decodificado com sucesso (NextAuth)");
       return nextAuthPayload;
+    }
+    
+    if (nextAuthPayload && isPayloadExpired(nextAuthPayload)) {
+      console.error("[auth] Token NextAuth expirado");
+    } else {
+      console.error("[auth] Falha ao decodificar com NextAuth");
     }
 
     return null;
-  } catch {
+  } catch (err) {
+    console.error("[auth] Erro ao decodificar token:", err.message);
     return null;
   }
 }
