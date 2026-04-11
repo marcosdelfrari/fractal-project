@@ -13,9 +13,7 @@ function getSessionTokenCookieName() {
   const secure =
     (process.env.NEXTAUTH_URL && process.env.NEXTAUTH_URL.startsWith("https://")) ||
     !!process.env.VERCEL;
-  return secure
-    ? "__Secure-next-auth.session-token.jws"
-    : "next-auth.session-token.jws";
+  return secure ? "__Secure-next-auth.jws" : "next-auth.jws";
 }
 
 function parseCookieHeader(cookieHeader) {
@@ -54,6 +52,8 @@ function extractRawSessionToken(req) {
   }
   const cookies = parseCookieHeader(req.headers.cookie || "");
   const names = [
+    "__Secure-next-auth.jws",
+    "next-auth.jws",
     "__Secure-next-auth.session-token.jws",
     "next-auth.session-token.jws",
     "__Secure-next-auth.session-token",
