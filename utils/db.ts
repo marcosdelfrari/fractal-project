@@ -28,11 +28,10 @@ const prismaClientSingleton = () => {
       }`,
     );
     console.log(
-      `🔒 SSL Mode: ${url.searchParams.get("sslmode") || "not specified"}`,
+      `🔒 MySQL sslaccept: ${url.searchParams.get("sslaccept") || "not specified"}`,
     );
   }
 
-  // For production MySQL connections, ensure SSL is configured
   const prismaConfig: any = {
     log:
       process.env.NODE_ENV === "development"
@@ -40,19 +39,26 @@ const prismaClientSingleton = () => {
         : ["error", "warn"],
   };
 
-  // Add SSL configuration for MySQL in production if not already in URL
+  let resolvedUrl = databaseUrl;
+
+  // MySQL (Prisma): usar sslaccept, não sslmode (isso é do PostgreSQL).
+  // Sem isso, Vercel → Railway MySQL costuma falhar (P1001 / SSL / certificado).
   if (process.env.NODE_ENV === "production" && url.protocol === "mysql:") {
-    const sslMode = url.searchParams.get("sslmode");
-    if (!sslMode) {
-      // If SSL mode is not specified, add it to the connection string
-      // This is important for production MySQL connections (e.g., Railway, PlanetScale)
-      url.searchParams.set("sslmode", "REQUIRED");
-      // Note: Prisma will use the updated URL from the environment variable
-      // If you need to override, you can use the datasource URL in the Prisma schema
+    url.searchParams.delete("sslmode");
+    if (!url.searchParams.has("sslaccept")) {
+      url.searchParams.set("sslaccept", "accept_invalid_certs");
     }
+    resolvedUrl = url.toString();
   }
 
-  return new PrismaClient(prismaConfig);
+  return new PrismaClient({
+    ...prismaConfig,
+    datasources: {
+      db: {
+        url: resolvedUrl,
+      },
+    },
+  });
 };
 
 type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;

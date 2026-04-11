@@ -174,11 +174,15 @@ export const authOptions: NextAuthOptions = {
         return null;
       },
     }),
-    // Uncomment and configure these providers as needed
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
+    ...(process.env.GOOGLE_CLIENT_ID?.trim() &&
+    process.env.GOOGLE_CLIENT_SECRET?.trim()
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
+      : []),
   ],
   callbacks: {
     async signIn({
@@ -188,7 +192,7 @@ export const authOptions: NextAuthOptions = {
       user: AuthUser;
       account: Account | null;
     }) {
-      if (account?.provider === "credentials") {
+      if (account?.provider === "credentials" || account?.provider === "pin") {
         return true;
       }
 

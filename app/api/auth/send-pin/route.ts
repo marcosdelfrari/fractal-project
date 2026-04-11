@@ -110,8 +110,10 @@ export async function POST(request: NextRequest) {
           { status: 503 }
         );
       }
+      const fromEmail =
+        process.env.RESEND_FROM_EMAIL?.trim() || "test@resend.dev";
       const emailResult = await resend.emails.send({
-        from: "Fractal Shop <test@resend.dev>",
+        from: `Fractal Shop <${fromEmail}>`,
         to: [email],
         subject: "Seu PIN de acesso - Fractal Shop",
         html: `
