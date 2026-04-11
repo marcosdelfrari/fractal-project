@@ -1,4 +1,5 @@
 import { NextAuthOptions } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import { Account, User as AuthUser } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -25,12 +26,13 @@ async function customEncode({ token, secret, maxAge }: any) {
 /**
  * Decode custom para tokens JWS com jsonwebtoken.
  */
-async function customDecode({ token, secret }: any) {
+async function customDecode({ token, secret }: any): Promise<JWT | null> {
   try {
     const decoded = jwt.verify(token, secret, {
       algorithms: ["HS256"],
     });
-    return decoded;
+    if (typeof decoded === "string") return null;
+    return decoded as JWT;
   } catch (error) {
     console.error("[JWT] Erro ao decodificar:", error instanceof Error ? error.message : error);
     return null;
