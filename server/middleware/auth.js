@@ -86,6 +86,16 @@ function decodeJWT(token) {
  * Compatível com tokens gerados pelo NextAuth com customEncode.
  */
 function verifyJWT(token, secret) {
+  // Log para debug: verificar formato do token
+  const parts = token ? token.split(".") : [];
+  console.log(`[auth] Token recebido: ${parts.length} partes, primeiros 50 chars: ${token?.substring(0, 50)}...`);
+  
+  // Se for JWE (5 partes), não tenta verificar com jsonwebtoken
+  if (parts.length === 5) {
+    console.log("[auth] Token é JWE (5 partes) - sessão antiga, precisa relogar");
+    return null;
+  }
+  
   try {
     const payload = jwt.verify(token, secret, {
       algorithms: ["HS256"],
