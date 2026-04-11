@@ -22,7 +22,7 @@ import { signOut, useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useWishlistStore } from "@/app/_zustand/wishlistStore";
 import apiClient from "@/lib/api";
-import { isLegacyPublicUploadsPath, publicAssetUrl } from "@/lib/imageUtils";
+import { preferUnoptimizedSiteAsset, publicAssetUrl } from "@/lib/imageUtils";
 import MegaMenu from "./MegaMenu";
 import {
   fetchAllMenuData,
@@ -54,6 +54,11 @@ const Header = () => {
   const storeName = siteSettingsLoading ? "" : siteSettings.storeName || "";
   const desktopBrandMode =
     siteSettings.navBrandDesktopMode === "logo" ? "logo" : "name";
+  const mobileBrandMode =
+    siteSettings.navBrandMobileMode === "logo" ? "logo" : "name";
+  /** Mesmo contêiner circular da logo no `Footer` (mobile → desktop). */
+  const logoLinkClass =
+    "flex shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-black bg-[#FFFF04] shadow-sm h-[120px] w-[120px] sm:h-[140px] sm:w-[140px] md:h-[150px] md:w-[150px]";
   const hideStoreNameUntilLoaded =
     siteSettings.hideStoreNameUntilLoaded !== false;
 
@@ -161,26 +166,52 @@ const Header = () => {
         {/* Faixa vermelha tipo cápsula + logo central sobreposta */}
         <div className="relative mx-auto max-w-7xl">
           <div className="pointer-events-none absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-[42%] sm:-translate-y-[44%]">
-            <Link href="/" className="">
-              {desktopBrandMode === "logo" && siteSettings.storeLogo ? (
-                <Image
-                  src={publicAssetUrl(siteSettings.storeLogo)}
-                  alt={storeName || "Loja"}
-                  width={150}
-                  height={150}
-                  className="h-full w-full"
-                  unoptimized={isLegacyPublicUploadsPath(siteSettings.storeLogo)}
-                />
-              ) : hideStoreNameUntilLoaded && siteSettingsLoading ? (
-                <span className="text-[10px] font-bold uppercase text-black">
-                  …
-                </span>
-              ) : (
-                <span className="px-2 text-center text-[10px] font-bold uppercase leading-tight tracking-tight text-black sm:text-xs">
-                  {storeName.slice(0, 24) || "Loja"}
-                </span>
-              )}
-            </Link>
+            <div className="pointer-events-auto flex flex-col items-center">
+              <Link href="/" className={`${logoLinkClass} md:hidden`}>
+                {mobileBrandMode === "logo" && siteSettings.storeLogo ? (
+                  <Image
+                    src={publicAssetUrl(siteSettings.storeLogo)}
+                    alt={storeName || "Loja"}
+                    width={200}
+                    height={200}
+                    className="h-full w-full object-cover"
+                    unoptimized={preferUnoptimizedSiteAsset(
+                      siteSettings.storeLogo,
+                    )}
+                  />
+                ) : hideStoreNameUntilLoaded && siteSettingsLoading ? (
+                  <span className="text-[10px] font-bold uppercase text-black">
+                    …
+                  </span>
+                ) : (
+                  <span className="px-2 text-center text-[10px] font-bold uppercase leading-tight tracking-tight text-black sm:text-xs">
+                    {storeName.slice(0, 24) || "Loja"}
+                  </span>
+                )}
+              </Link>
+              <Link href="/" className={`${logoLinkClass} hidden md:flex`}>
+                {desktopBrandMode === "logo" && siteSettings.storeLogo ? (
+                  <Image
+                    src={publicAssetUrl(siteSettings.storeLogo)}
+                    alt={storeName || "Loja"}
+                    width={200}
+                    height={200}
+                    className="h-full w-full object-cover"
+                    unoptimized={preferUnoptimizedSiteAsset(
+                      siteSettings.storeLogo,
+                    )}
+                  />
+                ) : hideStoreNameUntilLoaded && siteSettingsLoading ? (
+                  <span className="text-[10px] font-bold uppercase text-black">
+                    …
+                  </span>
+                ) : (
+                  <span className="px-2 text-center text-[10px] font-bold uppercase leading-tight tracking-tight text-black sm:text-xs">
+                    {storeName.slice(0, 24) || "Loja"}
+                  </span>
+                )}
+              </Link>
+            </div>
           </div>
 
           <nav
@@ -272,23 +303,32 @@ const Header = () => {
         onClick={() => setIsMobileMenuOpen(false)}
       />
 
-      {/* Side Menu */}
+      {/* Menu mobile: popup centralizado */}
       <div
-        className={`fixed inset-y-0 left-0 w-[85%] max-w-[400px] bg-[#e3e1d6] z-50 border-r-4 border-black transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] transform ${
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } xl:hidden flex flex-col overflow-y-auto`}
+        className={`fixed inset-0 z-50 flex items-center justify-center p-4 xl:hidden transition-opacity duration-300 ${
+          isMobileMenuOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        }`}
+        aria-hidden={!isMobileMenuOpen}
       >
+        <div
+          className={`flex max-h-[min(85vh,720px)] w-full max-w-[400px] flex-col overflow-hidden rounded-[28px] border-2 border-black bg-[#e3e1d6] shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] ${
+            isMobileMenuOpen ? "scale-100" : "scale-95"
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
         <div className="flex justify-end p-6 sm:p-8">
           <button
             onClick={() => setIsMobileMenuOpen(false)}
-            className="text-gray-900 hover:text-black transition-all hover:rotate-90 p-2 -mr-2 duration-300"
+            className="text-black transition-all hover:opacity-70 hover:rotate-90 p-2 -mr-2 duration-300"
             aria-label="Close menu"
           >
             <FaTimes className="text-2xl font-light" />
           </button>
         </div>
 
-        <nav className="flex flex-col px-6 sm:px-8 flex-1">
+        <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pb-6 text-black sm:px-8">
           <div className="flex flex-col gap-6 mb-8">
             {headerNavLinks.map((navLink) => {
               // Se tem mega menu, renderiza com expansão
@@ -300,17 +340,13 @@ const Header = () => {
                 return (
                   <div
                     key={navLink.id}
-                    className="border-b border-gray-100/60 pb-5 last:border-0 last:pb-0"
+                    className="border-b border-black/15 pb-5 last:border-0 last:pb-0"
                   >
                     <button
                       onClick={() =>
                         setExpandedMobileItem(isExpanded ? null : navLink.id)
                       }
-                      className={`flex items-center justify-between w-full transition-colors uppercase text-lg font-light tracking-[0.15em] ${
-                        isExpanded
-                          ? "text-black"
-                          : "text-gray-600 hover:text-black"
-                      }`}
+                      className="flex w-full items-center justify-between uppercase text-lg font-light tracking-[0.15em] text-black transition-colors hover:opacity-80"
                     >
                       <span>{navLink.name}</span>
                       <span
@@ -318,7 +354,7 @@ const Header = () => {
                           isExpanded ? "rotate-180" : ""
                         }`}
                       >
-                        <FaChevronDown className="text-sm font-light text-gray-400" />
+                        <FaChevronDown className="text-sm font-light text-black/70" />
                       </span>
                     </button>
 
@@ -329,7 +365,7 @@ const Header = () => {
                           : "grid-rows-[0fr] opacity-0"
                       }`}
                     >
-                      <div className="min-h-0 flex flex-col gap-6 pl-4 border-l border-gray-100/60 ml-1">
+                      <div className="min-h-0 ml-1 flex flex-col gap-6 border-l border-black/15 pl-4">
                         {navMenuData && (
                           <>
                             {/* Left Links */}
@@ -338,7 +374,7 @@ const Header = () => {
                                 <Link
                                   key={link.name}
                                   href={link.href}
-                                  className="text-gray-500 hover:text-black text-sm transition-colors tracking-wide"
+                                  className="text-sm tracking-wide text-black transition-colors hover:opacity-80"
                                   onClick={() => setIsMobileMenuOpen(false)}
                                 >
                                   {link.name}
@@ -349,15 +385,15 @@ const Header = () => {
                             {/* Categories */}
                             {navMenuData.categories.map((category) => (
                               <div key={category.title} className="mt-2">
-                                <span className="font-semibold text-[10px] text-gray-400 uppercase tracking-widest mb-4 block">
+                                <span className="mb-4 block text-[10px] font-semibold uppercase tracking-widest text-black">
                                   {category.title}
                                 </span>
-                                <div className="flex flex-col gap-4 pl-3 border-l border-gray-50">
+                                <div className="flex flex-col gap-4 border-l border-black/10 pl-3">
                                   {category.items.map((item) => (
                                     <Link
                                       key={item.name}
                                       href={item.href}
-                                      className="text-gray-600 hover:text-black text-sm transition-colors tracking-wide"
+                                      className="text-sm tracking-wide text-black transition-colors hover:opacity-80"
                                       onClick={() => setIsMobileMenuOpen(false)}
                                     >
                                       {item.name}
@@ -379,7 +415,7 @@ const Header = () => {
                 <Link
                   key={navLink.id}
                   href={navLink.href}
-                  className="hover:text-black transition-colors uppercase text-lg font-light  text-gray-600 border-b border-gray-100/60 pb-5 last:border-0 last:pb-0"
+                  className="border-b border-black/15 pb-5 uppercase text-lg font-light text-black transition-colors last:border-0 last:pb-0 hover:opacity-80"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {navLink.name}
@@ -388,83 +424,83 @@ const Header = () => {
             })}
           </div>
 
-          <div className="mt-auto pt-8 pb-12 flex flex-col gap-5 text-[15px] text-gray-600">
+          <div className="mt-auto flex flex-col gap-5 pb-12 pt-8 text-[15px] text-black">
             <Link
               href="/wishlist"
-              className="flex items-center gap-4 hover:text-black transition-colors py-1 group"
+              className="group flex items-center gap-4 py-1 transition-colors hover:opacity-80"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              <FaHeart className="text-lg text-gray-600 group-hover:text-black transition-colors" />
+              <FaHeart className="text-lg text-black transition-colors" />
               <span className="tracking-wide">Favoritos</span>
               {wishQuantity > 0 && (
-                <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full text-gray-900 font-medium">
+                <span className="rounded-full bg-black/10 px-2 py-0.5 text-xs font-medium text-black">
                   {wishQuantity}
                 </span>
               )}
             </Link>
             <Link
               href="/carrinho"
-              className="flex items-center gap-4 hover:text-black transition-colors py-1 group"
+              className="group flex items-center gap-4 py-1 transition-colors hover:opacity-80"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              <FaShoppingBag className="text-lg text-gray-600 group-hover:text-black transition-colors" />
+              <FaShoppingBag className="text-lg text-black transition-colors" />
               <span className="tracking-wide">Carrinho</span>
             </Link>
 
-            <div className="w-full h-px bg-gray-600/80 my-2"></div>
+            <div className="my-2 h-px w-full bg-black/25"></div>
 
             {!session?.user ? (
               <Link
                 href="/login"
-                className="flex items-center gap-4 hover:text-black transition-colors py-1 group"
+                className="group flex items-center gap-4 py-1 transition-colors hover:opacity-80"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <FaUser className="text-lg text-gray-600 group-hover:text-black transition-colors" />
+                <FaUser className="text-lg text-black transition-colors" />
                 <span className="tracking-wide">Login / Cadastro</span>
               </Link>
             ) : (
               <div className="flex flex-col gap-5 pt-2">
-                <span className="text-[10px] font-semibold text-gray-600 uppercase tracking-widest mb-1">
+                <span className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-black">
                   Minha Conta
                 </span>
                 <Link
                   href="/usuario"
-                  className="flex items-center gap-4 hover:text-black transition-colors group"
+                  className="group flex items-center gap-4 transition-colors hover:opacity-80"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <FaThLarge className="text-lg text-gray-600 group-hover:text-black transition-colors" />
+                  <FaThLarge className="text-lg text-black transition-colors" />
                   <span className="tracking-wide">Dashboard</span>
                 </Link>
                 <Link
                   href="/usuario/perfil"
-                  className="flex items-center gap-4 hover:text-black transition-colors group"
+                  className="group flex items-center gap-4 transition-colors hover:opacity-80"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <FaUser className="text-lg text-gray-600 group-hover:text-black transition-colors" />
+                  <FaUser className="text-lg text-black transition-colors" />
                   <span className="tracking-wide">Meu Perfil</span>
                 </Link>
                 <Link
                   href="/usuario/pedidos"
-                  className="flex items-center gap-4 hover:text-black transition-colors group"
+                  className="group flex items-center gap-4 transition-colors hover:opacity-80"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <FaShoppingBag className="text-lg text-gray-600 group-hover:text-black transition-colors" />
+                  <FaShoppingBag className="text-lg text-black transition-colors" />
                   <span className="tracking-wide">Meus Pedidos</span>
                 </Link>
                 <Link
                   href="/usuario/enderecos"
-                  className="flex items-center gap-4 hover:text-black transition-colors group"
+                  className="group flex items-center gap-4 transition-colors hover:opacity-80"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <FaMapMarkerAlt className="text-lg text-gray-600 group-hover:text-black transition-colors" />
+                  <FaMapMarkerAlt className="text-lg text-black transition-colors" />
                   <span className="tracking-wide">Endereços</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-4 hover:text-red-600 transition-colors pt-2 group text-left mt-2"
+                  className="group mt-2 flex items-center gap-4 pt-2 text-left transition-colors hover:text-red-600"
                 >
-                  <FaSignOutAlt className="text-lg text-gray-600 group-hover:text-red-400 transition-colors" />
-                  <span className="tracking-wide text-gray-600 group-hover:text-red-600">
+                  <FaSignOutAlt className="text-lg text-black transition-colors group-hover:text-red-500" />
+                  <span className="tracking-wide text-black group-hover:text-red-600">
                     Sair
                   </span>
                 </button>
@@ -472,6 +508,7 @@ const Header = () => {
             )}
           </div>
         </nav>
+        </div>
       </div>
     </header>
   );

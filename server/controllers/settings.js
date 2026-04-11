@@ -306,7 +306,48 @@ const getHomeSections = asyncHandler(async (request, response) => {
   return response.status(200).json(sections);
 });
 
-// Upload ícone ou logo para public/uploads/site e grava URL em SiteSettings
+/** Nomes estáveis em `public/`; no banco só o arquivo (ex.: `favicon.png`, `logo.webp`). */
+const SITE_ASSET_FILENAME = {
+  storeIcon: "favicon",
+  storeLogo: "logo",
+};
+
+function extensionFromUpload(file) {
+  const raw = file.name || "";
+  let ext = path.extname(raw).toLowerCase();
+  if (ext && ext.length <= 8) return ext;
+  const mime = (file.mimetype || "").toLowerCase();
+  const map = {
+    "image/png": ".png",
+    "image/jpeg": ".jpg",
+    "image/jpg": ".jpg",
+    "image/webp": ".webp",
+    "image/gif": ".gif",
+    "image/x-icon": ".ico",
+    "image/vnd.microsoft.icon": ".ico",
+  };
+  return map[mime] || ".png";
+}
+
+/** Remove arquivo antigo em `public/` (nome simples, `/uploads/...` ou legado). */
+function safeUnlinkPublicAsset(publicDir, stored) {
+  if (!stored || typeof stored !== "string") return;
+  const t = stored.trim();
+  if (!t || /^https?:\/\//i.test(t)) return;
+  let rel = t.startsWith("/") ? t.slice(1) : t;
+  if (rel.includes("..")) return;
+  rel = path.normalize(rel);
+  const resolvedRoot = path.resolve(publicDir);
+  const abs = path.resolve(publicDir, rel);
+  if (!abs.startsWith(resolvedRoot + path.sep) && abs !== resolvedRoot) return;
+  try {
+    if (fs.existsSync(abs)) fs.unlinkSync(abs);
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+// Upload ícone ou logo em `public/` na raiz; grava nome fixo (`favicon.*` / `logo.*`) em SiteSettings
 const uploadSiteAsset = asyncHandler(async (request, response) => {
   const type = request.body?.type;
   if (type !== "storeIcon" && type !== "storeLogo") {
@@ -326,13 +367,17 @@ const uploadSiteAsset = asyncHandler(async (request, response) => {
     );
   }
 
-  const extFromName = path.extname(file.name || "") || "";
-  const ext = extFromName && extFromName.length <= 8 ? extFromName : ".png";
-
-  // Mesmo padrão de `mainImages.js`: arquivo em `public/` na raiz; no banco só o nome (ex.: produto `mainImage`).
-  const filename = `${type}-${nanoid(12)}${ext}`;
+  const ext = extensionFromUpload(file);
+  const base = SITE_ASSET_FILENAME[type];
+  const filename = `${base}${ext}`;
   const publicDir = path.join(__dirname, "..", "..", "public");
   fs.mkdirSync(publicDir, { recursive: true });
+
+  let row = await prisma.siteSettings.findFirst();
+  if (row?.[type]) {
+    safeUnlinkPublicAsset(publicDir, row[type]);
+  }
+
   const destPath = path.join(publicDir, filename);
 
   await new Promise((resolve, reject) => {
@@ -341,7 +386,6 @@ const uploadSiteAsset = asyncHandler(async (request, response) => {
 
   const publicUrl = filename;
 
-  let row = await prisma.siteSettings.findFirst();
   if (!row) {
     row = await prisma.siteSettings.create({
       data: {

@@ -23,7 +23,7 @@ import {
 } from "react-icons/fa6";
 import type { IconType } from "react-icons";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
-import { isLegacyPublicUploadsPath, publicAssetUrl } from "@/lib/imageUtils";
+import { preferUnoptimizedSiteAsset, publicAssetUrl } from "@/lib/imageUtils";
 
 function whatsappHref(raw: string | null | undefined): string | null {
   if (!raw?.trim()) return null;
@@ -47,6 +47,8 @@ const Footer = () => {
   const storeName = loading ? "" : settings.storeName || "";
   const desktopBrandMode =
     settings.navBrandDesktopMode === "logo" ? "logo" : "name";
+  const mobileBrandMode =
+    settings.navBrandMobileMode === "logo" ? "logo" : "name";
   const hideStoreNameUntilLoaded = settings.hideStoreNameUntilLoaded !== false;
 
   const wa = whatsappHref(settings.whatsapp);
@@ -161,7 +163,7 @@ const Footer = () => {
                     width={200}
                     height={200}
                     className="h-full w-full object-cover"
-                    unoptimized={isLegacyPublicUploadsPath(settings.storeLogo)}
+                    unoptimized={preferUnoptimizedSiteAsset(settings.storeLogo)}
                   />
                 ) : hideStoreNameUntilLoaded && loading ? (
                   <span className="text-[10px] font-bold uppercase text-black">
@@ -256,14 +258,14 @@ const Footer = () => {
           {/* Seção 3 — marca */}
           <div className="flex flex-col items-center justify-center gap-4 px-5 py-8 sm:px-8 sm:py-10">
             <Link href="/" className={logoLinkClassMobile}>
-              {desktopBrandMode === "logo" && settings.storeLogo ? (
+              {mobileBrandMode === "logo" && settings.storeLogo ? (
                 <Image
                   src={publicAssetUrl(settings.storeLogo)}
                   alt={storeName || "Loja"}
                   width={200}
                   height={200}
                   className="h-full w-full object-cover"
-                  unoptimized={isLegacyPublicUploadsPath(settings.storeLogo)}
+                  unoptimized={preferUnoptimizedSiteAsset(settings.storeLogo)}
                 />
               ) : hideStoreNameUntilLoaded && loading ? (
                 <span className="text-[10px] font-bold uppercase text-black">
