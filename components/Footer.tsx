@@ -23,7 +23,10 @@ import {
 } from "react-icons/fa6";
 import type { IconType } from "react-icons";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
-import { preferUnoptimizedSiteAsset, publicAssetUrl } from "@/lib/imageUtils";
+import {
+  preferUnoptimizedSiteAsset,
+  publicBrandAssetUrl,
+} from "@/lib/imageUtils";
 
 function whatsappHref(raw: string | null | undefined): string | null {
   if (!raw?.trim()) return null;
@@ -156,9 +159,10 @@ const Footer = () => {
               </div>
 
               <Link href="/" className={logoLinkClassDesktop}>
-                {desktopBrandMode === "logo" && settings.storeLogo ? (
+                {desktopBrandMode === "logo" &&
+                publicBrandAssetUrl(settings.storeLogo) ? (
                   <Image
-                    src={publicAssetUrl(settings.storeLogo)}
+                    src={publicBrandAssetUrl(settings.storeLogo)}
                     alt={storeName || "Loja"}
                     width={200}
                     height={200}
@@ -258,9 +262,10 @@ const Footer = () => {
           {/* Seção 3 — marca */}
           <div className="flex flex-col items-center justify-center gap-4 px-5 py-8 sm:px-8 sm:py-10">
             <Link href="/" className={logoLinkClassMobile}>
-              {mobileBrandMode === "logo" && settings.storeLogo ? (
+              {mobileBrandMode === "logo" &&
+              publicBrandAssetUrl(settings.storeLogo) ? (
                 <Image
-                  src={publicAssetUrl(settings.storeLogo)}
+                  src={publicBrandAssetUrl(settings.storeLogo)}
                   alt={storeName || "Loja"}
                   width={200}
                   height={200}

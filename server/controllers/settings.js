@@ -74,12 +74,51 @@ const ALLOWED_IMAGE_MIME = new Set([
   "image/vnd.microsoft.icon",
 ]);
 
+const PUBLIC_DIR = path.join(__dirname, "..", "..", "public");
+
+const EXT_TO_MIME = {
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+  ".ico": "image/x-icon",
+};
+
+/**
+ * Vitrine não deve receber só `logo.png` (o browser pede `/logo.png` e dá 404 na Vercel).
+ * Se já for data URL ou http(s), devolve igual; senão tenta ler de `public/` e embute em base64.
+ * Se o arquivo não existir no servidor, devolve null (evita src inválido).
+ */
+function inlineSiteImageForPublicApi(stored) {
+  if (stored == null || stored === "") return null;
+  const s = String(stored).trim();
+  if (!s) return null;
+  if (s.startsWith("data:")) return s;
+  if (/^https?:\/\//i.test(s)) return s;
+  let rel = s.startsWith("/") ? s.slice(1) : s;
+  if (!rel || rel.includes("..")) return null;
+  rel = path.normalize(rel);
+  const abs = path.resolve(PUBLIC_DIR, rel);
+  const root = path.resolve(PUBLIC_DIR);
+  if (!abs.startsWith(root + path.sep) && abs !== root) return null;
+  try {
+    if (!fs.existsSync(abs) || !fs.statSync(abs).isFile()) return null;
+    const buf = fs.readFileSync(abs);
+    const ext = path.extname(abs).toLowerCase();
+    const mime = EXT_TO_MIME[ext] || "application/octet-stream";
+    return `data:${mime};base64,${buf.toString("base64")}`;
+  } catch (_) {
+    return null;
+  }
+}
+
 /** Campos expostos à vitrine (contrato estável; não incluir id nem metadados internos). */
 function toPublicSiteSettingsDto(row) {
   return {
     storeName: row.storeName,
-    storeIcon: row.storeIcon,
-    storeLogo: row.storeLogo,
+    storeIcon: inlineSiteImageForPublicApi(row.storeIcon),
+    storeLogo: inlineSiteImageForPublicApi(row.storeLogo),
     navBrandDesktopMode: row.navBrandDesktopMode,
     navBrandMobileMode: row.navBrandMobileMode,
     hideStoreNameUntilLoaded: row.hideStoreNameUntilLoaded,

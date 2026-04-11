@@ -16,6 +16,26 @@ const LEGACY_UPLOADS_SECTION_REMAP: Record<string, string> = {
 };
 
 /**
+ * Logo/ícone da loja no Header/Footer. Evita `GET /logo.png` 404 na Vercel quando o valor
+ * legado é só arquivo em disco; a API pública deve enviar `data:` (ver Express `inlineSiteImageForPublicApi`).
+ */
+export function publicBrandAssetUrl(stored: string | null | undefined): string {
+  if (stored == null || stored === "") return "";
+  const s = String(stored).trim();
+  if (!s) return "";
+  if (/^data:/i.test(s)) return s;
+  if (/^https?:\/\//i.test(s)) return s;
+  const normalized = s.startsWith("/") ? s : `/${s}`;
+  if (/^\/logo\.[^/]+$/i.test(normalized) || /^\/favicon\.[^/]+$/i.test(normalized)) {
+    return "";
+  }
+  if (!s.includes("/") && /\.(png|jpe?g|webp|gif|ico)$/i.test(s)) {
+    return "";
+  }
+  return publicAssetUrl(stored);
+}
+
+/**
  * Monta `src` para imagem: `data:image/...;base64,...` (logo/ícone no DB), `https://...`,
  * ou caminho em `public/` (produtos, legado).
  */

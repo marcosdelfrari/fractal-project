@@ -22,7 +22,10 @@ import { signOut, useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useWishlistStore } from "@/app/_zustand/wishlistStore";
 import apiClient from "@/lib/api";
-import { preferUnoptimizedSiteAsset, publicAssetUrl } from "@/lib/imageUtils";
+import {
+  preferUnoptimizedSiteAsset,
+  publicBrandAssetUrl,
+} from "@/lib/imageUtils";
 import MegaMenu from "./MegaMenu";
 import {
   fetchAllMenuData,
@@ -168,9 +171,10 @@ const Header = () => {
           <div className="pointer-events-none absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-[42%] sm:-translate-y-[44%]">
             <div className="pointer-events-auto flex flex-col items-center">
               <Link href="/" className={`${logoLinkClass} md:hidden`}>
-                {mobileBrandMode === "logo" && siteSettings.storeLogo ? (
+                {mobileBrandMode === "logo" &&
+                publicBrandAssetUrl(siteSettings.storeLogo) ? (
                   <Image
-                    src={publicAssetUrl(siteSettings.storeLogo)}
+                    src={publicBrandAssetUrl(siteSettings.storeLogo)}
                     alt={storeName || "Loja"}
                     width={200}
                     height={200}
@@ -190,9 +194,10 @@ const Header = () => {
                 )}
               </Link>
               <Link href="/" className={`${logoLinkClass} hidden md:flex`}>
-                {desktopBrandMode === "logo" && siteSettings.storeLogo ? (
+                {desktopBrandMode === "logo" &&
+                publicBrandAssetUrl(siteSettings.storeLogo) ? (
                   <Image
-                    src={publicAssetUrl(siteSettings.storeLogo)}
+                    src={publicBrandAssetUrl(siteSettings.storeLogo)}
                     alt={storeName || "Loja"}
                     width={200}
                     height={200}
