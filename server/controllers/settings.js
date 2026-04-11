@@ -30,15 +30,19 @@ const { asyncHandler, AppError } = require("../utills/errorHandler");
 
 const DEFAULT_SITE_ID = "default-site-id";
 const DEFAULT_NAV_LINKS = [
-  { id: "woodcut", name: "Woodcut", href: "/woodcut", hasMegaMenu: false },
-  { id: "linocut", name: "Linocut", href: "/linocut", hasMegaMenu: false },
-  { id: "paintings", name: "Paintings", href: "/paintings", hasMegaMenu: false },
-  { id: "about", name: "About", href: "/about", hasMegaMenu: false },
+  { id: "Seda", name: "Seda", href: "/loja", hasMegaMenu: false },
+  { id: "Piteiras", name: "Piteiras", href: "/loja", hasMegaMenu: false },
+  { id: "Isqueiro", name: "Isqueiro", href: "/loja", hasMegaMenu: false },
 ];
 
 /** Seções padrão da home (quando a tabela ainda está vazia). */
 const DEFAULT_HOME_SECTIONS = [
-  { name: "hero", enabled: true, order: 0, content: HOME_SECTION_DEFAULTS.hero },
+  {
+    name: "hero",
+    enabled: true,
+    order: 0,
+    content: HOME_SECTION_DEFAULTS.hero,
+  },
   {
     name: "promoSlider",
     enabled: true,
@@ -102,7 +106,11 @@ function publicSiteSettingsETag(row) {
   const basis = row.updatedAt
     ? row.updatedAt.toISOString()
     : `${row.id}-${row.storeName}`;
-  const hash = crypto.createHash("sha1").update(basis).digest("hex").slice(0, 20);
+  const hash = crypto
+    .createHash("sha1")
+    .update(basis)
+    .digest("hex")
+    .slice(0, 20);
   return `"${hash}"`;
 }
 
@@ -146,7 +154,10 @@ async function ensureDefaultHomeSections() {
 const getPublicSiteSettings = asyncHandler(async (request, response) => {
   const row = await getOrCreateSiteSettings();
   const etag = publicSiteSettingsETag(row);
-  response.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  response.setHeader(
+    "Cache-Control",
+    "public, max-age=60, stale-while-revalidate=300",
+  );
   response.setHeader("ETag", etag);
 
   const inm = request.headers["if-none-match"];
@@ -233,8 +244,7 @@ const updateSiteSettings = asyncHandler(async (request, response) => {
         pickupAddresses: pickupAddresses ?? null,
         checkoutMode: normalizedCheckoutMode ?? "delivery_and_pickup",
         deliveryEnabled: resolvedDeliveryEnabled,
-        navBrandDesktopMode:
-          navBrandDesktopMode === "logo" ? "logo" : "name",
+        navBrandDesktopMode: navBrandDesktopMode === "logo" ? "logo" : "name",
         navBrandMobileMode: navBrandMobileMode === "logo" ? "logo" : "name",
         hideStoreNameUntilLoaded: hideStoreNameUntilLoaded !== false,
         navLinks: Array.isArray(navLinks) ? navLinks : DEFAULT_NAV_LINKS,
@@ -262,7 +272,9 @@ const updateSiteSettings = asyncHandler(async (request, response) => {
       ...(email !== undefined && { email }),
       ...(phone !== undefined && { phone }),
       ...(pickupAddresses !== undefined && { pickupAddresses }),
-      ...(normalizedCheckoutMode !== null && { checkoutMode: normalizedCheckoutMode }),
+      ...(normalizedCheckoutMode !== null && {
+        checkoutMode: normalizedCheckoutMode,
+      }),
       ...(deliveryEnabled !== undefined || normalizedCheckoutMode !== null
         ? { deliveryEnabled: resolvedDeliveryEnabled }
         : {}),
@@ -308,14 +320,14 @@ const uploadSiteAsset = asyncHandler(async (request, response) => {
   const file = request.files.file;
   const mimetype = file.mimetype || "";
   if (!ALLOWED_IMAGE_MIME.has(mimetype)) {
-    throw new AppError("Tipo de arquivo não permitido. Use imagem (PNG, JPG, WebP ou ICO).", 400);
+    throw new AppError(
+      "Tipo de arquivo não permitido. Use imagem (PNG, JPG, WebP ou ICO).",
+      400,
+    );
   }
 
   const extFromName = path.extname(file.name || "") || "";
-  const ext =
-    extFromName && extFromName.length <= 8
-      ? extFromName
-      : ".png";
+  const ext = extFromName && extFromName.length <= 8 ? extFromName : ".png";
 
   // Mesmo padrão de `mainImages.js`: arquivo em `public/` na raiz; no banco só o nome (ex.: produto `mainImage`).
   const filename = `${type}-${nanoid(12)}${ext}`;
@@ -357,17 +369,24 @@ const uploadSectionAsset = asyncHandler(async (request, response) => {
   const file = request.files.file;
   const mimetype = file.mimetype || "";
   if (!ALLOWED_IMAGE_MIME.has(mimetype)) {
-    throw new AppError("Tipo de arquivo não permitido. Use imagem (PNG, JPG, WebP ou ICO).", 400);
+    throw new AppError(
+      "Tipo de arquivo não permitido. Use imagem (PNG, JPG, WebP ou ICO).",
+      400,
+    );
   }
 
   const extFromName = path.extname(file.name || "") || "";
-  const ext =
-    extFromName && extFromName.length <= 8
-      ? extFromName
-      : ".png";
+  const ext = extFromName && extFromName.length <= 8 ? extFromName : ".png";
 
   const filename = `section-${nanoid(12)}${ext}`;
-  const uploadDir = path.join(__dirname, "..", "..", "public", "uploads", "sections");
+  const uploadDir = path.join(
+    __dirname,
+    "..",
+    "..",
+    "public",
+    "uploads",
+    "sections",
+  );
   fs.mkdirSync(uploadDir, { recursive: true });
   const destPath = path.join(uploadDir, filename);
 
@@ -423,7 +442,10 @@ const updateSectionsOrder = asyncHandler(async (request, response) => {
   const { sections } = request.body;
 
   if (!Array.isArray(sections)) {
-    throw new AppError("É obrigatório enviar um array de seções (sections)", 400);
+    throw new AppError(
+      "É obrigatório enviar um array de seções (sections)",
+      400,
+    );
   }
 
   await prisma.$transaction(

@@ -14,15 +14,9 @@ type NavLinkItem = {
 };
 
 const FALLBACK_LINKS: NavLinkItem[] = [
-  { id: "woodcut", name: "Woodcut", href: "/woodcut", hasMegaMenu: false },
-  { id: "linocut", name: "Linocut", href: "/linocut", hasMegaMenu: false },
-  {
-    id: "paintings",
-    name: "Paintings",
-    href: "/paintings",
-    hasMegaMenu: false,
-  },
-  { id: "about", name: "About", href: "/about", hasMegaMenu: false },
+  { id: "Seda", name: "Seda", href: "/loja", hasMegaMenu: false },
+  { id: "Piteiras", name: "Piteiras", href: "/loja", hasMegaMenu: false },
+  { id: "Isqueiro", name: "Isqueiro", href: "/loja", hasMegaMenu: false },
 ];
 
 function toId(value: string) {

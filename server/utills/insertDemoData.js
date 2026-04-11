@@ -5,13 +5,9 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
-const HOME_SECTION_DEFAULTS = require(path.join(
-  __dirname,
-  "..",
-  "..",
-  "data",
-  "home-section-defaults.json",
-));
+const HOME_SECTION_DEFAULTS = require(
+  path.join(__dirname, "..", "..", "data", "home-section-defaults.json"),
+);
 
 /** Mesmo id usado em `prisma/seed-settings.js` e no controller Express (`default-site-id`). */
 const DEMO_SITE_SETTINGS_ID = "default-site-id";
@@ -29,16 +25,14 @@ const DEMO_SITE_SETTINGS = {
   navBrandMobileMode: "name",
   hideStoreNameUntilLoaded: true,
   navLinks: [
-    { id: "woodcut", name: "Woodcut", href: "/woodcut", hasMegaMenu: false },
-    { id: "linocut", name: "Linocut", href: "/linocut", hasMegaMenu: false },
-    { id: "paintings", name: "Paintings", href: "/paintings", hasMegaMenu: false },
-    { id: "about", name: "About", href: "/about", hasMegaMenu: false },
+    { id: "Seda", name: "Seda", href: "/loja", hasMegaMenu: false },
+    { id: "Piteiras", name: "Piteiras", href: "/loja", hasMegaMenu: false },
+    { id: "Isqueiro", name: "Isqueiro", href: "/loja", hasMegaMenu: false },
   ],
   email: "contato@fractalstore.com.br",
   phone: "+55 (11) 3456-7890",
   whatsapp: "+55 11 99999-9999",
-  address:
-    "Av. Paulista, 1578 — Bela Vista, São Paulo/SP — CEP 01310-200",
+  address: "Av. Paulista, 1578 — Bela Vista, São Paulo/SP — CEP 01310-200",
   pickupAddresses: [
     {
       id: "pickup-demo-paulista",
@@ -348,7 +342,9 @@ async function insertDemoData() {
         "⚠️ insertDemoData: bag.webp ausente; racket.webp/shoes.webp não gerados.",
       );
     }
-    console.log("✅ Imagens de seção (uploads/sections) copiadas a partir de public/.");
+    console.log(
+      "✅ Imagens de seção (uploads/sections) copiadas a partir de public/.",
+    );
 
     const categoryMenuDemoContent = JSON.parse(
       JSON.stringify(HOME_SECTION_DEFAULTS.categoryMenu),

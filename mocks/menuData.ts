@@ -48,27 +48,21 @@ export interface HeaderNavLink {
 // ==========================================
 const MOCK_HEADER_NAV_LINKS: HeaderNavLink[] = [
   {
-    id: "woodcut",
-    name: "Woodcut",
-    href: "/woodcut",
+    id: "Seda",
+    name: "Seda",
+    href: "/loja",
     hasMegaMenu: false,
   },
   {
-    id: "linocut",
-    name: "Linocut",
-    href: "/linocut",
+    id: "Piteiras",
+    name: "Piteiras",
+    href: "/loja",
     hasMegaMenu: false,
   },
   {
-    id: "paintings",
-    name: "Paintings",
-    href: "/paintings",
-    hasMegaMenu: false,
-  },
-  {
-    id: "about",
-    name: "About",
-    href: "/about",
+    id: "Isqueiro",
+    name: "Isqueiro",
+    href: "/loja",
     hasMegaMenu: false,
   },
 ];
@@ -181,7 +175,7 @@ const MOCK_MENU_DATA: MenuDataCollection = {
  * @returns Promise com os dados do menu ou null
  */
 export const fetchMenuData = async (
-  menuKey: string
+  menuKey: string,
 ): Promise<MenuData | null> => {
   // Simula um delay de API
   await new Promise((resolve) => setTimeout(resolve, 100));
@@ -322,7 +316,7 @@ export const fetchCategories = async (): Promise<CategoryItem[]> => {
  * @returns Promise com a categoria ou null
  */
 export const fetchCategoryById = async (
-  id: number
+  id: number,
 ): Promise<CategoryItem | null> => {
   // Simula um delay de API
   await new Promise((resolve) => setTimeout(resolve, 50));
