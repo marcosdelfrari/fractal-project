@@ -1,5 +1,22 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import type { JWT } from "next-auth/jwt";
+import jwt from "jsonwebtoken";
+
+/** Decode customizado idêntico ao de authOptions para o middleware conseguir ler o token JWS */
+async function customDecode({ token, secret }: any): Promise<JWT | null> {
+  if (!token) return null;
+  try {
+    const secretStr = typeof secret === "string" ? secret : secret.toString();
+    const decoded = jwt.verify(token, secretStr, {
+      algorithms: ["HS256"],
+    });
+    if (typeof decoded === "string") return null;
+    return decoded as JWT;
+  } catch {
+    return null;
+  }
+}
 
 /** Apenas roteamento/UX de páginas (/admin, /usuario). Segurança de API fica no Express + JWT repassado pelo BFF. */
 
@@ -41,6 +58,9 @@ export default withAuth(
 
         return true;
       },
+    },
+    jwt: {
+      decode: customDecode,
     },
   }
 );
