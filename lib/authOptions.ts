@@ -13,10 +13,13 @@ import jwt from "jsonwebtoken";
  * Usa jsonwebtoken library que gera tokens padrão JWT legíveis e verificáveis.
  */
 async function customEncode({ token, secret, maxAge }: any) {
-  return jwt.sign(token, secret, {
+  console.log("[NextAuth customEncode] Gerando token JWS (HS256)");
+  const signed = jwt.sign(token, secret, {
     algorithm: "HS256",
     expiresIn: maxAge,
   });
+  console.log("[NextAuth customEncode] Token gerado:", signed.split(".").length, "partes");
+  return signed;
 }
 
 /**
