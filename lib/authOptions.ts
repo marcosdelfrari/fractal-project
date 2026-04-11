@@ -6,96 +6,30 @@ import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import prisma from "@/utils/db";
 import { nanoid } from "nanoid";
-import crypto from "crypto";
+import jwt from "jsonwebtoken";
 
 /**
  * Encode custom JWS simples (sem encriptação) para compatibilidade com Express backend.
- * Formato: header.payload.signature
+ * Usa jsonwebtoken library que gera tokens padrão JWT legíveis e verificáveis.
  */
 async function customEncode({ token, secret, maxAge }: any) {
-  // Header do JWT
-  const header = {
-    alg: "HS256",
-    typ: "JWT",
-  };
-
-  // Payload contém os dados do token + timestamps
-  const payload = {
-    ...token,
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + (maxAge || 15 * 60),
-  };
-
-  // Codificar em base64url
-  const encodedHeader = Buffer.from(JSON.stringify(header))
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
-
-  const encodedPayload = Buffer.from(JSON.stringify(payload))
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
-
-  // Assinar com HMAC-SHA256
-  const message = `${encodedHeader}.${encodedPayload}`;
-  const signature = crypto
-    .createHmac("sha256", secret)
-    .update(message)
-    .digest("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
-
-  return `${message}.${signature}`;
+  return jwt.sign(token, secret, {
+    algorithm: "HS256",
+    expiresIn: maxAge,
+  });
 }
 
 /**
- * Decode custom para tokens JWS simples.
+ * Decode custom para tokens JWS com jsonwebtoken.
  */
 async function customDecode({ token, secret }: any) {
-  if (!token) return null;
-
   try {
-    const parts = token.split(".");
-    if (parts.length !== 3) {
-      console.warn("[JWT] Token com formato inesperado:", parts.length, "partes");
-      return null;
-    }
-
-    const [encodedHeader, encodedPayload, encodedSignature] = parts;
-
-    // Verificar assinatura
-    const message = `${encodedHeader}.${encodedPayload}`;
-    const expectedSignature = crypto
-      .createHmac("sha256", secret)
-      .update(message)
-      .digest("base64")
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=/g, "");
-
-    if (expectedSignature !== encodedSignature) {
-      console.warn("[JWT] Assinatura inválida");
-      return null;
-    }
-
-    // Decodificar payload
-    const payload = JSON.parse(
-      Buffer.from(encodedPayload, "base64").toString("utf-8")
-    );
-
-    // Verificar expiração
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-      console.warn("[JWT] Token expirado");
-      return null;
-    }
-
-    return payload;
+    const decoded = jwt.verify(token, secret, {
+      algorithms: ["HS256"],
+    });
+    return decoded;
   } catch (error) {
-    console.error("[JWT] Erro ao decodificar token:", error);
+    console.error("[JWT] Erro ao decodificar:", error instanceof Error ? error.message : error);
     return null;
   }
 }

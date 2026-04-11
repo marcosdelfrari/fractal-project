@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 
 const prisma = new PrismaClient();
 
@@ -81,40 +82,17 @@ function decodeJWT(token) {
 }
 
 /**
- * Verifica JWT usando HMAC-SHA256 com o secret.
- * NextAuth usa base64url (RFC 4648 § 5) sem padding.
+ * Verifica JWT usando jsonwebtoken (padrão HS256).
+ * Compatível com tokens gerados pelo NextAuth com customEncode.
  */
 function verifyJWT(token, secret) {
   try {
-    const parts = token.split(".");
+    const payload = jwt.verify(token, secret, {
+      algorithms: ["HS256"],
+    });
     
-    // JWE tem 5 partes; não pode ser verificado com HMAC simples
-    if (parts.length === 5) {
-      console.log("[auth] Token é JWE (5 partes) — requer NextAuth para decodificar");
-      return null;
-    }
-    
-    if (parts.length !== 3) {
-      console.log(`[auth] Token tem ${parts.length} partes, esperado 3 (JWS) ou 5 (JWE)`);
-      return null;
-    }
-
-    const [headerB64url, payloadB64url, signatureB64url] = parts;
-
-    // Recalcular assinatura com base64url (sem padding)
-    const message = `${headerB64url}.${payloadB64url}`;
-    
-    // NextAuth usa base64url; node.js com digest("base64url") funciona a partir de certa versão
-    const hmac = crypto.createHmac("sha256", secret);
-    hmac.update(message);
-    const expectedSignature = hmac.digest("base64url");
-
-    if (expectedSignature !== signatureB64url) {
-      console.error("[auth] Assinatura JWT inválida (esperado: " + expectedSignature.substring(0, 20) + "...)");
-      return null;
-    }
-
-    return decodeJWT(token);
+    console.log("[auth] ✓ Token verificado com sucesso via jsonwebtoken");
+    return payload;
   } catch (err) {
     console.error("[auth] Erro ao verificar JWT:", err.message);
     return null;
