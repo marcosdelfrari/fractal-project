@@ -9,6 +9,8 @@ import prisma from "@/utils/db";
 import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 
+console.log("[NextAuth Init] Carregando authOptions com customEncode/customDecode");
+
 /**
  * Encode custom JWS simples (sem encriptação) para compatibilidade com Express backend.
  * Usa jsonwebtoken library que gera tokens padrão JWT legíveis e verificáveis.
