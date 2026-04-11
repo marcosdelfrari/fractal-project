@@ -1,4 +1,36 @@
 {
+  "hero": {
+    "backgroundImage": "/uploads/sections/hero.webp",
+    "titlePrefix": "Bem-vindo à",
+    "titleSuffix": "LOJA",
+    "ctaLabel": "Ver produtos",
+    "ctaHref": "/loja"
+  },
+  "promoSlider": {
+    "slides": [
+      {
+        "id": "promo-default-1",
+        "line1": "Novidades",
+        "line2": "na loja",
+        "buttonLabel": "Ver loja",
+        "buttonHref": "/loja",
+        "centerImage": "/uploads/sections/promo-slide-1.webp"
+      }
+    ]
+  },
+  "categoryMenu": {
+    "title": "Categorias",
+    "cardImage": "/uploads/sections/categ.webp",
+    "items": [
+      {
+        "id": "cm-demo-1",
+        "label": "Destaque",
+        "href": "/loja",
+        "enabled": true,
+        "image": "/uploads/sections/categ.webp"
+      }
+    ]
+  },
   "upcomingEvents": {
     "enabled": true,
     "line1": "Próximos",
