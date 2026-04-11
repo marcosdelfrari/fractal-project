@@ -17,9 +17,14 @@ console.log("[NextAuth Init] Carregando authOptions com customEncode/customDecod
  */
 async function customEncode({ token, secret, maxAge }: any) {
   console.log("[NextAuth customEncode] Gerando token JWS (HS256)");
-  const signed = jwt.sign(token, secret, {
+  // Adicionar exp ao token se não existir
+  const tokenWithExp = {
+    ...token,
+    exp: Math.floor(Date.now() / 1000) + (maxAge || 15 * 60),
+  };
+  const signed = jwt.sign(tokenWithExp, secret, {
     algorithm: "HS256",
-    expiresIn: maxAge,
+    noTimestamp: true, // Evitar adicionar iat automaticamente (já vem do token)
   });
   console.log("[NextAuth customEncode] Token gerado:", signed.split(".").length, "partes");
   return signed;
