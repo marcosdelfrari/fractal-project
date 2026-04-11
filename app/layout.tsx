@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/authOptions";
 import "svgmap/style.min";
 import SessionProvider from "@/utils/SessionProvider";
 import Header from "@/components/Header";
@@ -27,7 +28,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   return (
     <html lang="pt-BR" data-theme="light">
       <head>
