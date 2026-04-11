@@ -6,16 +6,30 @@ import jwt from "jsonwebtoken";
 /** Decode customizado idêntico ao de authOptions para o middleware conseguir ler o token JWS */
 async function customDecode({ token, secret }: any): Promise<JWT | null> {
   if (!token) return null;
-  try {
-    const secretStr = typeof secret === "string" ? secret : secret.toString();
-    const decoded = jwt.verify(token, secretStr, {
-      algorithms: ["HS256"],
-    });
-    if (typeof decoded === "string") return null;
-    return decoded as JWT;
-  } catch {
+  
+  // Verificar formato do token
+  const parts = token.split(".");
+  
+  // Se for JWE (5 partes), token antigo - retornar null
+  if (parts.length === 5) {
     return null;
   }
+  
+  // Se for JWS (3 partes), decodificar
+  if (parts.length === 3) {
+    try {
+      const secretStr = typeof secret === "string" ? secret : secret.toString();
+      const decoded = jwt.verify(token, secretStr, {
+        algorithms: ["HS256"],
+      });
+      if (typeof decoded === "string") return null;
+      return decoded as JWT;
+    } catch {
+      return null;
+    }
+  }
+  
+  return null;
 }
 
 /** Apenas roteamento/UX de páginas (/admin, /usuario). Segurança de API fica no Express + JWT repassado pelo BFF. */

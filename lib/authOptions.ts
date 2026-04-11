@@ -32,18 +32,38 @@ async function customEncode({ token, secret, maxAge }: any) {
 
 /**
  * Decode custom para tokens JWS com jsonwebtoken.
+ * Também tenta decodificar tokens JWE antigos usando a lib padrão do NextAuth.
  */
 async function customDecode({ token, secret }: any): Promise<JWT | null> {
-  try {
-    const decoded = jwt.verify(token, secret, {
-      algorithms: ["HS256"],
-    });
-    if (typeof decoded === "string") return null;
-    return decoded as JWT;
-  } catch (error) {
-    console.error("[JWT] Erro ao decodificar:", error instanceof Error ? error.message : error);
+  if (!token) return null;
+  
+  // Verificar se é JWE (5 partes) ou JWS (3 partes)
+  const parts = token.split(".");
+  console.log("[NextAuth customDecode] Token tem", parts.length, "partes");
+  
+  // Se for JWS (3 partes), usar jsonwebtoken
+  if (parts.length === 3) {
+    try {
+      const decoded = jwt.verify(token, secret, {
+        algorithms: ["HS256"],
+      });
+      if (typeof decoded === "string") return null;
+      console.log("[NextAuth customDecode] ✓ Token JWS decodificado com sucesso");
+      return decoded as JWT;
+    } catch (error) {
+      console.error("[NextAuth customDecode] Erro ao decodificar JWS:", error instanceof Error ? error.message : error);
+      return null;
+    }
+  }
+  
+  // Se for JWE (5 partes), token antigo - retornar null para forçar novo login
+  if (parts.length === 5) {
+    console.log("[NextAuth customDecode] Token JWE (antigo) detectado - forçando novo login");
     return null;
   }
+  
+  console.error("[NextAuth customDecode] Token com formato desconhecido:", parts.length, "partes");
+  return null;
 }
 
 export const authOptions: NextAuthOptions = {
