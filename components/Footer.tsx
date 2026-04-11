@@ -23,6 +23,7 @@ import {
 } from "react-icons/fa6";
 import type { IconType } from "react-icons";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
+import { isLegacyPublicUploadsPath, publicAssetUrl } from "@/lib/imageUtils";
 
 function whatsappHref(raw: string | null | undefined): string | null {
   if (!raw?.trim()) return null;
@@ -155,11 +156,12 @@ const Footer = () => {
               <Link href="/" className={logoLinkClassDesktop}>
                 {desktopBrandMode === "logo" && settings.storeLogo ? (
                   <Image
-                    src={settings.storeLogo}
+                    src={publicAssetUrl(settings.storeLogo)}
                     alt={storeName || "Loja"}
                     width={200}
                     height={200}
                     className="h-full w-full object-cover"
+                    unoptimized={isLegacyPublicUploadsPath(settings.storeLogo)}
                   />
                 ) : hideStoreNameUntilLoaded && loading ? (
                   <span className="text-[10px] font-bold uppercase text-black">
@@ -256,11 +258,12 @@ const Footer = () => {
             <Link href="/" className={logoLinkClassMobile}>
               {desktopBrandMode === "logo" && settings.storeLogo ? (
                 <Image
-                  src={settings.storeLogo}
+                  src={publicAssetUrl(settings.storeLogo)}
                   alt={storeName || "Loja"}
                   width={200}
                   height={200}
                   className="h-full w-full object-cover"
+                  unoptimized={isLegacyPublicUploadsPath(settings.storeLogo)}
                 />
               ) : hideStoreNameUntilLoaded && loading ? (
                 <span className="text-[10px] font-bold uppercase text-black">

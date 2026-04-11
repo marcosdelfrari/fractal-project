@@ -7,6 +7,7 @@ import { getAdminSettingsApiBase } from "@/lib/adminSettingsApi";
 import { parsePickupAddresses } from "@/lib/pickupAddresses";
 import type { SiteSettings } from "../types";
 import { SettingsBackHeader } from "../SettingsBackHeader";
+import { publicAssetUrl } from "@/lib/imageUtils";
 
 export default function AdminSettingsLojaPage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -361,7 +362,7 @@ export default function AdminSettingsLojaPage() {
                   <div className="w-16 h-16 border border-gray-200 rounded-lg bg-[#E3E1D6] flex items-center justify-center overflow-hidden flex-shrink-0">
                     {settings?.storeIcon ? (
                       <img
-                        src={settings.storeIcon}
+                        src={publicAssetUrl(settings.storeIcon)}
                         alt="Ícone"
                         className="max-w-full max-h-full object-contain"
                       />
@@ -406,7 +407,7 @@ export default function AdminSettingsLojaPage() {
                   <div className="w-32 h-16 border border-gray-200 rounded-lg bg-[#E3E1D6] flex items-center justify-center overflow-hidden flex-shrink-0">
                     {settings?.storeLogo ? (
                       <img
-                        src={settings.storeLogo}
+                        src={publicAssetUrl(settings.storeLogo)}
                         alt="Logo"
                         className="max-w-full max-h-full object-contain"
                       />

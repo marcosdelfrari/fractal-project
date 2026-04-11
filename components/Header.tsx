@@ -22,6 +22,7 @@ import { signOut, useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useWishlistStore } from "@/app/_zustand/wishlistStore";
 import apiClient from "@/lib/api";
+import { isLegacyPublicUploadsPath, publicAssetUrl } from "@/lib/imageUtils";
 import MegaMenu from "./MegaMenu";
 import {
   fetchAllMenuData,
@@ -163,11 +164,12 @@ const Header = () => {
             <Link href="/" className="">
               {desktopBrandMode === "logo" && siteSettings.storeLogo ? (
                 <Image
-                  src={siteSettings.storeLogo}
+                  src={publicAssetUrl(siteSettings.storeLogo)}
                   alt={storeName || "Loja"}
                   width={150}
                   height={150}
                   className="h-full w-full"
+                  unoptimized={isLegacyPublicUploadsPath(siteSettings.storeLogo)}
                 />
               ) : hideStoreNameUntilLoaded && siteSettingsLoading ? (
                 <span className="text-[10px] font-bold uppercase text-black">

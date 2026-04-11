@@ -317,16 +317,17 @@ const uploadSiteAsset = asyncHandler(async (request, response) => {
       ? extFromName
       : ".png";
 
+  // Mesmo padrão de `mainImages.js`: arquivo em `public/` na raiz; no banco só o nome (ex.: produto `mainImage`).
   const filename = `${type}-${nanoid(12)}${ext}`;
-  const uploadDir = path.join(__dirname, "..", "..", "public", "uploads", "site");
-  fs.mkdirSync(uploadDir, { recursive: true });
-  const destPath = path.join(uploadDir, filename);
+  const publicDir = path.join(__dirname, "..", "..", "public");
+  fs.mkdirSync(publicDir, { recursive: true });
+  const destPath = path.join(publicDir, filename);
 
   await new Promise((resolve, reject) => {
     file.mv(destPath, (err) => (err ? reject(err) : resolve()));
   });
 
-  const publicUrl = `/uploads/site/${filename}`;
+  const publicUrl = filename;
 
   let row = await prisma.siteSettings.findFirst();
   if (!row) {
