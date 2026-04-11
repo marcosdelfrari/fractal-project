@@ -15,14 +15,17 @@ import { getSessionTokenCookieName } from "./sessionCookieName";
  * Usa jsonwebtoken library que gera tokens padrão JWT legíveis e verificáveis.
  */
 async function customEncode({ token, secret, maxAge }: any) {
-  // Adicionar exp ao token se não existir
+  const nowSec = Math.floor(Date.now() / 1000);
+  const ttl = maxAge || 15 * 60;
+  // Sempre gravar iat no JWS. Se iat sumir no decode, o callback jwt usava (iat || 0) e derrubava a sessão na hora.
   const tokenWithExp = {
     ...token,
-    exp: Math.floor(Date.now() / 1000) + (maxAge || 15 * 60),
+    iat: typeof token.iat === "number" ? token.iat : nowSec,
+    exp: nowSec + ttl,
   };
   const signed = jwt.sign(tokenWithExp, secret, {
     algorithm: "HS256",
-    noTimestamp: true, // Evitar adicionar iat automaticamente (já vem do token)
+    noTimestamp: true,
   });
   return signed;
 }
@@ -241,17 +244,22 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role;
         token.id = user.id;
-        token.iat = Math.floor(Date.now() / 1000); // Issued at time
+        token.iat = Math.floor(Date.now() / 1000);
       }
 
-      // Check if token is expired (15 minutes)
       const now = Math.floor(Date.now() / 1000);
-      const tokenAge = now - ((token.iat as number) || 0);
-      const maxAge = 15 * 60; // 15 minutes
+      const maxAge = 15 * 60;
+      const exp =
+        typeof token.exp === "number" ? token.exp : undefined;
+      const iat =
+        typeof token.iat === "number" ? token.iat : undefined;
 
-      if (tokenAge > maxAge) {
-        // Token expired - clear token data to force re-authentication
-        // NextAuth will handle the redirect to login
+      // Nunca usar (iat || 0): sem iat no payload, a "idade" virava ~epoch e a sessão caía no mesmo request (loop login ↔ /usuario).
+      const expiredByExp = exp !== undefined && now >= exp;
+      const expiredByIat =
+        iat !== undefined && now - iat > maxAge;
+
+      if (expiredByExp || expiredByIat) {
         return {
           ...token,
           id: "",
@@ -307,14 +315,4 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
 };
-
-// Debug: Log NEXTAUTH_URL in production to help diagnose redirect_uri_mismatch
-if (typeof window === "undefined" && process.env.NODE_ENV === "production") {
-  console.log("[NextAuth Debug] NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
-  console.log(
-    "[NextAuth Debug] Expected redirect URI:",
-    `${process.env.NEXTAUTH_URL}/api/auth/callback/google`
-  );
-}
-
 
