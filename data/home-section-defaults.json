@@ -1,6 +1,6 @@
 {
   "hero": {
-    "backgroundImage": "/uploads/sections/hero.webp",
+    "backgroundImage": "/product1.webp",
     "titlePrefix": "Bem-vindo à",
     "titleSuffix": "LOJA",
     "ctaLabel": "Ver produtos",
@@ -14,20 +14,20 @@
         "line2": "na loja",
         "buttonLabel": "Ver loja",
         "buttonHref": "/loja",
-        "centerImage": "/uploads/sections/promo-slide-1.webp"
+        "centerImage": "/product2.webp"
       }
     ]
   },
   "categoryMenu": {
     "title": "Categorias",
-    "cardImage": "/uploads/sections/categ.webp",
+    "cardImage": "/product1.webp",
     "items": [
       {
         "id": "cm-demo-1",
         "label": "Destaque",
         "href": "/loja",
         "enabled": true,
-        "image": "/uploads/sections/categ.webp"
+        "image": "/product1.webp"
       }
     ]
   },
@@ -49,22 +49,22 @@
     "items": [
       {
         "id": 1,
-        "lifestyleImage": "/uploads/sections/bertp.webp",
-        "productImage": "/uploads/sections/bag.webp",
+        "lifestyleImage": "/product2.webp",
+        "productImage": "/product3.webp",
         "title": "Laurel Knit Shopper Bag",
         "category": "TENNIS CLUB"
       },
       {
         "id": 2,
-        "lifestyleImage": "/uploads/sections/bertp.webp",
-        "productImage": "/uploads/sections/racket.webp",
+        "lifestyleImage": "/product2.webp",
+        "productImage": "/product4.webp",
         "title": "Classic Tennis Racket",
         "category": "TENNIS CLUB"
       },
       {
         "id": 3,
-        "lifestyleImage": "/uploads/sections/bertp.webp",
-        "productImage": "/uploads/sections/shoes.webp",
+        "lifestyleImage": "/product2.webp",
+        "productImage": "/product5.webp",
         "title": "Premium Tennis Shoes",
         "category": "TENNIS CLUB"
       }

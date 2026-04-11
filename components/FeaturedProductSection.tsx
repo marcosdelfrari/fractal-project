@@ -6,6 +6,7 @@ import {
   getFeaturedProductsFromContent,
   type FeaturedProductSlide,
 } from "@/lib/sectionContent";
+import { publicAssetUrl } from "@/lib/imageUtils";
 
 interface FeaturedProductSectionProps {
   /** JSON da seção `featuredProducts` (Admin / API); fallback: `data/home-section-defaults.json`. */
@@ -47,7 +48,7 @@ const FeaturedProductSection = ({
               className="relative w-full h-full"
             >
               <Image
-                src={currentProduct.lifestyleImage}
+                src={publicAssetUrl(currentProduct.lifestyleImage)}
                 alt={currentProduct.title}
                 fill
                 className="object-cover"
@@ -92,7 +93,7 @@ const FeaturedProductSection = ({
               {/* Imagem do Produto */}
               <div className="hidden md:block relative w-64 h-64 mb-8 max-md:w-48 max-md:h-48">
                 <Image
-                  src={currentProduct.productImage}
+                  src={publicAssetUrl(currentProduct.productImage)}
                   alt={currentProduct.title}
                   fill
                   className="object-contain"

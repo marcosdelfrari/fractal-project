@@ -9,6 +9,7 @@ import {
   getPromoSliderConfig,
   type PromoSliderSlide,
 } from "@/lib/sectionContent";
+import { publicAssetUrl } from "@/lib/imageUtils";
 import { FaArrowRight } from "react-icons/fa";
 
 const barlowCondensed = Barlow_Condensed({
@@ -216,7 +217,7 @@ function SlidePanel({
                 {slide.centerImage ? (
                   <div className="absolute inset-0 overflow-hidden rounded-[14px] md:rounded-2xl">
                     <Image
-                      src={slide.centerImage}
+                      src={publicAssetUrl(slide.centerImage)}
                       alt=""
                       fill
                       className="object-cover object-center"

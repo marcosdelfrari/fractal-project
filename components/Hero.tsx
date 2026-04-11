@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { getHeroConfig } from "@/lib/sectionContent";
+import { publicAssetUrl } from "@/lib/imageUtils";
 
 interface HeroProps {
   /** JSON da seção `hero` (Admin / API); fallback: `data/home-section-defaults.json`. */
@@ -44,7 +45,7 @@ const Hero = ({ sectionContent }: HeroProps) => {
         transition={{ duration: 1.5, ease: "easeOut" }}
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url('${backgroundImage}')`,
+          backgroundImage: `url('${publicAssetUrl(backgroundImage)}')`,
           willChange: "transform",
         }}
       />

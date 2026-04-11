@@ -306,28 +306,8 @@ const getHomeSections = asyncHandler(async (request, response) => {
   return response.status(200).json(sections);
 });
 
-/** Nomes estáveis em `public/`; no banco só o arquivo (ex.: `favicon.png`, `logo.webp`). */
-const SITE_ASSET_FILENAME = {
-  storeIcon: "favicon",
-  storeLogo: "logo",
-};
-
-function extensionFromUpload(file) {
-  const raw = file.name || "";
-  let ext = path.extname(raw).toLowerCase();
-  if (ext && ext.length <= 8) return ext;
-  const mime = (file.mimetype || "").toLowerCase();
-  const map = {
-    "image/png": ".png",
-    "image/jpeg": ".jpg",
-    "image/jpg": ".jpg",
-    "image/webp": ".webp",
-    "image/gif": ".gif",
-    "image/x-icon": ".ico",
-    "image/vnd.microsoft.icon": ".ico",
-  };
-  return map[mime] || ".png";
-}
+/** Limite do binário antes do base64 (SiteSettings LongText). */
+const MAX_SITE_ASSET_BYTES = 2.5 * 1024 * 1024;
 
 /** Remove arquivo antigo em `public/` (nome simples, `/uploads/...` ou legado). */
 function safeUnlinkPublicAsset(publicDir, stored) {
@@ -347,7 +327,7 @@ function safeUnlinkPublicAsset(publicDir, stored) {
   }
 }
 
-// Upload ícone ou logo em `public/` na raiz; grava nome fixo (`favicon.*` / `logo.*`) em SiteSettings
+// Ícone/logo: grava `data:image/...;base64,...` em SiteSettings (vitrine lê só da API / DB; sem depender de disco no deploy).
 const uploadSiteAsset = asyncHandler(async (request, response) => {
   const type = request.body?.type;
   if (type !== "storeIcon" && type !== "storeLogo") {
@@ -367,41 +347,54 @@ const uploadSiteAsset = asyncHandler(async (request, response) => {
     );
   }
 
-  const ext = extensionFromUpload(file);
-  const base = SITE_ASSET_FILENAME[type];
-  const filename = `${base}${ext}`;
-  const publicDir = path.join(__dirname, "..", "..", "public");
-  fs.mkdirSync(publicDir, { recursive: true });
-
-  let row = await prisma.siteSettings.findFirst();
-  if (row?.[type]) {
-    safeUnlinkPublicAsset(publicDir, row[type]);
+  let buffer = file.data;
+  if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
+    const tmp = file.tempFilePath;
+    if (tmp && fs.existsSync(tmp)) {
+      try {
+        buffer = fs.readFileSync(tmp);
+      } catch (_) {
+        buffer = null;
+      }
+    }
+  }
+  if (!buffer || !Buffer.isBuffer(buffer) || buffer.length === 0) {
+    throw new AppError(
+      "Não foi possível ler o arquivo (tente de novo ou outro formato).",
+      400,
+    );
+  }
+  if (buffer.length > MAX_SITE_ASSET_BYTES) {
+    throw new AppError("Arquivo muito grande (máximo 2,5 MB).", 400);
   }
 
-  const destPath = path.join(publicDir, filename);
+  const dataUrl = `data:${mimetype};base64,${buffer.toString("base64")}`;
+  const publicDir = path.join(__dirname, "..", "..", "public");
 
-  await new Promise((resolve, reject) => {
-    file.mv(destPath, (err) => (err ? reject(err) : resolve()));
-  });
-
-  const publicUrl = filename;
+  let row = await prisma.siteSettings.findFirst();
+  if (row?.[type] && typeof row[type] === "string") {
+    const prev = row[type];
+    if (!prev.startsWith("data:")) {
+      safeUnlinkPublicAsset(publicDir, prev);
+    }
+  }
 
   if (!row) {
     row = await prisma.siteSettings.create({
       data: {
         id: DEFAULT_SITE_ID,
         storeName: "Fractal Store",
-        [type]: publicUrl,
+        [type]: dataUrl,
       },
     });
   } else {
     row = await prisma.siteSettings.update({
       where: { id: row.id },
-      data: { [type]: publicUrl },
+      data: { [type]: dataUrl },
     });
   }
 
-  return response.status(200).json({ url: publicUrl, settings: row });
+  return response.status(200).json({ url: dataUrl, settings: row });
 });
 
 /** Upload de imagem para seções da home (card de categorias, slides em destaque). Só arquivo; retorna URL pública. */

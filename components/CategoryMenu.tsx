@@ -15,6 +15,7 @@ import {
   getCategoryMenuFullConfig,
   normalizeCategoryMenuHref,
 } from "@/lib/sectionContent";
+import { publicAssetUrl } from "@/lib/imageUtils";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -151,7 +152,7 @@ const CategoryMenu = ({ sectionContent }: CategoryMenuProps) => {
                     className="relative h-[550px] w-full rounded-[32px] overflow-hidden group cursor-pointer border border-black/5"
                   >
                     <Image
-                      src={item.image.trim()}
+                      src={publicAssetUrl(item.image.trim())}
                       alt={item.label}
                       fill
                       className="object-cover transition-transform duration-1000 group-hover:scale-110"

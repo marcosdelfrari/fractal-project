@@ -112,7 +112,7 @@ export function getCategoryMenuFullConfig(sectionContent: unknown): {
   const legacyCardImage =
     typeof c?.cardImage === "string"
       ? c.cardImage
-      : defaultCategoryMenu.cardImage || "/uploads/sections/categ.webp";
+      : defaultCategoryMenu.cardImage || "/product1.webp";
 
   if (c != null && "items" in c && Array.isArray(c.items)) {
     return {
