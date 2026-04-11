@@ -128,7 +128,22 @@ function verifyJWT(token, secret) {
  */
 async function decodeWithNextAuth(req, secret) {
   try {
-    const { getToken } = await import("next-auth/jwt");
+    // Tenta importar dinamicamente (pode falhar se next-auth não estiver instalado)
+    let getToken;
+    try {
+      const module = await import("next-auth/jwt");
+      getToken = module.getToken;
+    } catch (importErr) {
+      console.error("[auth] Não foi possível importar next-auth/jwt:", importErr.message);
+      console.error("[auth] Certifique-se que next-auth está instalado no servidor");
+      return null;
+    }
+    
+    if (!getToken) {
+      console.error("[auth] getToken não encontrado em next-auth/jwt");
+      return null;
+    }
+    
     const decoded = await getToken({
       req,
       secret,
@@ -136,11 +151,13 @@ async function decodeWithNextAuth(req, secret) {
     });
     
     if (decoded) {
-      console.log("[auth] Token decodificado com getToken da NextAuth");
+      console.log("[auth] ✓ Token decodificado com sucesso via next-auth/jwt");
       return decoded;
+    } else {
+      console.error("[auth] getToken retornou null/undefined");
     }
   } catch (err) {
-    console.error("[auth] Erro ao usar getToken do NextAuth:", err.message);
+    console.error("[auth] Erro ao decodificar com getToken:", err.message);
   }
   
   return null;
