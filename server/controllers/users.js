@@ -1,6 +1,6 @@
 const prisma = require("../utills/db");
 const bcrypt = require("bcryptjs");
-const { tokenUserId } = require("../middleware/auth");
+const { tokenUserId, normalizeEmail } = require("../middleware/auth");
 const { asyncHandler, AppError } = require("../utills/errorHandler");
 
 // Helper function to exclude password from user object
@@ -337,7 +337,7 @@ const getUserOrders = asyncHandler(async (request, response) => {
   }
 
   // Get user information
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { id },
     select: {
       id: true,
@@ -346,7 +346,36 @@ const getUserOrders = asyncHandler(async (request, response) => {
     },
   });
 
-  if (!user) {
+  /**
+   * NextAuth grava o usuário no DB do Next (Vercel); o Express no Railway pode usar outro MySQL.
+   * Nesse caso o `id` do JWT não existe aqui, mas o e-mail da sessão (req.auth) é o mesmo —
+   * pedidos em `customer_order` são por e-mail, então resolvemos por e-mail quando possível.
+   */
+  const authEmail =
+    request.auth?.email && typeof request.auth.email === "string"
+      ? normalizeEmail(request.auth.email)
+      : null;
+
+  if (!user && authEmail) {
+    user = await prisma.user.findFirst({
+      where: { email: authEmail },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    });
+  }
+
+  let emailForOrders = user?.email ?? null;
+  let responseUser = user;
+
+  if (!emailForOrders && authEmail) {
+    emailForOrders = authEmail;
+    responseUser = { id, email: authEmail, name: null };
+  }
+
+  if (!emailForOrders || !responseUser) {
     throw new AppError("Usuário não encontrado", 404);
   }
 
@@ -367,7 +396,7 @@ const getUserOrders = asyncHandler(async (request, response) => {
   const [orders, totalCount] = await Promise.all([
     prisma.customer_order.findMany({
       where: {
-        email: user.email,
+        email: emailForOrders,
       },
       select: {
         id: true,
@@ -407,7 +436,7 @@ const getUserOrders = asyncHandler(async (request, response) => {
     }),
     prisma.customer_order.count({
       where: {
-        email: user.email,
+        email: emailForOrders,
       },
     }),
   ]);
@@ -440,9 +469,9 @@ const getUserOrders = asyncHandler(async (request, response) => {
 
   return response.json({
     user: {
-      id: user.id,
-      email: user.email,
-      name: user.name,
+      id: responseUser.id,
+      email: responseUser.email,
+      name: responseUser.name,
     },
     orders: formattedOrders,
     pagination: {

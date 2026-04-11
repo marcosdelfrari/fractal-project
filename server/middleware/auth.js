@@ -404,4 +404,5 @@ module.exports = {
   requireAddressOwnerOrAdmin,
   requireReviewOwnerOrAdmin,
   tokenUserId,
+  normalizeEmail,
 };

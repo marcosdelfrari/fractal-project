@@ -245,6 +245,9 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.id = user.id;
         token.iat = Math.floor(Date.now() / 1000);
+        if (user.email) {
+          token.email = user.email;
+        }
       }
 
       const now = Math.floor(Date.now() / 1000);

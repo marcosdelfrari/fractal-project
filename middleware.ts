@@ -1,36 +1,38 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { JWT } from "next-auth/jwt";
-import jwt from "jsonwebtoken";
+import { jwtVerify } from "jose";
 import { getSessionTokenCookieName } from "@/lib/sessionCookieName";
 
-/** Decode customizado idêntico ao de authOptions para o middleware conseguir ler o token JWS */
+/**
+ * Decode JWS igual ao de authOptions, mas com `jose` (Web Crypto) — compatível com Edge Runtime.
+ * `jsonwebtoken` no middleware pode falhar no Edge e zerar o token → loop login ↔ /usuario.
+ */
 async function customDecode({ token, secret }: any): Promise<JWT | null> {
   if (!token) return null;
-  
-  // Verificar formato do token
+
   const parts = token.split(".");
-  
-  // Se for JWE (5 partes), token antigo - retornar null
+
   if (parts.length === 5) {
     return null;
   }
-  
-  // Se for JWS (3 partes), decodificar
-  if (parts.length === 3) {
-    try {
-      const secretStr = typeof secret === "string" ? secret : secret.toString();
-      const decoded = jwt.verify(token, secretStr, {
-        algorithms: ["HS256"],
-      });
-      if (typeof decoded === "string") return null;
-      return decoded as JWT;
-    } catch {
-      return null;
-    }
+
+  if (parts.length !== 3) {
+    return null;
   }
-  
-  return null;
+
+  try {
+    const secretKey = new TextEncoder().encode(
+      typeof secret === "string" ? secret : String(secret)
+    );
+    const { payload } = await jwtVerify(token, secretKey, {
+      algorithms: ["HS256"],
+      clockTolerance: 15,
+    });
+    return payload as JWT;
+  } catch {
+    return null;
+  }
 }
 
 /** Apenas roteamento/UX de páginas (/admin, /usuario). Segurança de API fica no Express + JWT repassado pelo BFF. */
@@ -48,17 +50,16 @@ export default withAuth(
     if (req.nextUrl.pathname.startsWith("/usuario")) {
       const userRole = req.nextauth.token?.role;
       if (!userRole || (userRole !== "user" && userRole !== "admin")) {
-        return NextResponse.redirect(
-          new URL(
-            "/api/auth/signin?callbackUrl=" +
-              encodeURIComponent(req.nextUrl.pathname),
-            req.url
-          )
-        );
+        const login = new URL("/login", req.url);
+        login.searchParams.set("callbackUrl", req.nextUrl.pathname);
+        return NextResponse.redirect(login);
       }
     }
   },
   {
+    pages: {
+      signIn: "/login",
+    },
     callbacks: {
       authorized: ({ token, req }) => {
         // Admin routes require admin token
