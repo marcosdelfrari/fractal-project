@@ -82,7 +82,7 @@ function decodeJWT(token) {
 
 /**
  * Verifica JWT usando HMAC-SHA256 com o secret.
- * Tenta tanto JWS (3 partes) quanto suporta base64url com padding automático.
+ * NextAuth usa base64url (RFC 4648 § 5) sem padding.
  */
 function verifyJWT(token, secret) {
   try {
@@ -90,7 +90,7 @@ function verifyJWT(token, secret) {
     
     // JWE tem 5 partes; não pode ser verificado com HMAC simples
     if (parts.length === 5) {
-      console.log("[auth] Token é JWE (5 partes) — requer decodeWithNextAuth");
+      console.log("[auth] Token é JWE (5 partes) — requer NextAuth para decodificar");
       return null;
     }
     
@@ -99,19 +99,18 @@ function verifyJWT(token, secret) {
       return null;
     }
 
-    const [headerB64, payloadB64, signatureB64] = parts;
+    const [headerB64url, payloadB64url, signatureB64url] = parts;
 
-    // Recalcular assinatura com padding correto
-    const message = `${headerB64}.${payloadB64}`;
+    // Recalcular assinatura com base64url (sem padding)
+    const message = `${headerB64url}.${payloadB64url}`;
     
-    // NextAuth usa base64url sem padding; crypto.createHmac usa base64 com padding
-    const expectedSignature = crypto
-      .createHmac("sha256", secret)
-      .update(message)
-      .digest("base64url"); // base64url sem padding
+    // NextAuth usa base64url; node.js com digest("base64url") funciona a partir de certa versão
+    const hmac = crypto.createHmac("sha256", secret);
+    hmac.update(message);
+    const expectedSignature = hmac.digest("base64url");
 
-    if (expectedSignature !== signatureB64) {
-      console.log("[auth] Assinatura JWT inválida");
+    if (expectedSignature !== signatureB64url) {
+      console.error("[auth] Assinatura JWT inválida (esperado: " + expectedSignature.substring(0, 20) + "...)");
       return null;
     }
 
@@ -123,62 +122,23 @@ function verifyJWT(token, secret) {
 }
 
 /**
- * Fallback robusto: usa o decoder oficial do NextAuth para suportar
- * tanto JWS (3 partes) quanto JWE (5 partes), inclusive rotação/shape internos.
+ * Fallback para JWE ou outros formatos: tenta usar next-auth/jwt
  */
 async function decodeWithNextAuth(req, secret) {
   try {
-    // Estratégia 1: Tentar com getToken direto (para req no formato NextAuth)
-    try {
-      const { getToken } = await import("next-auth/jwt");
-      const decoded = await getToken({
-        req,
-        secret,
-        secureCookie: process.env.NODE_ENV === "production",
-      });
-      
-      if (decoded) {
-        console.log("[auth] ✓ Token decodificado com getToken");
-        return decoded;
-      }
-    } catch (getTokenErr) {
-      console.log("[auth] getToken não funcionou, tentando jose...");
-    }
+    const { getToken } = await import("next-auth/jwt");
+    const decoded = await getToken({
+      req,
+      secret,
+      secureCookie: process.env.NODE_ENV === "production",
+    });
     
-    // Estratégia 2: Usar jose (usado internamente pelo NextAuth para JWE)
-    const token = extractRawSessionToken(req);
-    if (!token) {
-      console.error("[auth] Nenhum token para decodificar");
-      return null;
-    }
-    
-    try {
-      const { jwtVerify, errors } = await import("jose");
-      const secretKey = new TextEncoder().encode(secret);
-      
-      const { payload } = await jwtVerify(token, secretKey);
-      console.log("[auth] ✓ Token decodificado com jose (JWE)");
-      return payload;
-    } catch (joseErr) {
-      console.error("[auth] jose falhou:", joseErr.message);
-      
-      // Estratégia 3: Tentar decodificar sem verificação (para debug)
-      try {
-        const parts = token.split(".");
-        if (parts.length === 3) {
-          // JWS: decodificar payload sem verificar assinatura
-          const payload = JSON.parse(
-            Buffer.from(parts[1], "base64").toString("utf-8")
-          );
-          console.log("[auth] ⚠️ Token JWS decodificado (sem verificação de assinatura)");
-          return payload;
-        }
-      } catch (fallbackErr) {
-        console.error("[auth] Falha em todas as estratégias de decodificação");
-      }
+    if (decoded) {
+      console.log("[auth] ✓ Token decodificado com getToken (NextAuth)");
+      return decoded;
     }
   } catch (err) {
-    console.error("[auth] Erro geral em decodeWithNextAuth:", err.message);
+    console.error("[auth] Erro ao usar getToken:", err.message);
   }
   
   return null;
@@ -212,10 +172,10 @@ async function decodeRequestAuth(req) {
     }
 
     // Compatibilidade com formatos internos do NextAuth (ex.: JWE).
-    console.log("[auth] Tentando decodificar com next-auth/jwt");
+    console.log("[auth] Tentando decodificar com next-auth/jwt como fallback");
     const nextAuthPayload = await decodeWithNextAuth(req, secret);
     if (nextAuthPayload && !isPayloadExpired(nextAuthPayload)) {
-      console.log("[auth] Token decodificado com sucesso (NextAuth)");
+      console.log("[auth] ✓ Token decodificado com sucesso via NextAuth");
       return nextAuthPayload;
     }
     

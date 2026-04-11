@@ -236,6 +236,9 @@ export const authOptions: NextAuthOptions = {
   },
   jwt: {
     maxAge: 15 * 60, // 15 minutes in seconds
+    // Usar apenas JWS (não JWE) para compatibilidade com Express backend
+    // JWS = assinado mas não encriptado = formato padrão de JWT (3 partes)
+    // JWE = assinado e encriptado = formato mais complexo (5 partes)
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
