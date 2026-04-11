@@ -31,15 +31,30 @@ export const apiClient = {
     };
 
     if (isServer) {
+      // No App Router (ex.: Vercel), `headers().get("cookie")` pode vir vazio em RSC
+      // mesmo com sessão válida; `cookies().getAll()` repassa o token NextAuth ao Railway.
+      let cookieHeader: string | undefined;
       try {
-        const { headers: getHeaders } = await import("next/headers");
-        const h = await getHeaders();
-        const cookie = h.get("cookie");
-        if (cookie) {
-          mergedHeaders.cookie = cookie;
+        const { cookies: getCookies } = await import("next/headers");
+        const store = await getCookies();
+        const all = store.getAll();
+        if (all.length > 0) {
+          cookieHeader = all.map((c) => `${c.name}=${c.value}`).join("; ");
         }
       } catch {
-        /* fora do App Router / build */
+        /* fora do contexto de requisição */
+      }
+      if (!cookieHeader) {
+        try {
+          const { headers: getHeaders } = await import("next/headers");
+          const h = await getHeaders();
+          cookieHeader = h.get("cookie") ?? undefined;
+        } catch {
+          /* fora do App Router / build */
+        }
+      }
+      if (cookieHeader) {
+        mergedHeaders.cookie = cookieHeader;
       }
     }
 
