@@ -161,7 +161,7 @@ function SlidePanel({
       };
 
   return (
-    <div className="relative mt-10 w-full shrink-0 rounded-[28px] bg-black p-[2px] md:min-h-[520px] md:rounded-[40px]">
+    <div className="relative mt-10 w-full shrink-0 rounded-[28px] bg-black p-[2px] md:min-h-[520px]  md:rounded-[40px]">
       <div
         className="flex min-h-0 w-full  flex-col overflow-hidden rounded-[26px]  pb-1.5 md:min-h-[516px] md:flex-row md:rounded-[38px] md:pb-0"
         style={{ background: BANNER_YELLOW }}
@@ -296,7 +296,7 @@ export default function HomePromoSlider({
   }
 
   return (
-    <section className="w-full pb-8 pt-2 px-5 md:px-8 md:pb-10 md:pt-4">
+    <section className="w-full pb-8 pt-2 px-0 md:pb-10 md:pt-4">
       <div className="mx-auto max-w-7xl">
         <div
           className="touch-pan-y overflow-hidden shadow-sm"
@@ -305,7 +305,7 @@ export default function HomePromoSlider({
           onTouchCancel={onTouchCancel}
         >
           <motion.div
-            className="flex will-change-transform"
+            className="flex will-change-transform "
             style={{ width: `${slides.length * 100}%` }}
             initial={false}
             animate={{
@@ -320,7 +320,7 @@ export default function HomePromoSlider({
             {slides.map((slide, i) => (
               <div
                 key={slide.id}
-                className="shrink-0"
+                className="shrink-0 px-5 md:px-8"
                 style={{ width: `${100 / slides.length}%` }}
               >
                 <SlidePanel
