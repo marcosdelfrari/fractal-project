@@ -53,6 +53,11 @@ const {
 const { handleServerError } = require("./utills/errorHandler");
 const { ensurePublicDir } = require("./utills/resolvePublicDir");
 
+/** JSON com várias imagens em base64 (home-sections, etc.) — padrão Express ~100kb é pouco. */
+const JSON_BODY_LIMIT = process.env.JSON_BODY_LIMIT || "50mb";
+/** Multipart: imagens de seção podem ser maiores que logo (2,5 MB no controller). */
+const FILE_UPLOAD_MAX_BYTES = Number(process.env.FILE_UPLOAD_MAX_BYTES) || 12 * 1024 * 1024;
+
 const app = express();
 
 // Trust proxy for accurate IP addresses
@@ -111,9 +116,14 @@ const corsOptions = {
 // Apply general rate limiting to all routes
 app.use(generalLimiter);
 
-app.use(express.json());
+app.use(express.json({ limit: JSON_BODY_LIMIT }));
 app.use(cors(corsOptions));
-app.use(fileUpload());
+app.use(
+  fileUpload({
+    limits: { fileSize: FILE_UPLOAD_MAX_BYTES },
+    abortOnLimit: true,
+  }),
+);
 
 // Apply specific rate limiters to different route groups
 app.use("/api/users", userManagementLimiter);

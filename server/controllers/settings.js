@@ -374,8 +374,13 @@ const getHomeSections = asyncHandler(async (request, response) => {
   return response.status(200).json(sections.map(mapHomeSectionRow));
 });
 
-/** Limite do binário antes do base64 (SiteSettings LongText). */
+/** Limite do binário antes do base64 (ícone/logo em SiteSettings). */
 const MAX_SITE_ASSET_BYTES = 2.5 * 1024 * 1024;
+/** Upload de imagens de seções da home (hero, promo slider, cards) — pode ser foto grande. */
+const MAX_SECTION_UPLOAD_BYTES =
+  Number(process.env.MAX_SECTION_UPLOAD_MB) > 0
+    ? Number(process.env.MAX_SECTION_UPLOAD_MB) * 1024 * 1024
+    : 8 * 1024 * 1024;
 
 /** Remove arquivo antigo em `public/` (nome simples, `/uploads/...` ou legado). */
 function safeUnlinkPublicAsset(publicDir, stored) {
@@ -501,8 +506,12 @@ const uploadSectionAsset = asyncHandler(async (request, response) => {
       400,
     );
   }
-  if (buffer.length > MAX_SITE_ASSET_BYTES) {
-    throw new AppError("Arquivo muito grande (máximo 2,5 MB).", 400);
+  if (buffer.length > MAX_SECTION_UPLOAD_BYTES) {
+    const mb = Math.floor(MAX_SECTION_UPLOAD_BYTES / (1024 * 1024));
+    throw new AppError(
+      `Arquivo muito grande (máximo ${mb} MB para imagens de seção).`,
+      400,
+    );
   }
 
   const dataUrl = `data:${mimetype};base64,${buffer.toString("base64")}`;
