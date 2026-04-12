@@ -1,3 +1,4 @@
+const { randomUUID } = require("node:crypto");
 const prisma = require("../utills/db"); // ✅ Use shared connection with SSL
 const { asyncHandler, handleServerError, AppError } = require("../utills/errorHandler");
 
@@ -308,6 +309,7 @@ const createProduct = asyncHandler(async (request, response) => {
 
   const product = await prisma.product.create({
     data: {
+      id: randomUUID(),
       slug,
       title,
       mainImage,
