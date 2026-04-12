@@ -1,7 +1,6 @@
 "use client";
 import { DashboardSidebar } from "@/components";
 import apiClient from "@/lib/api";
-import config from "@/lib/config";
 import { convertCategoryNameToURLFriendly as convertSlugToURLFriendly } from "@/utils/categoryFormating";
 import { sanitizeFormData } from "@/lib/form-sanitize";
 import React, { useEffect, useState } from "react";
@@ -136,9 +135,10 @@ const AddNewProduct = () => {
     }
 
     try {
-      const response = await fetch(`${config.apiBaseUrl}/api/main-image`, {
+      const response = await fetch("/api/main-image", {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
 
       if (!response.ok) {

@@ -1,6 +1,5 @@
 "use client";
 import { DashboardSidebar } from "@/components";
-import config from "@/lib/config";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState, use } from "react";
@@ -110,9 +109,10 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
     }
 
     try {
-      const response = await fetch(`${config.apiBaseUrl}/api/main-image`, {
+      const response = await fetch("/api/main-image", {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
 
       if (response.ok) {
