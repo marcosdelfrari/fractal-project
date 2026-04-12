@@ -21,6 +21,7 @@ export async function uploadSectionImage(file: File): Promise<string> {
   const res = await fetch(`${getAdminSettingsApiBase()}/sections/upload`, {
     method: "POST",
     body: formData,
+    credentials: "include",
   });
   const data = (await res.json().catch(() => ({}))) as { error?: string; url?: string };
   if (!res.ok) {

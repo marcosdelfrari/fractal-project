@@ -93,7 +93,7 @@ model product {
   mainImage              String
   price                  Int                      @default(0)
   rating                 Int                      @default(0)
-  description            String
+  description            String                   @db.Text
   additionalInfo         String?                  @db.Text
   material               String?                  @db.Text
   colors                 Json?
@@ -208,7 +208,8 @@ model HomeSection {
   name      String   @unique
   enabled   Boolean  @default(true)
   order     Int      @default(0)
-  content   Json?
+  /// JSON serializado (slides com base64 podem passar de 64KB — evita P2000 em TEXT/JSON curto).
+  content   String?  @db.LongText
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

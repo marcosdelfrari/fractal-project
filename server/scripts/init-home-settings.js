@@ -69,7 +69,10 @@ async function initializeHomeSettings() {
             name: section.name,
             enabled: section.enabled,
             order: section.order,
-            content: section.content ?? null,
+            content:
+              section.content != null
+                ? JSON.stringify(section.content)
+                : null,
           },
         });
         console.log(`✅ Seção "${section.name}" criada`);

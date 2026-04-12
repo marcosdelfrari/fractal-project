@@ -1,7 +1,6 @@
 const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
-const { nanoid } = require("nanoid");
 
 // Carrega defaults de forma robusta, com fallback para objeto vazio.
 // Suporta estrutura local (server/controllers) e estrutura em container (/app/controllers).
@@ -172,6 +171,35 @@ async function getOrCreateSiteSettings() {
   return settings;
 }
 
+function parseHomeSectionContent(stored) {
+  if (stored == null || stored === "") return null;
+  if (typeof stored === "object" && stored !== null && !Array.isArray(stored)) {
+    return stored;
+  }
+  if (typeof stored === "string") {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+function serializeHomeSectionContent(content) {
+  if (content === undefined) return undefined;
+  if (content === null) return null;
+  return JSON.stringify(content);
+}
+
+function mapHomeSectionRow(row) {
+  if (!row) return row;
+  return {
+    ...row,
+    content: parseHomeSectionContent(row.content),
+  };
+}
+
 async function ensureDefaultHomeSections() {
   const count = await prisma.homeSection.count();
   if (count > 0) return;
@@ -183,7 +211,8 @@ async function ensureDefaultHomeSections() {
         name: s.name,
         enabled: s.enabled,
         order: s.order,
-        content: s.content ?? null,
+        content:
+          s.content != null ? serializeHomeSectionContent(s.content) : null,
       },
     });
   }
@@ -342,7 +371,7 @@ const getHomeSections = asyncHandler(async (request, response) => {
   const sections = await prisma.homeSection.findMany({
     orderBy: { order: "asc" },
   });
-  return response.status(200).json(sections);
+  return response.status(200).json(sections.map(mapHomeSectionRow));
 });
 
 /** Limite do binário antes do base64 (SiteSettings LongText). */
@@ -436,7 +465,11 @@ const uploadSiteAsset = asyncHandler(async (request, response) => {
   return response.status(200).json({ url: dataUrl, settings: row });
 });
 
-/** Upload de imagem para seções da home (card de categorias, slides em destaque). Só arquivo; retorna URL pública. */
+/**
+ * Upload de imagem para seções da home (promo slider, hero, cards, etc.).
+ * Mesmo padrão do ícone/logo: devolve `data:image/...;base64,...` — persiste no JSON da
+ * seção no DB; não depende de disco nem de `/public` na Vercel/Railway.
+ */
 const uploadSectionAsset = asyncHandler(async (request, response) => {
   if (!request.files || !request.files.file) {
     throw new AppError("Arquivo (campo file) é obrigatório", 400);
@@ -451,27 +484,29 @@ const uploadSectionAsset = asyncHandler(async (request, response) => {
     );
   }
 
-  const extFromName = path.extname(file.name || "") || "";
-  const ext = extFromName && extFromName.length <= 8 ? extFromName : ".png";
+  let buffer = file.data;
+  if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
+    const tmp = file.tempFilePath;
+    if (tmp && fs.existsSync(tmp)) {
+      try {
+        buffer = fs.readFileSync(tmp);
+      } catch (_) {
+        buffer = null;
+      }
+    }
+  }
+  if (!buffer || !Buffer.isBuffer(buffer) || buffer.length === 0) {
+    throw new AppError(
+      "Não foi possível ler o arquivo (tente de novo ou outro formato).",
+      400,
+    );
+  }
+  if (buffer.length > MAX_SITE_ASSET_BYTES) {
+    throw new AppError("Arquivo muito grande (máximo 2,5 MB).", 400);
+  }
 
-  const filename = `section-${nanoid(12)}${ext}`;
-  const uploadDir = path.join(
-    __dirname,
-    "..",
-    "..",
-    "public",
-    "uploads",
-    "sections",
-  );
-  fs.mkdirSync(uploadDir, { recursive: true });
-  const destPath = path.join(uploadDir, filename);
-
-  await new Promise((resolve, reject) => {
-    file.mv(destPath, (err) => (err ? reject(err) : resolve()));
-  });
-
-  const publicUrl = `/uploads/sections/${filename}`;
-  return response.status(200).json({ url: publicUrl });
+  const dataUrl = `data:${mimetype};base64,${buffer.toString("base64")}`;
+  return response.status(200).json({ url: dataUrl });
 });
 
 // Create or update home section
@@ -495,10 +530,13 @@ const updateHomeSection = asyncHandler(async (request, response) => {
         name: trimmed,
         enabled: enabled !== undefined ? enabled : true,
         order: order !== undefined ? order : 0,
-        content: content !== undefined ? content : null,
+        content:
+          content !== undefined
+            ? serializeHomeSectionContent(content)
+            : null,
       },
     });
-    return response.status(201).json(created);
+    return response.status(201).json(mapHomeSectionRow(created));
   }
 
   const updated = await prisma.homeSection.update({
@@ -506,11 +544,13 @@ const updateHomeSection = asyncHandler(async (request, response) => {
     data: {
       ...(enabled !== undefined && { enabled }),
       ...(order !== undefined && { order }),
-      ...(content !== undefined && { content }),
+      ...(content !== undefined && {
+        content: serializeHomeSectionContent(content),
+      }),
     },
   });
 
-  return response.status(200).json(updated);
+  return response.status(200).json(mapHomeSectionRow(updated));
 });
 
 // Update section order (bulk); opcionalmente também persiste `enabled` por seção
@@ -546,7 +586,7 @@ const updateSectionsOrder = asyncHandler(async (request, response) => {
   const updated = await prisma.homeSection.findMany({
     orderBy: { order: "asc" },
   });
-  return response.status(200).json(updated);
+  return response.status(200).json(updated.map(mapHomeSectionRow));
 });
 
 // Toggle section enabled status
@@ -570,7 +610,7 @@ const toggleSection = asyncHandler(async (request, response) => {
     data: { enabled: !section.enabled },
   });
 
-  return response.status(200).json(updated);
+  return response.status(200).json(mapHomeSectionRow(updated));
 });
 
 module.exports = {

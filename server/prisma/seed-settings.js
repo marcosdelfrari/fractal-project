@@ -8,6 +8,11 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
+function homeSectionContentToDb(value) {
+  if (value === undefined || value === null) return null;
+  return JSON.stringify(value);
+}
+
 const HOME_DEFAULTS = require(path.join(
   __dirname,
   "..",
@@ -107,12 +112,14 @@ async function main() {
         name: s.name,
         enabled: s.enabled,
         order: s.order,
-        content: s.content,
+        content: homeSectionContentToDb(s.content),
       },
       update: {
         enabled: s.enabled,
         order: s.order,
-        ...(s.content !== undefined && { content: s.content }),
+        ...(s.content !== undefined && {
+          content: homeSectionContentToDb(s.content),
+        }),
       },
     });
   }

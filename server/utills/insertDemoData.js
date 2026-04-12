@@ -390,11 +390,13 @@ async function insertDemoData() {
           name: s.name,
           enabled: true,
           order: s.order,
-          content: s.content,
+          content:
+            s.content != null ? JSON.stringify(s.content) : null,
         },
         update: {
           order: s.order,
-          content: s.content,
+          content:
+            s.content != null ? JSON.stringify(s.content) : null,
         },
       });
     }
