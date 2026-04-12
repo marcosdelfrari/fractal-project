@@ -17,7 +17,7 @@ import { productMainImageUrl } from "@/lib/imageUtils";
 function WhiteYellowCurveSeparator() {
   return (
     <div aria-hidden className="w-full h-6  bg-[#FFFF04]">
-      <div className="relative w-full h-4 border-b-2 border-black  rounded-b-2xl shrink-0 bg-[#F9F9F9]"></div>
+      <div className="relative w-full h-4 border-b-2 border-black  rounded-b-2xl shrink-0 bg-[#Ffffff]"></div>
     </div>
   );
 }
@@ -38,15 +38,15 @@ const ProductItem = ({ product }: { product: Product; color?: string }) => {
           <ProductPhotoFill
             src={imgSrc}
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-            className="z-[1] block origin-center scale-[1.14] object-cover object-center"
+            className="z-[1] block object-contain object-center"
             alt={sanitize(product?.title) || "Product image"}
           />
         </div>
 
         <WhiteYellowCurveSeparator />
 
-        <div className="flex min-h-0 flex-[1] items-center justify-center bg-[#FFFF04] px-3 pb-5 pt-3 max-h-[55px]">
-          <span className="line-clamp-1 w-full uppercase text-center rounded-full bg-[#861201] px-2 md:px-5 py-2.5 text-xs md:text-sm font-medium text-white">
+        <div className="flex min-h-0 min-w-0 flex-[1] items-center justify-center bg-[#FFFF04] px-3 pb-5 pt-3 max-h-[55px]">
+          <span className="min-w-0 w-full max-w-full truncate text-center uppercase rounded-full bg-[#861201] px-2 py-2.5 text-xs font-medium text-white md:px-5 md:text-sm">
             {sanitize(product.title)}
           </span>
         </div>
