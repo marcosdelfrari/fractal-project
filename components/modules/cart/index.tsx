@@ -7,6 +7,7 @@ import Link from "next/link";
 import { FaCheck, FaCircleQuestion, FaClock, FaXmark } from "react-icons/fa6";
 import QuantityInputCart from "@/components/QuantityInputCart";
 import { sanitize } from "@/lib/sanitize";
+import { productImageUnoptimized, productMainImageUrl } from "@/lib/imageUtils";
 
 export const CartModule = () => {
 
@@ -62,13 +63,16 @@ export const CartModule = () => {
           role="list"
           className="divide-y divide-gray-100 border-y border-gray-100"
         >
-          {products.map((product) => (
+          {products.map((product) => {
+            const lineImg = productMainImageUrl(product?.image);
+            return (
             <li key={product.cartItemKey || product.id} className="flex py-6 sm:py-10">
               <div className="flex-shrink-0">
                 <Image
                   width={192}
                   height={192}
-                  src={product?.image ? `/${product.image}` : "/product_placeholder.jpg"}
+                  src={lineImg}
+                  unoptimized={productImageUnoptimized(lineImg)}
                   alt="laptop image"
                   className="h-24 w-24 rounded-md object-cover object-center sm:h-48 sm:w-48"
                 />
@@ -134,7 +138,8 @@ export const CartModule = () => {
                 </p>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       </section>
 

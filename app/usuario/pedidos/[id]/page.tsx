@@ -33,6 +33,7 @@ import {
   displayOrderNotice,
   orderIsPickup,
 } from "@/lib/orderFulfillment";
+import { productImageUnoptimized, productMainImageUrl } from "@/lib/imageUtils";
 
 interface OrderProduct {
   id: string;
@@ -489,6 +490,7 @@ export default function OrderDetailsPage() {
                       );
                     }
                     const unit = num(p.price);
+                    const pedidoLineImg = productMainImageUrl(p.mainImage);
                     return (
                       <li
                         key={orderProduct.id}
@@ -501,13 +503,12 @@ export default function OrderDetailsPage() {
                               className="relative h-16 w-16 sm:h-[72px] sm:w-[72px] shrink-0 rounded-lg overflow-hidden ring-1 ring-black/[0.06]"
                             >
                               <Image
-                                src={
-                                  p.mainImage
-                                    ? `/${p.mainImage}`
-                                    : "/product_placeholder.jpg"
-                                }
+                                src={pedidoLineImg}
                                 alt={p.title}
                                 fill
+                                unoptimized={productImageUnoptimized(
+                                  pedidoLineImg,
+                                )}
                                 className="object-cover"
                               />
                             </Link>

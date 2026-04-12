@@ -17,6 +17,7 @@ import { FaHeartCrack } from "react-icons/fa6";
 import { useSession } from "next-auth/react";
 import apiClient from "@/lib/api";
 import { sanitize } from "@/lib/sanitize";
+import { productImageUnoptimized, productMainImageUrl } from "@/lib/imageUtils";
 
 const WishItem = ({
   id,
@@ -33,6 +34,8 @@ const WishItem = ({
   const openProduct = (slug: string): void => {
     router.push(`/produto/${slug}`);
   };
+
+  const imgSrc = productMainImageUrl(image);
 
   const deleteItemFromWishlist = async (productId: string) => {
     const userId = session?.user?.id;
@@ -61,9 +64,10 @@ const WishItem = ({
       <th>
         <div className="w-12 h-12 mx-auto" onClick={() => openProduct(slug)}>
           <Image
-            src={`/${image}`}
+            src={imgSrc}
             width={200}
             height={200}
+            unoptimized={productImageUnoptimized(imgSrc)}
             className="w-auto h-auto"
             alt={sanitize(title)}
           />

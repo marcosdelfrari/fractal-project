@@ -1,3 +1,5 @@
+import config from "./config";
+
 /**
  * Caminhos antigos apontavam para `public/uploads/sections/*`, pasta ignorada no Git
  * (não existe na Vercel). Mesma origem que `insertDemoData`: cópias de `product*.webp` na raiz.
@@ -33,6 +35,28 @@ export function publicBrandAssetUrl(stored: string | null | undefined): string {
     return "";
   }
   return publicAssetUrl(stored);
+}
+
+/**
+ * Imagem principal / galeria de produto: ficheiros enviados pelo admin ficam no Express
+ * (`NEXT_PUBLIC_API_BASE_URL` + caminho). Usa o mesmo `config.apiBaseUrl` que `apiClient`
+ * (fallback localhost em dev). Sem env em produção, definir `NEXT_PUBLIC_API_BASE_URL` na Vercel.
+ */
+export function productMainImageUrl(
+  stored: string | null | undefined,
+): string {
+  if (stored == null || stored === "") return "/product_placeholder.jpg";
+  const s = String(stored).trim();
+  if (!s) return "/product_placeholder.jpg";
+  if (/^data:/i.test(s) || /^https?:\/\//i.test(s)) return s;
+  const pathPart = s.startsWith("/") ? s : `/${s}`;
+  const base = config.apiBaseUrl.replace(/\/+$/, "");
+  return `${base}${pathPart}`;
+}
+
+/** Evita `/_next/image` com `url=/ficheiro` relativo à Vercel; carrega URL absoluta da API direto. */
+export function productImageUnoptimized(resolvedSrc: string): boolean {
+  return /^https?:\/\//i.test(resolvedSrc);
 }
 
 /**

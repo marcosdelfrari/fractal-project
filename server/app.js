@@ -169,7 +169,9 @@ app.use("/api/reviews", reviewsRouter);
 app.use("/api/settings", settingsRouter);
 
 /** Arquivos gravados por POST /api/main-image (e estáticos do mesmo diretório `public`). */
-app.use(express.static(ensurePublicDir()));
+const publicUploadDir = ensurePublicDir();
+app.use(express.static(publicUploadDir));
+console.log("[static] GET /<ficheiro> (ex.: .webp) servidos de:", publicUploadDir);
 
 console.log("✅ All routes mounted successfully");
 

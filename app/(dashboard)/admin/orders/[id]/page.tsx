@@ -29,6 +29,7 @@ import {
   normalizeOrderStatus,
 } from "@/lib/orderStatusDisplay";
 import { orderIsPickup } from "@/lib/orderFulfillment";
+import { productImageUnoptimized, productMainImageUrl } from "@/lib/imageUtils";
 
 interface OrderProduct {
   id: string;
@@ -231,20 +232,21 @@ const AdminSingleOrder = () => {
               </div>
 
               <div className="divide-y divide-gray-50">
-                {orderProducts?.map((item) => (
+                {orderProducts?.map((item) => {
+                  const adminOrdImg = productMainImageUrl(
+                    item?.product?.mainImage,
+                  );
+                  return (
                   <div
                     className="flex items-center py-6 first:pt-0"
                     key={item?.id}
                   >
                     <div className="relative w-20 h-20 rounded-2xl overflow-hidden border border-gray-50 flex-shrink-0">
                       <Image
-                        src={
-                          item?.product?.mainImage
-                            ? `/${item?.product?.mainImage}`
-                            : "/product_placeholder.jpg"
-                        }
+                        src={adminOrdImg}
                         alt={item?.product?.title}
                         fill
+                        unoptimized={productImageUnoptimized(adminOrdImg)}
                         className="object-cover"
                       />
                     </div>
@@ -279,7 +281,8 @@ const AdminSingleOrder = () => {
                       )}
                     </div>
                   </div>
-                ))}
+                );
+                })}
               </div>
 
               <div className="mt-10 pt-10 border-t border-gray-50 space-y-3">

@@ -20,6 +20,7 @@ import {
   FaTimesCircle,
   FaStore,
 } from "react-icons/fa";
+import { productImageUnoptimized, productMainImageUrl } from "@/lib/imageUtils";
 import {
   getOrderStatusBadgeClasses,
   getOrderStatusLabel,
@@ -172,17 +173,16 @@ const OrderCard = ({
             Produtos ({totalItems} itens)
           </h4>
           <div className="space-y-2">
-            {order.products.slice(0, 3).map((item) => (
+            {order.products.slice(0, 3).map((item) => {
+              const oImg = productMainImageUrl(item.product.mainImage);
+              return (
               <div key={item.id} className="flex items-center gap-3">
                 <Image
-                  src={
-                    item.product.mainImage
-                      ? `/${item.product.mainImage}`
-                      : "/product_placeholder.jpg"
-                  }
+                  src={oImg}
                   alt={item.product.title}
                   width={40}
                   height={40}
+                  unoptimized={productImageUnoptimized(oImg)}
                   className="rounded object-cover"
                 />
                 <div className="flex-1 min-w-0">
@@ -194,7 +194,8 @@ const OrderCard = ({
                   </p>
                 </div>
               </div>
-            ))}
+            );
+            })}
             {order.products.length > 3 && (
               <p className="text-xs text-gray-500 ml-13">
                 +{order.products.length - 3} produto(s) adicional(is)

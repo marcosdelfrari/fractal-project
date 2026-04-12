@@ -7,10 +7,11 @@
 // Output: Product card — imagem, nome em pílula (layout vitrine)
 // *********************
 
-import Image from "next/image";
 import React from "react";
 import Link from "next/link";
 import { sanitize } from "@/lib/sanitize";
+import { ProductPhotoFill } from "@/components/ProductPhoto";
+import { productMainImageUrl } from "@/lib/imageUtils";
 
 /** Divisor curvo (linha preta côncava) entre área branca e faixa amarela — viewBox fixo, stretch horizontal. */
 function WhiteYellowCurveSeparator() {
@@ -22,24 +23,20 @@ function WhiteYellowCurveSeparator() {
 }
 
 const ProductItem = ({ product }: { product: Product; color?: string }) => {
+  const imgSrc = productMainImageUrl(product.mainImage);
   return (
     <div className="w-full">
       <Link
         href={`/produto/${product.slug}`}
         className="group flex aspect-[3/4] w-full origin-center flex-col overflow-hidden rounded-[2rem] border-2 border-black bg-white transition-transform duration-300 ease-out hover:-rotate-2 hover:skew-x-1"
       >
-        <div className="relative min-h-0 flex-[3] overflow-hidden bg-white [&>span]:bg-white">
+        <div className="relative min-h-0 flex-[3] overflow-hidden rounded-t-[1.85rem] bg-white [&>span]:bg-white">
           <div
             className="pointer-events-none absolute inset-0 z-0 bg-white"
             aria-hidden
           />
-          <Image
-            src={
-              product.mainImage
-                ? `/${product.mainImage}`
-                : "/product_placeholder.jpg"
-            }
-            fill
+          <ProductPhotoFill
+            src={imgSrc}
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             className="z-[1] block origin-center scale-[1.14] object-cover object-center"
             alt={sanitize(product?.title) || "Product image"}

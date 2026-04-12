@@ -13,6 +13,7 @@ import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import apiClient from "@/lib/api";
 import { sanitize } from "@/lib/sanitize";
+import { productImageUnoptimized, productMainImageUrl } from "@/lib/imageUtils";
 import { FaSearch } from "react-icons/fa";
 
 const DashboardProductTable = () => {
@@ -108,7 +109,9 @@ const DashboardProductTable = () => {
                 </td>
               </tr>
             ) : (
-              filteredProducts.map((product) => (
+              filteredProducts.map((product) => {
+                const pImg = productMainImageUrl(product?.mainImage);
+                return (
                 <tr
                   key={product.id}
                   className="hover:bg-[#E3E1D6]/50 transition-colors"
@@ -129,11 +132,8 @@ const DashboardProductTable = () => {
                           <Image
                             width={48}
                             height={48}
-                            src={
-                              product?.mainImage
-                                ? `/${product?.mainImage}`
-                                : "/product_placeholder.jpg"
-                            }
+                            src={pImg}
+                            unoptimized={productImageUnoptimized(pImg)}
                             alt={sanitize(product?.title) || "Product image"}
                             className="w-auto h-auto object-cover"
                           />
@@ -173,7 +173,8 @@ const DashboardProductTable = () => {
                     </Link>
                   </th>
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>

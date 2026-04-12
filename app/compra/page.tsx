@@ -18,6 +18,7 @@ import {
 } from "react-icons/fa";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { productImageUnoptimized, productMainImageUrl } from "@/lib/imageUtils";
 
 type DeliveryOption = "entrega" | "retirada";
 
@@ -996,20 +997,19 @@ const CheckoutPage = () => {
 
                 <div className="p-8">
                   <ul role="list" className="divide-y divide-gray-100">
-                    {products.map((product) => (
+                    {products.map((product) => {
+                      const checkoutImg = productMainImageUrl(product?.image);
+                      return (
                       <li
                         key={product?.cartItemKey || product?.id}
                         className="flex py-4 first:pt-0"
                       >
                         <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 relative">
                           <Image
-                            src={
-                              product?.image
-                                ? `/${product?.image}`
-                                : "/product_placeholder.jpg"
-                            }
+                            src={checkoutImg}
                             alt={product?.title}
                             fill
+                            unoptimized={productImageUnoptimized(checkoutImg)}
                             className="object-cover object-center"
                           />
                         </div>
@@ -1038,7 +1038,8 @@ const CheckoutPage = () => {
                           </div>
                         </div>
                       </li>
-                    ))}
+                    );
+                    })}
                   </ul>
 
                   <dl className="space-y-4 border-t border-gray-100 pt-6 mt-6">

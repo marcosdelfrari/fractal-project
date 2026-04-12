@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { productImageUnoptimized, productMainImageUrl } from "@/lib/imageUtils";
 
 interface Product {
   id: string;
@@ -443,7 +444,9 @@ export default function UserReviews() {
         <>
           {/* Reviews Grid */}
           <div className="space-y-6 mb-8">
-            {reviews.map((review) => (
+            {reviews.map((review) => {
+              const revImg = productMainImageUrl(review.product.mainImage);
+              return (
               <div
                 key={review.id}
                 className="bg-white rounded-lg border-2 border-black p-6 transition-colors duration-300"
@@ -452,13 +455,10 @@ export default function UserReviews() {
                   {/* Product Image */}
                   <div className="relative w-20 h-20 flex-shrink-0">
                     <Image
-                      src={
-                        review.product.mainImage
-                          ? `/${review.product.mainImage}`
-                          : "/product_placeholder.jpg"
-                      }
+                      src={revImg}
                       alt={review.product.title}
                       fill
+                      unoptimized={productImageUnoptimized(revImg)}
                       className="object-cover rounded-lg"
                     />
                   </div>
@@ -510,7 +510,8 @@ export default function UserReviews() {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
 
           {/* Pagination */}

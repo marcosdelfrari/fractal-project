@@ -1,8 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { AddToWishlistBtn } from "@/components";
+import { ProductPhotoFill, ProductPhotoFixed } from "@/components/ProductPhoto";
+import { productMainImageUrl } from "@/lib/imageUtils";
 
 interface ImageItem {
   imageID: string;
@@ -30,12 +31,14 @@ const ProductImageGallery = ({
   }, [mainImage, images]);
 
   const [selectedImage, setSelectedImage] = useState<string>(
-    allImages[0] || "product_placeholder.jpg"
+    () => allImages[0] || "",
   );
 
   useEffect(() => {
-    setSelectedImage(allImages[0] || "product_placeholder.jpg");
+    setSelectedImage(allImages[0] || "");
   }, [allImages]);
+
+  const mainSrc = productMainImageUrl(selectedImage);
 
   return (
     <div className="flex flex-col md:flex-row gap-4 h-fit lg:sticky lg:top-4">
@@ -43,6 +46,7 @@ const ProductImageGallery = ({
       <div className="order-2 md:order-1 flex md:flex-col gap-3 md:w-24 overflow-x-auto md:overflow-y-auto pb-2 md:pb-0 scrollbar-hide">
         {allImages.map((imageName, index) => {
           const isSelected = selectedImage === imageName;
+          const thumbSrc = productMainImageUrl(imageName);
           return (
             <button
               key={`${imageName}-${index}`}
@@ -54,8 +58,8 @@ const ProductImageGallery = ({
                   : "border-gray-200 hover:border-black"
               }`}
             >
-              <Image
-                src={`/${imageName}`}
+              <ProductPhotoFixed
+                src={thumbSrc}
                 width={100}
                 height={125}
                 alt="thumbnail"
@@ -68,9 +72,8 @@ const ProductImageGallery = ({
 
       {/* Imagem Principal */}
       <div className="order-1 md:order-2 flex-1 bg-white relative aspect-[4/5] w-full overflow-hidden rounded-[2rem] border-2 border-black">
-        <Image
-          src={`/${selectedImage}`}
-          fill
+        <ProductPhotoFill
+          src={mainSrc}
           alt="main image"
           className="object-cover w-full h-full"
           sizes="(max-width: 768px) 100vw, 50vw"
