@@ -1,4 +1,5 @@
 const path = require("path");
+const { ensurePublicDir } = require("../utills/resolvePublicDir");
 
 const allowedImageTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
 const allowedImageExtensions = [".png", ".jpg", ".jpeg", ".webp"];
@@ -43,11 +44,17 @@ async function uploadMainImage(req, res) {
 
   const finalName = `${desiredBaseName || "imagem"}${extension || ".jpg"}`;
 
-  // Using mv method for moving file to the directory on the server
-  const targetPath = path.resolve(__dirname, "../../public", finalName);
+  const publicDir = ensurePublicDir();
+  const targetPath = path.join(publicDir, finalName);
+
   uploadedFile.mv(targetPath, (err) => {
     if (err) {
-      return res.status(500).send(err);
+      console.error("[main-image] Falha ao gravar arquivo:", err);
+      return res.status(500).json({
+        message: "Erro ao salvar o arquivo no servidor",
+        details:
+          process.env.NODE_ENV === "development" ? String(err.message || err) : undefined,
+      });
     }
 
     res.status(200).json({ message: "Arquivo enviado com sucesso", fileName: finalName });
