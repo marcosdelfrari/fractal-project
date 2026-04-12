@@ -9,6 +9,7 @@ import {
   formatCategoryName,
 } from "../../../../../utils/categoryFormating";
 import apiClient from "@/lib/api";
+import config from "@/lib/config";
 import { sanitizeFormData } from "@/lib/form-sanitize";
 import {
   FaEdit,
@@ -42,8 +43,21 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const router = useRouter();
-  const getImageSrc = (imageName?: string) =>
-    imageName ? `/${imageName}` : "/product_placeholder.jpg";
+  /** Imagens enviadas ficam no disco da API (Railway); não em `public` da Vercel. */
+  const getImageSrc = (imageName?: string) => {
+    if (!imageName) return "/product_placeholder.jpg";
+    const s = String(imageName).trim();
+    if (
+      s.startsWith("http://") ||
+      s.startsWith("https://") ||
+      s.startsWith("data:")
+    ) {
+      return s;
+    }
+    const base = config.apiBaseUrl.replace(/\/+$/, "");
+    const pathPart = s.startsWith("/") ? s : `/${s}`;
+    return `${base}${pathPart}`;
+  };
   const getImageBaseName = (index: number) =>
     convertSlugToURLFriendly(product?.slug || product?.title || "produto") +
     `-${index}`;

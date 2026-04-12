@@ -1,3 +1,4 @@
+const { randomUUID } = require("node:crypto");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
@@ -17,6 +18,7 @@ async function createImage(request, response) {
     const { productID, image } = request.body;
     const createImage = await prisma.image.create({
       data: {
+        imageID: randomUUID(),
         productID,
         image,
       },

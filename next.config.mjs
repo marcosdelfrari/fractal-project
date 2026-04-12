@@ -4,6 +4,19 @@ const apiOrigin = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:300
   "",
 );
 
+let apiImageRemotePattern = null;
+try {
+  const u = new URL(apiOrigin);
+  apiImageRemotePattern = {
+    protocol: u.protocol.replace(":", "") === "https" ? "https" : "http",
+    hostname: u.hostname,
+    ...(u.port ? { port: u.port } : { port: "" }),
+    pathname: "/**",
+  };
+} catch {
+  /* ignore */
+}
+
 const nextConfig = {
     async redirects() {
       return [
@@ -23,6 +36,7 @@ const nextConfig = {
             hostname: 'placehold.co',
             port: ""
           },
+          ...(apiImageRemotePattern ? [apiImageRemotePattern] : []),
         ],
       },
     env: {

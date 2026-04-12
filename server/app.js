@@ -51,6 +51,7 @@ const {
 } = require("./middleware/advancedRateLimiter");
 
 const { handleServerError } = require("./utills/errorHandler");
+const { ensurePublicDir } = require("./utills/resolvePublicDir");
 
 const app = express();
 
@@ -156,6 +157,9 @@ app.use("/api/wishlist", wishlistRouter);
 app.use("/api/addresses", addressesRouter);
 app.use("/api/reviews", reviewsRouter);
 app.use("/api/settings", settingsRouter);
+
+/** Arquivos gravados por POST /api/main-image (e estáticos do mesmo diretório `public`). */
+app.use(express.static(ensurePublicDir()));
 
 console.log("✅ All routes mounted successfully");
 
